@@ -1,0 +1,127 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+*.test.js.snap
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.tsbuildinfo
+next-env.d.ts
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local env files
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# SQLite Database (local development)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+database/crm.db
+database/*.db
+
+# Logs
+logs
+*.log
+
+# OS Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# IDE and Editor
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Lock files (keep only pnpm-lock.yaml as you're using pnpm)
+package-lock.json
+yarn.lock
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
+
+# Build outputs
+*.js.map
+*.d.ts.map
+
+# Environment and secrets
+.env.backup
+secrets/
+*.pem
+*.key
+*.cert
+
+# Misc
+.turbo
+*.tgz
+.npm
+.eslintcache
+.stylelintcache
+.yarn/
+.pnpm-store/
+
+# PDF and generated files (if temporary)
+# Uncomment if you don't want to track generated PDFs
+# *.pdf
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Testing
+.jest-cache/
+jest-results.json
+

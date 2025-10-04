@@ -1,0 +1,233 @@
+{
+  "primaria": {
+    "1_primaria": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Ciencias de la Naturaleza",
+      "Ciencias Sociales",
+      "Educación Artística",
+      "Educación Física",
+      "Religión/Valores Sociales y Cívicos",
+      "Inglés"
+    ],
+    "2_primaria": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Ciencias de la Naturaleza",
+      "Ciencias Sociales",
+      "Educación Artística",
+      "Educación Física",
+      "Religión/Valores Sociales y Cívicos",
+      "Inglés"
+    ],
+    "3_primaria": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Ciencias de la Naturaleza",
+      "Ciencias Sociales",
+      "Educación Artística",
+      "Educación Física",
+      "Religión/Valores Sociales y Cívicos",
+      "Inglés"
+    ],
+    "4_primaria": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Ciencias de la Naturaleza",
+      "Ciencias Sociales",
+      "Educación Artística",
+      "Educación Física",
+      "Religión/Valores Sociales y Cívicos",
+      "Inglés"
+    ],
+    "5_primaria": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Ciencias de la Naturaleza",
+      "Ciencias Sociales",
+      "Educación Artística",
+      "Educación Física",
+      "Religión/Valores Sociales y Cívicos",
+      "Inglés"
+    ],
+    "6_primaria": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Ciencias de la Naturaleza",
+      "Ciencias Sociales",
+      "Educación Artística",
+      "Educación Física",
+      "Religión/Valores Sociales y Cívicos",
+      "Inglés"
+    ]
+  },
+  "secundaria": {
+    "1_eso": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Geografía e Historia",
+      "Biología y Geología",
+      "Física y Química",
+      "Educación Plástica, Visual y Audiovisual",
+      "Música",
+      "Educación Física",
+      "Religión/Valores Éticos",
+      "Primera Lengua Extranjera (Inglés)",
+      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Tecnología y Digitalización",
+      "Tutoría"
+    ],
+    "2_eso": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Geografía e Historia",
+      "Biología y Geología",
+      "Física y Química",
+      "Educación Plástica, Visual y Audiovisual",
+      "Música",
+      "Educación Física",
+      "Religión/Valores Éticos",
+      "Primera Lengua Extranjera (Inglés)",
+      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Tecnología y Digitalización",
+      "Tutoría"
+    ],
+    "3_eso": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Geografía e Historia",
+      "Biología y Geología",
+      "Física y Química",
+      "Educación Plástica, Visual y Audiovisual",
+      "Música",
+      "Educación Física",
+      "Religión/Valores Éticos",
+      "Primera Lengua Extranjera (Inglés)",
+      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Tecnología y Digitalización",
+      "Tutoría"
+    ],
+    "4_eso": [
+      "Lengua Castellana y Literatura",
+      "Matemáticas",
+      "Geografía e Historia",
+      "Biología y Geología",
+      "Física y Química",
+      "Educación Plástica, Visual y Audiovisual",
+      "Música",
+      "Educación Física",
+      "Religión/Valores Éticos",
+      "Primera Lengua Extranjera (Inglés)",
+      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Tecnología y Digitalización",
+      "Tutoría"
+    ]
+  },
+  "bachillerato": {
+    "1_bachillerato": {
+      "ciencias": [
+        "Lengua Castellana y Literatura I",
+        "Matemáticas I",
+        "Física y Química",
+        "Biología y Geología",
+        "Dibujo Técnico I",
+        "Tecnología e Ingeniería I",
+        "Primera Lengua Extranjera I (Inglés)",
+        "Segunda Lengua Extranjera I (Francés/Alemán)",
+        "Religión/Valores Éticos",
+        "Educación Física",
+        "Tutoría"
+      ],
+      "humanidades": [
+        "Lengua Castellana y Literatura I",
+        "Matemáticas Aplicadas a las Ciencias Sociales I",
+        "Historia del Mundo Contemporáneo",
+        "Latín I",
+        "Griego I",
+        "Economía",
+        "Primera Lengua Extranjera I (Inglés)",
+        "Segunda Lengua Extranjera I (Francés/Alemán)",
+        "Religión/Valores Éticos",
+        "Educación Física",
+        "Tutoría"
+      ],
+      "artes": [
+        "Lengua Castellana y Literatura I",
+        "Matemáticas Aplicadas a las Ciencias Sociales I",
+        "Fundamentos del Arte I",
+        "Cultura Audiovisual",
+        "Dibujo Artístico",
+        "Volumen",
+        "Primera Lengua Extranjera I (Inglés)",
+        "Segunda Lengua Extranjera I (Francés/Alemán)",
+        "Religión/Valores Éticos",
+        "Educación Física",
+        "Tutoría"
+      ]
+    },
+    "2_bachillerato": {
+      "ciencias": [
+        "Lengua Castellana y Literatura II",
+        "Matemáticas II",
+        "Física",
+        "Química",
+        "Biología",
+        "Dibujo Técnico II",
+        "Tecnología e Ingeniería II",
+        "Primera Lengua Extranjera II (Inglés)",
+        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Religión/Valores Éticos",
+        "Tutoría"
+      ],
+      "humanidades": [
+        "Lengua Castellana y Literatura II",
+        "Matemáticas Aplicadas a las Ciencias Sociales II",
+        "Historia de España",
+        "Latín II",
+        "Griego II",
+        "Economía de la Empresa",
+        "Primera Lengua Extranjera II (Inglés)",
+        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Religión/Valores Éticos",
+        "Tutoría"
+      ],
+      "artes": [
+        "Lengua Castellana y Literatura II",
+        "Matemáticas Aplicadas a las Ciencias Sociales II",
+        "Fundamentos del Arte II",
+        "Cultura Audiovisual",
+        "Dibujo Artístico",
+        "Volumen",
+        "Primera Lengua Extranjera II (Inglés)",
+        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Religión/Valores Éticos",
+        "Tutoría"
+      ]
+    }
+  },
+  "idiomas": [
+    "Inglés",
+    "Francés",
+    "Alemán",
+    "Italiano",
+    "Portugués",
+    "Chino",
+    "Japonés",
+    "Ruso",
+    "Árabe"
+  ],
+  "especialidades": [
+    "Refuerzo General",
+    "Técnicas de Estudio",
+    "Preparación de Exámenes",
+    "Apoyo Escolar",
+    "Dificultades de Aprendizaje",
+    "TDAH",
+    "Dislexia",
+    "Discalculia",
+    "Altas Capacidades",
+    "Preparación para Selectividad",
+    "Preparación para Oposiciones",
+    "Preparación para Certificaciones de Idiomas"
+  ]
+}
