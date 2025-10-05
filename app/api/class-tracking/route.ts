@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
         course_id,
         start_date,
         fixed_schedule,
-        courses(name, price, color)
+        has_shared_pricing,
+        courses(name, price, shared_class_price, color)
       `)
     
     if (studentId) {
@@ -149,11 +150,13 @@ export async function GET(request: NextRequest) {
           first_name: student.first_name,
           last_name: student.last_name,
           email: student.email,
-          start_date: student.start_date
+          start_date: student.start_date,
+          has_shared_pricing: student.has_shared_pricing || false
         },
         courses: {
           name: (student.courses as any)?.name || 'Curso no encontrado',
           price: (student.courses as any)?.price || 0,
+          shared_class_price: (student.courses as any)?.shared_class_price || null,
           color: (student.courses as any)?.color || '#000000'
         },
         total_classes_scheduled: classesArray.length,

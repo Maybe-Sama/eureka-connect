@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     console.log('API POST /api/courses llamada') // Log de depuración
     const body = await request.json()
     console.log('Datos recibidos:', body) // Log de depuración
-    const { name, description, subject, price, duration, color, is_active } = body
+    const { name, description, subject, price, shared_class_price, duration, color, is_active } = body
 
     if (!name || !price || !duration || !color) {
       console.log('Faltan campos obligatorios:', { name, price, duration, color }) // Log de depuración
@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       description,
       subject,
       price: Number(price),
+      shared_class_price: shared_class_price ? Number(shared_class_price) : null,
       duration: Number(duration),
       color,
       is_active: is_active !== undefined ? Boolean(is_active) : true

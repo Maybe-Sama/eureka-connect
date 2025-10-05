@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Get student info including start_date and fixed_schedule
     const { data: student, error: studentError } = await supabase
       .from('students')
-      .select('first_name, last_name, email, course_id, start_date, fixed_schedule')
+      .select('first_name, last_name, email, course_id, start_date, fixed_schedule, has_shared_pricing')
       .eq('id', studentId)
       .single()
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     // Get course info
     const { data: course, error: courseError } = await supabase
       .from('courses')
-      .select('name, price, color')
+      .select('name, price, shared_class_price, color')
       .eq('id', student.course_id)
       .single()
 
@@ -120,11 +120,13 @@ export async function GET(request: NextRequest) {
         first_name: student.first_name,
         last_name: student.last_name,
         email: student.email,
-        start_date: student.start_date
+        start_date: student.start_date,
+        has_shared_pricing: student.has_shared_pricing || false
       },
       courses: {
         name: course.name,
         price: course.price,
+        shared_class_price: course.shared_class_price || null,
         color: course.color
       }
     }))

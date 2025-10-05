@@ -38,6 +38,7 @@ interface Course {
   id: number
   name: string
   price: number
+  shared_class_price?: number
   color: string
   is_active: boolean
 }
@@ -54,10 +55,12 @@ interface Student {
   course_id: number
   course_name: string
   course_price: number
+  course_shared_price?: number
   course_color: string
   student_code: string
   fixed_schedule?: string
   start_date: string
+  has_shared_pricing?: boolean
   // Campos fiscales para facturación RRSIF
   dni?: string
   nif?: string
@@ -139,6 +142,7 @@ const StudentsPage = () => {
         student_code: studentData.student_code,
         fixed_schedule: studentData.fixed_schedule,
         start_date: studentData.start_date,
+        has_shared_pricing: studentData.has_shared_pricing,
         schedule: studentData.schedule,
         // Datos fiscales
         dni: studentData.dni,
@@ -215,7 +219,10 @@ const StudentsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedStudent),
+        body: JSON.stringify({
+          ...updatedStudent,
+          has_shared_pricing: updatedStudent.has_shared_pricing
+        }),
       })
 
       if (!response.ok) {
@@ -389,6 +396,11 @@ interface StudentCardProps {
 
 // Helper function to calculate monthly income for a specific student
 const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
+  // Determine which price to use
+  const pricePerHour = student.has_shared_pricing && student.course_shared_price 
+    ? student.course_shared_price 
+    : student.course_price || 0
+  
   // If student has a fixed schedule, calculate based on that
   if (student.fixed_schedule) {
     try {
@@ -411,9 +423,9 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
         }, 0)
         
         // Calculate monthly income: weekly hours * course price * 4 weeks
-        const monthlyIncome = weeklyHours * (student.course_price || 0) * 4
+        const monthlyIncome = weeklyHours * pricePerHour * 4
         
-        console.log(`Fixed schedule calculation for ${student.first_name}: ${weeklyHours}h/week × €${student.course_price || 0} × 4 weeks = €${monthlyIncome}`)
+        console.log(`Fixed schedule calculation for ${student.first_name}: ${weeklyHours}h/week × €${pricePerHour} × 4 weeks = €${monthlyIncome}`)
         
         return monthlyIncome
       }
@@ -440,9 +452,10 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
   }, 0)
   
   // Calculate monthly income: weekly hours * course price * 4 weeks
-  const monthlyIncome = weeklyHours * (student.course_price || 0) * 4
+  // (pricePerHour was already defined at the start of the function)
+  const monthlyIncome = weeklyHours * pricePerHour * 4
   
-  console.log(`Class-based calculation for ${student.first_name}: ${weeklyHours}h/week × €${student.course_price || 0} × 4 weeks = €${monthlyIncome}`)
+  console.log(`Class-based calculation for ${student.first_name}: ${weeklyHours}h/week × €${pricePerHour} × 4 weeks = €${monthlyIncome}`)
   
   return monthlyIncome
 }
@@ -558,7 +571,16 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
     <div className="flex justify-between items-center pt-3 border-t border-border">
       <div>
         <p className="text-sm text-foreground-muted">Precio / hora</p>
-        <p className="text-lg font-bold text-foreground">€{(student.course_price || 0).toFixed(2)}</p>
+        <p className="text-lg font-bold text-foreground">
+          €{(student.has_shared_pricing && student.course_shared_price 
+            ? student.course_shared_price 
+            : student.course_price || 0).toFixed(2)}
+        </p>
+        {student.has_shared_pricing && (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-info/20 text-info border border-info/30 mt-1">
+            Clase Compartida
+          </span>
+        )}
       </div>
       <div>
         <p className="text-sm text-foreground-muted">Ingreso mensual</p>
@@ -587,6 +609,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
     parentContactType: 'padre',
     courseId: '',
     startDate: '',
+    hasSharedPricing: false,
     // Campos fiscales
     dni: '',
     nif: '',
@@ -634,6 +657,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       student_code: studentCode,
       fixed_schedule: selectedSchedule.length > 0 ? JSON.stringify(selectedSchedule) : undefined,
       start_date: formData.startDate,
+      has_shared_pricing: formData.hasSharedPricing,
       // Campos fiscales
       dni: formData.dni || undefined,
       nif: formData.nif || undefined,
@@ -660,6 +684,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       parentContactType: 'padre',
       courseId: '',
       startDate: '',
+      hasSharedPricing: false,
       // Campos fiscales
       dni: '',
       nif: '',
@@ -805,9 +830,37 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                     {courses.filter(c => c.is_active).map(course => (
                       <option key={course.id} value={course.id}>
                         {course.name} - €{course.price}/hora
+                        {course.shared_class_price && ` (Compartida: €${course.shared_class_price}/hora)`}
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="mt-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasSharedPricing}
+                      onChange={(e) => setFormData({ ...formData, hasSharedPricing: e.target.checked })}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium text-foreground">
+                      Este alumno tiene precio de clase compartida
+                    </span>
+                  </label>
+                  {formData.hasSharedPricing && formData.courseId && (
+                    <div className="mt-2 p-3 bg-info/10 border border-info/20 rounded-lg">
+                      <p className="text-xs text-info">
+                        {(() => {
+                          const selectedCourse = courses.find(c => c.id.toString() === formData.courseId)
+                          if (selectedCourse?.shared_class_price) {
+                            return `✓ Precio aplicado: €${selectedCourse.shared_class_price}/hora (en lugar de €${selectedCourse.price}/hora)`
+                          }
+                          return '⚠️ El curso seleccionado no tiene un precio de clase compartida configurado. Se usará el precio normal.'
+                        })()}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Sección de Datos Fiscales Completamente Unificados */}
@@ -1038,6 +1091,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
     parentContactType: student.parent_contact_type || 'padre',
     courseId: student.course_id.toString(),
     startDate: student.start_date || '',
+    hasSharedPricing: student.has_shared_pricing || false,
     // Campos fiscales
     dni: student.dni || '',
     nif: student.nif || '',
@@ -1153,6 +1207,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       course_id: Number(formData.courseId),
       student_code: student.student_code,
       start_date: formData.startDate,
+      has_shared_pricing: formData.hasSharedPricing,
       // Campos fiscales
       dni: formData.dni || undefined,
       nif: formData.nif || undefined,
@@ -1180,6 +1235,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       parentContactType: student.parent_contact_type || 'padre',
       courseId: student.course_id.toString(),
       startDate: student.start_date || '',
+      hasSharedPricing: student.has_shared_pricing || false,
       // Campos fiscales
       dni: student.dni || '',
       nif: student.nif || '',
@@ -1323,9 +1379,37 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                     {courses.filter(c => c.is_active).map(course => (
                       <option key={course.id} value={course.id}>
                         {course.name} - €{course.price}/hora
+                        {course.shared_class_price && ` (Compartida: €${course.shared_class_price}/hora)`}
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="mt-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasSharedPricing}
+                      onChange={(e) => setFormData({ ...formData, hasSharedPricing: e.target.checked })}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium text-foreground">
+                      Este alumno tiene precio de clase compartida
+                    </span>
+                  </label>
+                  {formData.hasSharedPricing && formData.courseId && (
+                    <div className="mt-2 p-3 bg-info/10 border border-info/20 rounded-lg">
+                      <p className="text-xs text-info">
+                        {(() => {
+                          const selectedCourse = courses.find(c => c.id.toString() === formData.courseId)
+                          if (selectedCourse?.shared_class_price) {
+                            return `✓ Precio aplicado: €${selectedCourse.shared_class_price}/hora (en lugar de €${selectedCourse.price}/hora)`
+                          }
+                          return '⚠️ El curso seleccionado no tiene un precio de clase compartida configurado. Se usará el precio normal.'
+                        })()}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Sección de Datos Fiscales Completamente Unificados */}

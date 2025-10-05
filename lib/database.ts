@@ -80,6 +80,7 @@ export const dbOperations = {
           id,
           name,
           price,
+          shared_class_price,
           color
         )
       `)
@@ -94,6 +95,7 @@ export const dbOperations = {
       ...student,
       course_name: student.courses?.name || 'Curso no encontrado',
       course_price: student.courses?.price || 0,
+      course_shared_price: student.courses?.shared_class_price || null,
       course_color: student.courses?.color || '#6366f1' // Color por defecto si no hay curso
     }))
   },
@@ -107,6 +109,7 @@ export const dbOperations = {
           id,
           name,
           price,
+          shared_class_price,
           color
         )
       `)
@@ -124,6 +127,7 @@ export const dbOperations = {
       ...data,
       course_name: data.courses?.name || 'Curso no encontrado',
       course_price: data.courses?.price || 0,
+      course_shared_price: data.courses?.shared_class_price || null,
       course_color: data.courses?.color || '#000000'
     }
   },
@@ -189,6 +193,7 @@ export const dbOperations = {
           birth_date,
           course_id,
           student_code,
+          has_shared_pricing,
           receptor_nombre,
           receptor_apellidos,
           receptor_email,
@@ -200,6 +205,7 @@ export const dbOperations = {
           name,
           description,
           price,
+          shared_class_price,
           duration,
           color,
           is_active,

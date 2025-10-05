@@ -13,6 +13,7 @@ interface Course {
   description?: string
   subject?: string
   price: number
+  shared_class_price?: number
   duration: number
   color: string
   is_active: boolean
@@ -259,6 +260,9 @@ const CourseCard = ({ course, onEdit, onDelete }: CourseCardProps) => (
       <div>
         <p className="text-sm text-foreground-muted">Precio / hora</p>
         <p className="text-lg font-bold text-foreground">€{course.price.toFixed(2)}</p>
+        {course.shared_class_price && (
+          <p className="text-xs text-foreground-muted">Compartida: €{course.shared_class_price.toFixed(2)}</p>
+        )}
       </div>
       <div>
         <p className="text-sm text-foreground-muted">Duración</p>
@@ -292,6 +296,7 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
       description: '',
       subject: '',
       price: 0,
+      shared_class_price: 0,
       duration: 60,
       color: '#6366f1',
       is_active: true,
@@ -316,6 +321,7 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
         description: '',
         subject: '',
         price: 0,
+        shared_class_price: 0,
         duration: 60,
         color: '#6366f1',
         is_active: true,
@@ -378,6 +384,24 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
                 step="0.01"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Precio Clase Compartida (€)
+                <span className="text-xs text-foreground-muted ml-1">(opcional)</span>
+              </label>
+              <input
+                type="number"
+                name="shared_class_price"
+                value={formData.shared_class_price || ''}
+                onChange={handleChange}
+                placeholder="Precio reducido para clases compartidas"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Duración (min)</label>
               <input

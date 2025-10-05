@@ -26,7 +26,7 @@ export async function PUT(
     const body = await request.json()
     const { 
       first_name, last_name, email, birth_date, phone, parent_phone, parent_contact_type, 
-      course_id, schedule, fixed_schedule, start_date,
+      course_id, schedule, fixed_schedule, start_date, has_shared_pricing,
       // Fiscal data fields
       dni, nif, address, postal_code, city, province, country,
       // Receptor data fields
@@ -172,6 +172,7 @@ export async function PUT(
       course_id: Number(course_id),
       fixed_schedule,
       start_date,
+      has_shared_pricing: has_shared_pricing !== undefined ? has_shared_pricing : false,
       // Fiscal data fields
       dni,
       nif,
@@ -212,7 +213,7 @@ export async function PUT(
         const allClasses = await dbOperations.getAllClasses()
         const existingClasses = allClasses.filter(cls => cls.student_id === Number(params.id))
         
-        console.log(`Deleting ${existingClasses.length} existing classes for student ${params.id}`)
+        console.log(`🔄 Updating classes for student ${params.id}: ${existingClasses.length} existing → regenerating...`)
         for (const cls of existingClasses) {
           await dbOperations.deleteClass(cls.id)
         }
@@ -231,12 +232,12 @@ export async function PUT(
           for (const classData of generatedClasses) {
             await dbOperations.createClass(classData)
           }
-          console.log(`Created ${generatedClasses.length} new classes for student ${params.id}`)
+          console.log(`✅ Student ${params.id}: Created ${generatedClasses.length} classes`)
         } else {
-          console.log(`No classes generated for student ${params.id} - check schedule format`)
+          console.log(`⚠️ No classes generated for student ${params.id}`)
         }
       } catch (error) {
-        console.error(`Error updating classes for student ${params.id}:`, error)
+        console.error(`❌ Error updating classes for student ${params.id}:`, error)
         // Don't fail the student update if class generation fails
         // The student information is already updated successfully
       }

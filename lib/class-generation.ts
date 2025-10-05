@@ -119,10 +119,22 @@ export async function generateClassesFromStartDate(
 
   const classes: any[] = []
   
-  // Get course price (with caching potential)
+  // Get student info to check if they have shared pricing
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('has_shared_pricing')
+    .eq('id', studentId)
+    .single()
+  
+  if (studentError || !student) {
+    console.error('Error fetching student info:', studentError)
+    return classes
+  }
+  
+  // Get course price and shared_class_price
   const { data: course, error: courseError } = await supabase
     .from('courses')
-    .select('price')
+    .select('price, shared_class_price')
     .eq('id', courseId)
     .single()
   
@@ -131,11 +143,18 @@ export async function generateClassesFromStartDate(
     return classes
   }
 
+  // Determine which price to use based on student's pricing type
+  const pricePerHour = student.has_shared_pricing && course.shared_class_price
+    ? course.shared_class_price
+    : course.price
+
   // Validate course price
-  if (typeof course.price !== 'number' || course.price < 0) {
+  if (typeof pricePerHour !== 'number' || pricePerHour < 0) {
     console.error('Invalid course price')
     return classes
   }
+  
+  console.log(`Using ${student.has_shared_pricing ? 'shared' : 'normal'} pricing for student ${studentId}: €${pricePerHour}/hour`)
   
   // Generate classes for each time slot
   for (const timeSlot of fixedSchedule) {
@@ -171,7 +190,7 @@ export async function generateClassesFromStartDate(
         break
       }
 
-      const price = (duration / 60) * course.price
+      const price = (duration / 60) * pricePerHour
       
       classes.push({
         student_id: studentId,

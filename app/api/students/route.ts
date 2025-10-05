@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     console.log('Received student data:', body)
     const { 
       first_name, last_name, email, birth_date, phone, parent_phone, parent_contact_type, 
-      course_id, student_code, fixed_schedule, start_date, schedule,
+      course_id, student_code, fixed_schedule, start_date, schedule, has_shared_pricing,
       // Fiscal data fields
       dni, nif, address, postal_code, city, province, country,
       // Receptor data fields
@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
       student_code,
       fixed_schedule,
       start_date,
+      has_shared_pricing: has_shared_pricing || false,
       // Fiscal data fields
       dni,
       nif,

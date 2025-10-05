@@ -23,10 +23,12 @@ interface ClassTrackingData {
     first_name: string
     last_name: string
     email: string
+    has_shared_pricing?: boolean
   }
   courses: {
     name: string
     price: number
+    shared_class_price?: number
     color: string
   }
   total_classes_scheduled: number
@@ -112,7 +114,16 @@ export const ClassTrackingCard = ({ data, onClick }: ClassTrackingCardProps) => 
         </div>
         <div className="flex items-center space-x-2">
           <Euro size={16} className="text-foreground-muted" />
-          <span className="text-sm text-foreground-muted">€{data.courses.price}/hora</span>
+          <span className="text-sm text-foreground-muted">
+            €{(data.students.has_shared_pricing && data.courses.shared_class_price 
+              ? data.courses.shared_class_price 
+              : data.courses.price)}/hora
+          </span>
+          {data.students.has_shared_pricing && (
+            <span className="text-xs px-2 py-0.5 bg-info/20 text-info rounded-full">
+              Compartida
+            </span>
+          )}
         </div>
       </div>
 

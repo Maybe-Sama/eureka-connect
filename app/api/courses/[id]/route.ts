@@ -23,7 +23,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
-    const { name, description, subject, price, duration, color, is_active } = body
+    const { name, description, subject, price, shared_class_price, duration, color, is_active } = body
 
     if (!name || !price || !duration || !color) {
       return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
@@ -34,6 +34,7 @@ export async function PUT(
       description,
       subject,
       price: Number(price),
+      shared_class_price: shared_class_price ? Number(shared_class_price) : null,
       duration: Number(duration),
       color,
       is_active: Boolean(is_active)

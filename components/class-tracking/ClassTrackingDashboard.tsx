@@ -37,10 +37,12 @@ interface ClassTrackingData {
     first_name: string
     last_name: string
     email: string
+    has_shared_pricing?: boolean
   }
   courses: {
     name: string
     price: number
+    shared_class_price?: number
     color: string
   }
   total_classes_scheduled: number
