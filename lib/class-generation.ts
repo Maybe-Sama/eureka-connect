@@ -1,10 +1,31 @@
 import { supabase } from '@/lib/supabase'
 
-// Helper function to get next occurrence of a day of week from a specific date
+/**
+ * Get the next occurrence of a specific day of week from a given date
+ * 
+ * IMPORTANT: This function finds the NEXT occurrence, not including the start date itself
+ * unless the start date happens to be the target day of week.
+ * 
+ * @param dayOfWeek - Day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+ * @param fromDate - Start date in YYYY-MM-DD format
+ * @returns Next occurrence date in YYYY-MM-DD format
+ * 
+ * Example:
+ * - If fromDate is Tuesday (2025-09-16) and dayOfWeek is 0 (Sunday)
+ *   -> Returns 2025-09-21 (next Sunday)
+ * - If fromDate is Sunday (2025-09-21) and dayOfWeek is 0 (Sunday)
+ *   -> Returns 2025-09-21 (same day, as it matches)
+ */
 export function getNextOccurrenceFromDate(dayOfWeek: number, fromDate: string): string {
   const startDate = new Date(fromDate)
   const currentDay = startDate.getDay()
-  const daysUntilTarget = (dayOfWeek - currentDay + 7) % 7
+  
+  // Calculate days until target day
+  let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7
+  
+  // If the result is 0, it means we're already on the target day
+  // In this case, use the current date (don't skip to next week)
+  
   const targetDate = new Date(startDate)
   targetDate.setDate(startDate.getDate() + daysUntilTarget)
   return targetDate.toISOString().split('T')[0]
@@ -25,8 +46,33 @@ export function timeToMinutes(time: string): number {
 }
 
 /**
- * Generate all classes from start date to end date for a student
- * Optimized version with better error handling and validation
+ * SOURCE OF TRUTH: Class Generation Function
+ * 
+ * This is the PRIMARY and ONLY function for generating classes from student schedules.
+ * All other class generation functionality should use this function.
+ * 
+ * Features:
+ * - Complete database integration
+ * - Proper pricing calculation
+ * - Comprehensive validation
+ * - Status and payment fields
+ * - Duplicate prevention
+ * - Error handling
+ * 
+ * Used by:
+ * - POST /api/students (student creation)
+ * - PUT /api/students/[id] (student updates)
+ * - POST /api/class-tracking/generate-missing-classes
+ * - POST /api/class-tracking/generate-weekly-classes
+ * - scripts/fix-class-tracking-issues.js
+ * - scripts/diagnose-class-tracking-issues.js
+ * 
+ * @param studentId - The ID of the student
+ * @param courseId - The ID of the course
+ * @param fixedSchedule - Array of time slots for the student
+ * @param startDate - Start date for class generation (YYYY-MM-DD)
+ * @param endDate - End date for class generation (YYYY-MM-DD)
+ * @returns Promise<ClassData[]> - Array of generated class data
  */
 export async function generateClassesFromStartDate(
   studentId: number,
@@ -104,6 +150,9 @@ export async function generateClassesFromStartDate(
       continue
     }
 
+    // Convert day_of_week from 0-6 (Sunday-Saturday) to 1-7 (Monday-Sunday) for database
+    const dbDayOfWeek = timeSlot.day_of_week === 0 ? 7 : timeSlot.day_of_week
+
     if (!timeSlot.start_time || !timeSlot.end_time) {
       console.warn('Missing start_time or end_time, skipping:', timeSlot)
       continue
@@ -127,7 +176,7 @@ export async function generateClassesFromStartDate(
       classes.push({
         student_id: studentId,
         course_id: courseId,
-        day_of_week: timeSlot.day_of_week,
+        day_of_week: dbDayOfWeek, // Use converted day_of_week
         date: currentDate,
         start_time: timeSlot.start_time,
         end_time: timeSlot.end_time,

@@ -1,6 +1,10 @@
 /**
- * Script de Corrección Simplificado del Sistema de Seguimiento de Clases
- * Regenera clases faltantes usando directamente Supabase
+ * @deprecated OBSOLETE - Use scripts/fix-class-tracking-issues.js instead
+ * 
+ * This script has custom implementation that's outdated and lacks proper integration.
+ * It doesn't use the official generateClassesFromStartDate function.
+ * 
+ * @see scripts/fix-class-tracking-issues.js - Source of truth for correction scripts
  */
 
 const { createClient } = require('@supabase/supabase-js')

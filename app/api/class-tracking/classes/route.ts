@@ -42,13 +42,39 @@ export async function GET(request: NextRequest) {
     // CRITICAL: Always use student's start_date as the absolute minimum
     const startDate = student.start_date
 
-    // Show all classes from student's start date to today
+    // Calculate date range based on month parameter
+    // If month is provided (YYYY-MM format), filter by that month
+    // Otherwise, show all classes from start_date to today
+    let queryStartDate = startDate
+    let queryEndDate = today
+
+    if (monthYear && monthYear.match(/^\d{4}-\d{2}$/)) {
+      // Parse month year (YYYY-MM)
+      const [year, month] = monthYear.split('-').map(Number)
+      
+      // First day of the month
+      const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
+      
+      // Last day of the month (using UTC to avoid timezone issues)
+      const nextMonth = month === 12 ? 1 : month + 1
+      const nextYear = month === 12 ? year + 1 : year
+      const lastDayOfMonth = new Date(Date.UTC(nextYear, nextMonth - 1, 0)).getUTCDate()
+      const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
+      
+      // Use the later of: student's start_date OR first day of month
+      queryStartDate = startDate > monthStart ? startDate : monthStart
+      
+      // Use the earlier of: today OR last day of month
+      queryEndDate = today < monthEnd ? today : monthEnd
+    }
+
+    // Show classes within the calculated date range
     let query = supabase
       .from('classes')
       .select('*')
       .eq('student_id', studentId)
-      .gte('date', startDate)
-      .lte('date', today)
+      .gte('date', queryStartDate)
+      .lte('date', queryEndDate)
       .order('date', { ascending: false })
       .order('start_time')
     
@@ -67,7 +93,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al obtener las clases del estudiante' }, { status: 500 })
     }
 
-    console.log(`Found ${classes?.length || 0} classes for student ${studentId} from ${startDate} to ${today}`)
+    console.log(`Found ${classes?.length || 0} classes for student ${studentId} from ${queryStartDate} to ${queryEndDate}`)
 
     // Get course info
     const { data: course, error: courseError } = await supabase

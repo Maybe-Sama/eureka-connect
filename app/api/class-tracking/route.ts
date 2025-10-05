@@ -49,17 +49,30 @@ export async function GET(request: NextRequest) {
 
     // For each student, get their classes and calculate stats
     const trackingData = []
+    let skippedStudents = []
     
     for (const student of students) {
       // Validate student has required fields
       if (!student.start_date || !student.fixed_schedule) {
-        console.warn(`Skipping student ${student.id}: missing start_date or fixed_schedule`)
+        console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): missing start_date or fixed_schedule`)
+        skippedStudents.push({
+          id: student.id,
+          name: `${student.first_name} ${student.last_name}`,
+          course: (student.courses as any)?.name || 'Sin curso',
+          reason: 'missing start_date or fixed_schedule'
+        })
         continue
       }
 
       // Skip students with future start dates
       if (student.start_date > today) {
-        console.warn(`Skipping student ${student.id}: start_date is in the future`)
+        console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): start_date is in the future (${student.start_date})`)
+        skippedStudents.push({
+          id: student.id,
+          name: `${student.first_name} ${student.last_name}`,
+          course: (student.courses as any)?.name || 'Sin curso',
+          reason: `start_date in future: ${student.start_date}`
+        })
         continue
       }
       
@@ -71,70 +84,61 @@ export async function GET(request: NextRequest) {
           : student.fixed_schedule
         
         if (!Array.isArray(fixedSchedule) || fixedSchedule.length === 0) {
-          console.warn(`Skipping student ${student.id}: invalid or empty fixed_schedule`)
+          console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): invalid or empty fixed_schedule`)
+          skippedStudents.push({
+            id: student.id,
+            name: `${student.first_name} ${student.last_name}`,
+            course: (student.courses as any)?.name || 'Sin curso',
+            reason: 'invalid or empty fixed_schedule'
+          })
           continue
         }
       } catch (error) {
-        console.error(`Skipping student ${student.id}: error parsing fixed_schedule`, error)
+        console.error(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): error parsing fixed_schedule`, error)
+        skippedStudents.push({
+          id: student.id,
+          name: `${student.first_name} ${student.last_name}`,
+          course: (student.courses as any)?.name || 'Sin curso',
+          reason: 'error parsing fixed_schedule'
+        })
         continue
       }
 
-      // Calculate date range for queries
-      // IMPORTANT: Use student's start_date as the absolute minimum, not the month start
-      const monthStartDate = new Date(`${monthYear}-01`)
-      const studentStartDate = new Date(student.start_date)
-      const queryStartDate = studentStartDate > monthStartDate 
-        ? student.start_date 
-        : `${monthYear}-01`
+      // Calculate date range for the selected month
+      // Parse month year (YYYY-MM)
+      const [year, month] = monthYear.split('-').map(Number)
       
-      // Query classes from the calculated start date to today
+      // First day of the month
+      const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
+      
+      // Last day of the month (using UTC to avoid timezone issues)
+      const nextMonth = month === 12 ? 1 : month + 1
+      const nextYear = month === 12 ? year + 1 : year
+      const lastDayOfMonth = new Date(Date.UTC(nextYear, nextMonth - 1, 0)).getUTCDate()
+      const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
+      
+      // Use the later of: student's start_date OR first day of month
+      const queryStartDate = student.start_date > monthStart ? student.start_date : monthStart
+      
+      // Use the earlier of: today OR last day of month
+      const queryEndDate = today < monthEnd ? today : monthEnd
+      
+      // Query classes ONLY for the selected month
       const { data: classes, error: classesError } = await supabase
         .from('classes')
         .select('*')
         .eq('student_id', student.id)
         .gte('date', queryStartDate)
-        .lte('date', today)
+        .lte('date', queryEndDate)
 
       if (classesError) {
         console.error(`Error fetching classes for student ${student.id}:`, classesError)
         continue
       }
 
-      let classesArray = classes || []
-      
-      // Generate missing classes from student's start date (not just this month)
-      try {
-        // Generate all classes from start date to today
-        const generatedClasses = await generateClassesFromStartDate(
-          student.id, 
-          student.course_id, 
-          fixedSchedule, 
-          student.start_date, 
-          today
-        )
-        
-        // Merge with existing classes, avoiding duplicates
-        const existingClassKeys = new Set(
-          classesArray.map(cls => `${cls.date}-${cls.start_time}-${cls.end_time}`)
-        )
-        
-        const newClasses = generatedClasses.filter(genClass => 
-          !existingClassKeys.has(`${genClass.date}-${genClass.start_time}-${genClass.end_time}`)
-        )
-        
-        // Only merge classes that fall within the query date range
-        const newClassesInRange = newClasses.filter(cls => 
-          cls.date >= queryStartDate && cls.date <= today
-        )
-        
-        classesArray = [...classesArray, ...newClassesInRange]
-        
-        if (newClassesInRange.length > 0) {
-          console.log(`Generated ${newClassesInRange.length} missing classes for student ${student.id}`)
-        }
-      } catch (error) {
-        console.error(`Error generating classes for student ${student.id}:`, error)
-      }
+      // Use only existing classes from database
+      // DO NOT generate classes here - that should only happen when user clicks "Update Classes"
+      const classesArray = classes || []
       
       // Calculate statistics
       const stats = {
@@ -169,20 +173,32 @@ export async function GET(request: NextRequest) {
         eventual_classes_unpaid: classesArray.filter(c => !c.is_recurring && c.payment_status === 'unpaid').length,
       }
 
-      // Calculate earnings
-      const completedClasses = classesArray.filter(c => c.status === 'completed')
-      const totalEarned = completedClasses.reduce((sum, c) => sum + (c.price || 0), 0)
-      const totalPaid = completedClasses.filter(c => c.payment_status === 'paid').reduce((sum, c) => sum + (c.price || 0), 0)
+      // Calculate earnings based on NON-CANCELLED classes
+      // Total earned = sum of prices for scheduled and completed classes (NOT cancelled)
+      const nonCancelledClasses = classesArray.filter(c => c.status !== 'cancelled')
+      const totalEarned = nonCancelledClasses.reduce((sum, c) => sum + (c.price || 0), 0)
+      
+      // Total paid = sum of prices for non-cancelled classes marked as 'paid'
+      const totalPaid = nonCancelledClasses
+        .filter(c => c.payment_status === 'paid')
+        .reduce((sum, c) => sum + (c.price || 0), 0)
+      
       const totalUnpaid = totalEarned - totalPaid
 
-      const recurringCompleted = completedClasses.filter(c => c.is_recurring)
-      const recurringEarned = recurringCompleted.reduce((sum, c) => sum + (c.price || 0), 0)
-      const recurringPaid = recurringCompleted.filter(c => c.payment_status === 'paid').reduce((sum, c) => sum + (c.price || 0), 0)
+      // Recurring earnings (excluding cancelled)
+      const recurringClasses = classesArray.filter(c => c.is_recurring && c.status !== 'cancelled')
+      const recurringEarned = recurringClasses.reduce((sum, c) => sum + (c.price || 0), 0)
+      const recurringPaid = recurringClasses
+        .filter(c => c.payment_status === 'paid')
+        .reduce((sum, c) => sum + (c.price || 0), 0)
       const recurringUnpaid = recurringEarned - recurringPaid
 
-      const eventualCompleted = completedClasses.filter(c => !c.is_recurring)
-      const eventualEarned = eventualCompleted.reduce((sum, c) => sum + (c.price || 0), 0)
-      const eventualPaid = eventualCompleted.filter(c => c.payment_status === 'paid').reduce((sum, c) => sum + (c.price || 0), 0)
+      // Eventual earnings (excluding cancelled)
+      const eventualClasses = classesArray.filter(c => !c.is_recurring && c.status !== 'cancelled')
+      const eventualEarned = eventualClasses.reduce((sum, c) => sum + (c.price || 0), 0)
+      const eventualPaid = eventualClasses
+        .filter(c => c.payment_status === 'paid')
+        .reduce((sum, c) => sum + (c.price || 0), 0)
       const eventualUnpaid = eventualEarned - eventualPaid
 
       trackingData.push({
@@ -200,6 +216,14 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`Returning ${trackingData.length} students with tracking data`)
+    
+    if (skippedStudents.length > 0) {
+      console.warn(`⚠️ Skipped ${skippedStudents.length} students:`)
+      skippedStudents.forEach(s => {
+        console.warn(`  - ${s.name} (${s.course}): ${s.reason}`)
+      })
+    }
+    
     return NextResponse.json(trackingData)
   } catch (error) {
     console.error('Error fetching class tracking:', error)

@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbOperations } from '@/lib/database'
 import { supabase } from '@/lib/supabase'
 
+/**
+ * @deprecated OBSOLETE - Use app/api/class-tracking/generate-missing-classes instead
+ * 
+ * This endpoint has limited functionality and uses outdated patterns.
+ * It only generates next occurrence classes, not the full range from start_date to today.
+ * 
+ * @see app/api/class-tracking/generate-missing-classes - Source of truth for class generation
+ */
 export async function POST() {
   try {
     console.log('🔄 Iniciando refresco de clases desde horarios fijos...')

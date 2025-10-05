@@ -17,7 +17,9 @@ import {
   Eye,
   Edit,
   Plus,
-  Search
+  Search,
+  Info,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ClimbingBoxLoader } from '@/components/ui/ClimbingBoxLoader'
@@ -86,6 +88,7 @@ const ClassTrackingDashboard = () => {
   const [trackingData, setTrackingData] = useState<ClassTrackingData[]>([])
   const [monthlyReport, setMonthlyReport] = useState<MonthlyReport | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isUpdatingClasses, setIsUpdatingClasses] = useState(false)
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [selectedStudent, setSelectedStudent] = useState<ClassTrackingData | null>(null)
   const [isClassDetailsOpen, setIsClassDetailsOpen] = useState(false)
@@ -129,8 +132,12 @@ const ClassTrackingDashboard = () => {
 
   const handleGenerateMissingClasses = async () => {
     try {
-      setIsLoading(true)
-      toast.info('Generando clases faltantes... Esto puede tardar unos momentos')
+      setIsUpdatingClasses(true)
+      toast.info('🔄 Generando clases faltantes hasta hoy... Esto puede tardar unos momentos')
+      
+      // Add timeout for long-running operations
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 seconds timeout
       
       const response = await fetch('/api/class-tracking/generate-missing-classes', {
         method: 'POST',
@@ -138,21 +145,35 @@ const ClassTrackingDashboard = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({}),
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
       
       if (response.ok) {
         const result = await response.json()
-        toast.success(`✅ ${result.totalClassesCreated} clases generadas para ${result.studentsProcessed} estudiantes`)
+        
+        // Enhanced success message with more details
+        if (result.totalClassesCreated > 0) {
+          toast.success(`✅ ¡Perfecto! Se generaron ${result.totalClassesCreated} clases nuevas para ${result.studentsProcessed} estudiantes hasta hoy`)
+        } else {
+          toast.success(`✅ Verificación completada. Todas las clases están actualizadas hasta hoy (${result.studentsProcessed} estudiantes procesados)`)
+        }
+        
         fetchData() // Refresh data
       } else {
         const error = await response.json()
-        toast.error(`Error: ${error.error || 'No se pudieron generar las clases'}`)
+        toast.error(`❌ Error: ${error.error || 'No se pudieron generar las clases'}`)
       }
     } catch (error) {
-      console.error('Error generating missing classes:', error)
-      toast.error('Error al generar las clases faltantes')
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('⏰ La operación tardó demasiado tiempo. Por favor, inténtalo de nuevo.')
+      } else {
+        console.error('Error generating missing classes:', error)
+        toast.error('❌ Error al generar las clases faltantes. Verifica la conexión e inténtalo de nuevo.')
+      }
     } finally {
-      setIsLoading(false)
+      setIsUpdatingClasses(false)
     }
   }
 
@@ -206,6 +227,21 @@ const ClassTrackingDashboard = () => {
     )
   }
 
+  // Show updating classes overlay
+  if (isUpdatingClasses) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+        <div className="text-center">
+          <div className="flex items-center justify-center mb-4">
+            <Loader2 size={32} className="animate-spin text-green-500" />
+          </div>
+          <p className="text-foreground-muted text-lg font-medium">Actualizando clases hasta hoy...</p>
+          <p className="text-foreground-muted text-sm mt-2">Esto puede tardar unos momentos</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
@@ -220,14 +256,38 @@ const ClassTrackingDashboard = () => {
             Seguimiento de Clases
           </h1>
           <div className="flex gap-2">
-            <Button 
-              onClick={handleGenerateMissingClasses} 
-              variant="outline" 
-              className="flex items-center bg-green-500/10 border-green-500 hover:bg-green-500/20"
-            >
-              <RefreshCw size={20} className="mr-2" />
-              Actualizar Clases
-            </Button>
+            <div className="relative group">
+              <Button 
+                onClick={handleGenerateMissingClasses} 
+                variant="outline" 
+                disabled={isUpdatingClasses}
+                className="flex items-center bg-green-500/10 border-green-500 hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpdatingClasses ? (
+                  <Loader2 size={20} className="mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw size={20} className="mr-2" />
+                )}
+                {isUpdatingClasses ? 'Actualizando...' : 'Actualizar Clases hasta Hoy'}
+              </Button>
+              
+              {/* Enhanced Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                <div className="flex items-center space-x-2">
+                  <Info size={16} />
+                  <div>
+                    <div className="font-semibold">Generar clases faltantes</div>
+                    <div className="text-xs text-gray-300">
+                      Crea automáticamente todas las clases desde la fecha de inicio de cada estudiante hasta hoy
+                    </div>
+                    <div className="text-xs text-gray-300">
+                      Solo genera clases nuevas, no duplica las existentes
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
             <Button 
               onClick={() => setIsMonthlyReportOpen(true)} 
               variant="outline" 
@@ -246,12 +306,46 @@ const ClassTrackingDashboard = () => {
             <div className="flex items-center space-x-4">
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">Mes:</label>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    onClick={() => {
+                      const [year, month] = selectedMonth.split('-').map(Number)
+                      const prevMonth = month === 1 ? 12 : month - 1
+                      const prevYear = month === 1 ? year - 1 : year
+                      setSelectedMonth(`${prevYear}-${String(prevMonth).padStart(2, '0')}`)
+                    }}
+                    variant="outline" 
+                    size="sm"
+                    className="px-2"
+                  >
+                    ←
+                  </Button>
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <Button 
+                    onClick={() => {
+                      const [year, month] = selectedMonth.split('-').map(Number)
+                      const nextMonth = month === 12 ? 1 : month + 1
+                      const nextYear = month === 12 ? year + 1 : year
+                      const nextMonthStr = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
+                      // Don't go beyond current month
+                      const currentMonth = new Date().toISOString().slice(0, 7)
+                      if (nextMonthStr <= currentMonth) {
+                        setSelectedMonth(nextMonthStr)
+                      }
+                    }}
+                    variant="outline" 
+                    size="sm"
+                    className="px-2"
+                    disabled={selectedMonth >= new Date().toISOString().slice(0, 7)}
+                  >
+                    →
+                  </Button>
+                </div>
               </div>
               <Button onClick={handleRefresh} variant="outline" size="sm" className="flex items-center">
                 <RefreshCw size={16} className="mr-2" />

@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { generateClassesFromStartDate } from '@/lib/class-generation'
 
+/**
+ * SOURCE OF TRUTH: Missing Classes Generation
+ * 
+ * This is the PRIMARY endpoint for generating missing classes.
+ * All other class generation endpoints should use this pattern.
+ * 
+ * Features:
+ * - Generates full range from start_date to today
+ * - Duplicate prevention using compound key
+ * - Comprehensive error handling
+ * - Proper validation
+ * - Batch processing
+ * 
+ * Used by:
+ * - Frontend "Update Classes" button
+ * - Diagnostic scripts
+ * - Manual maintenance
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -97,17 +115,25 @@ export async function POST(request: NextRequest) {
             .insert(newClasses)
 
           if (insertError) {
-            console.error(`Error inserting classes for student ${student.id}:`, insertError)
-            results.push({
-              studentId: student.id,
-              studentName: `${student.first_name} ${student.last_name}`,
-              classesCreated: 0,
-              error: insertError.message
-            })
-            continue
+            // If error is duplicate key, it's not a real error - just skip silently
+            if (insertError.code === '23505') {
+              console.log(`ℹ️ Algunas clases ya existían para ${student.first_name} ${student.last_name} (esto es normal)`)
+              // Don't add to results as error, just continue
+            } else {
+              // Real error - log and report
+              console.error(`❌ Error inserting classes for student ${student.id}:`, insertError)
+              results.push({
+                studentId: student.id,
+                studentName: `${student.first_name} ${student.last_name}`,
+                classesCreated: 0,
+                error: insertError.message
+              })
+              continue
+            }
+          } else {
+            // Only count if no error
+            totalClassesCreated += newClasses.length
           }
-
-          totalClassesCreated += newClasses.length
         }
 
         studentsProcessed++

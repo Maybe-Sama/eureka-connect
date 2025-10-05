@@ -1,6 +1,20 @@
 /**
- * Script de Corrección Automática de Inconsistencias en el Sistema de Seguimiento de Clases
- * Regenera clases faltantes y corrige problemas identificados
+ * SOURCE OF TRUTH: Class Tracking Correction Script
+ * 
+ * This is the PRIMARY script for correcting class tracking issues.
+ * All other correction scripts should use this pattern.
+ * 
+ * Features:
+ * - Uses official generateClassesFromStartDate function
+ * - Proper database integration
+ * - Comprehensive validation
+ * - Error handling
+ * - Detailed logging
+ * 
+ * Used by:
+ * - Manual maintenance
+ * - Automated correction
+ * - System recovery
  */
 
 // Importar usando dynamic import para módulos ES6

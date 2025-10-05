@@ -82,7 +82,13 @@ export function getNextOccurrence(dayOfWeek: number): string {
 }
 
 /**
- * Genera todas las clases de horario fijo desde la fecha de inicio del estudiante hasta el día actual
+ * @deprecated OBSOLETE - Use lib/class-generation.ts generateClassesFromStartDate instead
+ * 
+ * This function is incomplete and lacks database integration, pricing, and proper validation.
+ * It only generates basic class data without the necessary fields for the system.
+ * 
+ * @see lib/class-generation.ts generateClassesFromStartDate - Source of truth for class generation
+ * 
  * @param fixedSchedule - Array de TimeSlot del horario fijo
  * @param startDate - Fecha de inicio de clases del estudiante (YYYY-MM-DD)
  * @param endDate - Fecha final (por defecto hoy) (YYYY-MM-DD)
