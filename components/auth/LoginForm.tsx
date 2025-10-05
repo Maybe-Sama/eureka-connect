@@ -164,7 +164,7 @@ export default function LoginForm() {
             <p className="text-sm text-gray-600">
               ¿No tienes cuenta?{' '}
               <button
-                onClick={() => router.push('/register')}
+                onClick={() => router.push('/(auth)/register')}
                 className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200 hover:underline"
               >
                 Regístrate aquí

@@ -39,9 +39,13 @@ export default function RegisterForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg text-center">
-          <div className="text-green-600 text-6xl mb-4">✓</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-2xl shadow-2xl border border-gray-100 text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
           <h2 className="text-2xl font-bold text-gray-900">¡Registro Exitoso!</h2>
           <p className="text-gray-600">
             Tu cuenta ha sido creada correctamente. Redirigiendo al login...
@@ -52,9 +56,14 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-2xl shadow-2xl border border-gray-100">
         <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </div>
           <h2 className="text-3xl font-bold text-gray-900">Registro Estudiante</h2>
           <p className="mt-2 text-sm text-gray-600">
             Crea tu cuenta con tu código de estudiante
@@ -72,7 +81,7 @@ export default function RegisterForm() {
               required
               value={studentCode}
               onChange={(e) => setStudentCode(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 transition-all duration-200 hover:border-gray-400"
               placeholder="07871621705058065942"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -90,7 +99,7 @@ export default function RegisterForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 transition-all duration-200 hover:border-gray-400"
               placeholder="Mínimo 6 caracteres"
               minLength={6}
             />
@@ -106,7 +115,7 @@ export default function RegisterForm() {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 transition-all duration-200 hover:border-gray-400"
               placeholder="Repite tu contraseña"
             />
           </div>
@@ -120,9 +129,16 @@ export default function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none"
           >
-            {loading ? 'Registrando...' : 'Registrarse'}
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Registrando...
+              </div>
+            ) : (
+              'Registrarse'
+            )}
           </button>
         </form>
 
@@ -131,7 +147,7 @@ export default function RegisterForm() {
             ¿Ya tienes cuenta?{' '}
             <button
               onClick={() => router.push('/login')}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200 hover:underline"
             >
               Inicia sesión aquí
             </button>
