@@ -70,9 +70,9 @@ interface Student {
   province?: string
   country?: string
   // Campos del receptor (padre/madre/tutor)
-  receptorNombre?: string
-  receptorApellidos?: string
-  receptorEmail?: string
+  receptor_nombre?: string
+  receptor_apellidos?: string
+  receptor_email?: string
   created_at: string
   updated_at: string
 }
@@ -1095,10 +1095,10 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
     // Campos fiscales
     dni: student.dni || '',
     nif: student.nif || '',
-    // Campos del receptor (padre/madre/tutor)
-    receptorNombre: student.receptorNombre || '',
-    receptorApellidos: student.receptorApellidos || '',
-    receptorEmail: student.receptorEmail || '',
+    // Campos del receptor (padre/madre/tutor) - mapear de snake_case a camelCase
+    receptorNombre: student.receptor_nombre || '',
+    receptorApellidos: student.receptor_apellidos || '',
+    receptorEmail: student.receptor_email || '',
     address: student.address || '',
     postalCode: student.postal_code || '',
     city: student.city || '',
@@ -1216,10 +1216,10 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       city: formData.city || undefined,
       province: formData.province || undefined,
       country: formData.country || 'España',
-      // Campos del receptor
-      receptorNombre: formData.receptorNombre || undefined,
-      receptorApellidos: formData.receptorApellidos || undefined,
-      receptorEmail: formData.receptorEmail || undefined,
+      // Campos del receptor (mapear a snake_case)
+      receptor_nombre: formData.receptorNombre || undefined,
+      receptor_apellidos: formData.receptorApellidos || undefined,
+      receptor_email: formData.receptorEmail || undefined,
       schedule: selectedSchedule
     })
   }

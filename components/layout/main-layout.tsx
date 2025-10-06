@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import Sidebar from './sidebar'
-import LoginForm from '@/components/auth/LoginForm'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -13,6 +13,14 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { user, loading } = useAuth()
+  const router = useRouter()
+
+  // Redirigir a login si no hay usuario autenticado
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [loading, user, router])
 
   // Mostrar loading mientras se verifica la autenticación
   if (loading) {
@@ -26,9 +34,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
     )
   }
 
-  // Si no hay usuario autenticado, mostrar login
+  // Si no hay usuario autenticado, no renderizar nada (se redirige)
   if (!user) {
-    return <LoginForm />
+    return null
   }
 
   // Si hay usuario autenticado, mostrar la interfaz normal

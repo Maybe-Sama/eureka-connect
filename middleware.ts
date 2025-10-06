@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Rutas que requieren autenticación
-const protectedRoutes = [
+// Rutas exclusivas para profesores
+const teacherRoutes = [
   '/dashboard',
-  '/student-dashboard',
   '/students',
   '/courses',
   '/calendar',
@@ -15,8 +14,13 @@ const protectedRoutes = [
   '/settings'
 ]
 
-// Rutas de autenticación (redirigir si ya está autenticado)
-const authRoutes = ['/auth/login', '/auth/register', '/login', '/register']
+// Rutas exclusivas para estudiantes
+const studentRoutes = [
+  '/student-dashboard'
+]
+
+// Rutas de autenticación (públicas)
+const authRoutes = ['/auth/login', '/auth/register', '/login', '/register', '/logout']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -31,27 +35,43 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Verificar si es una ruta protegida
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname === route || pathname.startsWith(route + '/')
-  )
-
-  // Verificar si es una ruta de autenticación
+  // Permitir acceso a rutas de autenticación
   const isAuthRoute = authRoutes.some(route => 
     pathname === route || pathname.startsWith(route + '/')
   )
-
-  // Si es una ruta protegida, permitir el acceso ya que el MainLayout manejará la autenticación
-  if (isProtectedRoute) {
-    return NextResponse.next()
-  }
-
-  // Si es una ruta de autenticación, permitir el acceso
   if (isAuthRoute) {
     return NextResponse.next()
   }
 
-  // Para la ruta raíz, permitir el acceso ya que el MainLayout manejará la autenticación
+  // Verificar si es una ruta de profesor
+  const isTeacherRoute = teacherRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  )
+
+  // Verificar si es una ruta de estudiante
+  const isStudentRoute = studentRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  )
+
+  // Obtener el tipo de usuario de las cookies o localStorage
+  // Nota: En middleware no podemos acceder a localStorage, pero podemos usar cookies
+  const userType = request.cookies.get('user_type')?.value
+
+  // Si es una ruta de profesor y el usuario es estudiante, redirigir
+  if (isTeacherRoute && userType === 'student') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/student-dashboard/profile'
+    return NextResponse.redirect(url)
+  }
+
+  // Si es una ruta de estudiante y el usuario es profesor, redirigir
+  if (isStudentRoute && userType === 'teacher') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
+  // Para la ruta raíz, permitir el acceso (será manejado por el layout)
   if (pathname === '/') {
     return NextResponse.next()
   }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbOperations } from '@/lib/database'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 
 /**
  * @deprecated OBSOLETE - Use app/api/class-tracking/generate-missing-classes instead

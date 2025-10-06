@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generateClassesFromStartDate } from '@/lib/class-generation'
 
 export async function GET(request: NextRequest) {

@@ -9,17 +9,28 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Solo redirigir si hay usuario autenticado
-    if (!loading && user) {
-      if (user.userType === 'teacher') {
-        router.push('/dashboard')
+    if (!loading) {
+      if (user) {
+        // Usuario autenticado - redirigir según tipo
+        if (user.userType === 'teacher') {
+          router.push('/dashboard')
+        } else {
+          router.push('/student-dashboard')
+        }
       } else {
-        router.push('/student-dashboard')
+        // Usuario no autenticado - ir a selección de login
+        router.push('/login')
       }
     }
   }, [user, loading, router])
 
-  // Si no hay usuario, el MainLayout mostrará el login
-  // Si hay usuario, redirigirá automáticamente
-  return null
+  // Mostrar loading mientras se decide la redirección
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+        <p className="mt-4 text-white">Cargando...</p>
+      </div>
+    </div>
+  )
 }
