@@ -21,7 +21,7 @@ export function getNextOccurrenceFromDate(dayOfWeek: number, fromDate: string): 
   const currentDay = startDate.getDay()
   
   // Calculate days until target day
-  let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7
+  const daysUntilTarget = (dayOfWeek - currentDay + 7) % 7
   
   // If the result is 0, it means we're already on the target day
   // In this case, use the current date (don't skip to next week)

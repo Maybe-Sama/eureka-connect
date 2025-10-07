@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import StudentLayout from '@/components/layout/student-layout'
-import { FileText, Download, Eye, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { FileText, Download, Eye, CheckCircle, Clock, XCircle, AlertCircle, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Invoice {
   id: string
@@ -28,6 +29,8 @@ export default function StudentInvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [filter, setFilter] = useState<'all' | 'paid' | 'pending'>('all')
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
 
   useEffect(() => {
     if (!loading && !isStudent) {
@@ -43,11 +46,12 @@ export default function StudentInvoicesPage() {
 
   const loadInvoices = async () => {
     try {
-      // Intentar cargar facturas RRSIF primero
+      // Intentar cargar facturas RRSIF primero (solo definitivas)
       const { data: rrsifInvoices, error: rrsifError } = await supabase
         .from('facturas_rrsif')
         .select('*')
         .eq('student_id', user?.studentId?.toString())
+        .eq('estado_factura', 'final') // Solo facturas definitivas
         .order('created_at', { ascending: false })
 
       if (!rrsifError && rrsifInvoices && rrsifInvoices.length > 0) {
@@ -114,8 +118,8 @@ export default function StudentInvoicesPage() {
       case 'sent':
       case 'enviada':
         return {
-          icon: <AlertCircle size={20} />,
-          text: 'Enviada',
+          icon: <FileText size={20} />,
+          text: 'Emitida',
           color: 'text-blue-600',
           bg: 'bg-blue-50',
           border: 'border-blue-200'
@@ -145,6 +149,48 @@ export default function StudentInvoicesPage() {
   const pendingAmount = invoices
     .filter(inv => inv.status.toLowerCase() === 'pending' || inv.status.toLowerCase() === 'pendiente')
     .reduce((sum, inv) => sum + inv.total, 0)
+
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice)
+    setShowInvoiceModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowInvoiceModal(false)
+    setSelectedInvoice(null)
+  }
+
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      const response = await fetch(`/api/rrsif/pdf?id=${invoice.id}`)
+      
+      if (!response.ok) {
+        throw new Error('Error generando PDF')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `factura-${invoice.invoice_number}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      // Mostrar notificación de éxito
+      const event = new CustomEvent('toast', {
+        detail: { message: 'PDF descargado exitosamente', type: 'success' }
+      })
+      window.dispatchEvent(event)
+    } catch (error) {
+      console.error('Error descargando PDF:', error)
+      const event = new CustomEvent('toast', {
+        detail: { message: 'Error al descargar el PDF', type: 'error' }
+      })
+      window.dispatchEvent(event)
+    }
+  }
 
   if (loading || loadingData) {
     return (
@@ -319,10 +365,15 @@ export default function StudentInvoicesPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
-                            className="text-primary hover:text-primary/80 transition-colors"
-                            title="Ver factura"
+                            onClick={() => handleViewInvoice(invoice)}
+                            className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                            title="Ver detalles de la factura"
                           >
-                            <Eye size={18} />
+                            <Eye 
+                              size={18} 
+                              className="transition-transform duration-300 group-hover:scale-110" 
+                            />
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           </button>
                         </td>
                       </tr>
@@ -343,6 +394,130 @@ export default function StudentInvoicesPage() {
             Si necesitas información adicional o tienes alguna consulta sobre tus facturas, por favor contacta con tu profesor.
           </p>
         </div>
+
+        {/* Invoice Modal */}
+        <AnimatePresence>
+          {showInvoiceModal && selectedInvoice && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+              onClick={handleCloseModal}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-background rounded-xl border border-border w-full max-w-4xl max-h-[90vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-border">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <FileText size={20} className="text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">
+                        Factura {selectedInvoice.invoice_number}
+                      </h2>
+                      <p className="text-sm text-foreground-muted">
+                        {new Date(selectedInvoice.date).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCloseModal}
+                    className="p-2 hover:bg-background-tertiary rounded-lg transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 space-y-6 max-h-[calc(90vh-140px)] overflow-y-auto">
+                  {/* Invoice Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground">Información de la Factura</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-foreground-muted">Número:</span>
+                          <span className="font-medium text-foreground">{selectedInvoice.invoice_number}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-foreground-muted">Fecha:</span>
+                          <span className="font-medium text-foreground">
+                            {new Date(selectedInvoice.date).toLocaleDateString('es-ES')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-foreground-muted">Estado:</span>
+                          <span className="font-medium text-foreground">
+                            {getStatusInfo(selectedInvoice.status).text}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-foreground-muted">Total:</span>
+                          <span className="font-bold text-lg text-foreground">€{selectedInvoice.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground">Descripción</h3>
+                      <p className="text-foreground-muted">
+                        {selectedInvoice.description || 'Servicios de formación educativa'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="flex justify-center">
+                    <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border-2 ${getStatusInfo(selectedInvoice.status).color} ${getStatusInfo(selectedInvoice.status).bg} ${getStatusInfo(selectedInvoice.status).border}`}>
+                      <span className="mr-2">{getStatusInfo(selectedInvoice.status).icon}</span>
+                      {getStatusInfo(selectedInvoice.status).text}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-6 border-t border-border bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-foreground-muted">
+                      Factura generada el {new Date(selectedInvoice.created_at).toLocaleDateString('es-ES')}
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handleCloseModal}
+                        className="group relative px-6 py-3 bg-gradient-to-r from-background-tertiary to-background-tertiary/80 text-foreground rounded-xl hover:from-background-tertiary/80 hover:to-background-tertiary/60 hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2 font-medium border border-border"
+                      >
+                        <X size={16} className="transition-transform duration-300 group-hover:scale-110" />
+                        <span>Cerrar</span>
+                      </button>
+                      <button
+                        onClick={() => handleDownloadPDF(selectedInvoice)}
+                        className="group relative px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl hover:from-primary/90 hover:to-primary/80 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2 font-medium"
+                      >
+                        <Download 
+                          size={16} 
+                          className="transition-transform duration-300 group-hover:scale-110" 
+                        />
+                        <span>Descargar PDF</span>
+                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </StudentLayout>
   )

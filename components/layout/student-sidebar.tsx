@@ -15,11 +15,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const studentNavigation = [
-  { name: 'Perfil', href: '/student-dashboard/profile', icon: User },
-  { name: 'Calendario', href: '/student-dashboard/calendar', icon: Calendar },
-  { name: 'Facturas', href: '/student-dashboard/invoices', icon: FileText },
-]
+// Navigation will be generated dynamically based on student name
 
 interface StudentSidebarProps {
   isCollapsed: boolean
@@ -31,6 +27,14 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, isMobile }
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
+
+  // Generate navigation dynamically with student name
+  const studentName = user?.studentName ?? 'Perfil'
+  const studentNavigation = [
+    { name: studentName, href: '/student-dashboard/profile', icon: User },
+    { name: 'Calendario', href: '/student-dashboard/calendar', icon: Calendar },
+    { name: 'Facturas', href: '/student-dashboard/invoices', icon: FileText },
+  ]
 
   const handleLogout = async () => {
     await logout()

@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // For each student, get their classes and calculate stats
     const trackingData = []
-    let skippedStudents = []
+    const skippedStudents = []
     
     for (const student of students) {
       // Validate student has required fields

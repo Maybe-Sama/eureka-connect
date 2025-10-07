@@ -1,38 +1,57 @@
 /**
  * API para generación de números de factura correlativos anuales
  * Cumple con RRSIF - numeración correlativa por año
+ * Ahora usa Supabase para obtener el siguiente número correlativo
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { formatearNumeroFactura, RRSIF_CONSTANTS } from '@/lib/rrsif-utils'
-
-// Simulación de base de datos para numeración
-// En producción, esto debería estar en la base de datos real
-let numeracionActual = 0
-let añoActual = new Date().getFullYear()
 
 export async function POST(request: NextRequest) {
   try {
     const año = new Date().getFullYear()
+    const serie = RRSIF_CONSTANTS.SERIE_DEFAULT
     
-    // Si cambió el año, reiniciar numeración
-    if (año !== añoActual) {
-      numeracionActual = 0
-      añoActual = año
+    // Obtener el último número de factura del año actual
+    const { data: ultimaFactura, error } = await supabase
+      .from('facturas_rrsif')
+      .select('numero')
+      .like('numero', `${serie}${año}%`)
+      .order('numero', { ascending: false })
+      .limit(1)
+    
+    if (error) {
+      console.error('Error obteniendo última factura:', error)
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Error obteniendo numeración de la base de datos' 
+        },
+        { status: 500 }
+      )
     }
     
-    // Incrementar numeración
-    numeracionActual++
+    // Calcular siguiente número correlativo
+    let siguienteNumero = 1
+    if (ultimaFactura && ultimaFactura.length > 0) {
+      const ultimoNumero = ultimaFactura[0].numero
+      // Extraer el número correlativo del formato SERIE-YYYY-NNNN
+      const partes = ultimoNumero.split('-')
+      if (partes.length === 3 && partes[2]) {
+        siguienteNumero = parseInt(partes[2]) + 1
+      }
+    }
     
     // Generar número de factura
-    const numero = formatearNumeroFactura(RRSIF_CONSTANTS.SERIE_DEFAULT, numeracionActual)
+    const numero = formatearNumeroFactura(serie, siguienteNumero)
     
     return NextResponse.json({
       success: true,
       numero,
-      serie: RRSIF_CONSTANTS.SERIE_DEFAULT,
-      numeroCorrelativo: numeracionActual,
-      año: añoActual
+      serie,
+      numeroCorrelativo: siguienteNumero,
+      año
     })
     
   } catch (error) {
