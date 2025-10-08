@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
           province,
           postal_code,
           country,
-          nif
+          dni,
+          has_shared_pricing
         )
       `)
       .eq('id', facturaId)
@@ -70,7 +71,8 @@ export async function GET(request: NextRequest) {
         province: facturaData.students.province,
         postalCode: facturaData.students.postal_code,
         country: facturaData.students.country,
-        nif: facturaData.students.nif
+        dni: facturaData.students.dni,
+        has_shared_pricing: facturaData.students.has_shared_pricing || false
       },
       receptor: {
         nif: facturaData.receptor_nif,
@@ -140,8 +142,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Generar PDF
-    const pdfDoc = await generarPDFFactura(factura as any)
+    // Generar PDF usando el campo incluye_qr de la base de datos o hash_registro como fallback
+    const incluirQR = facturaData.incluye_qr || (facturaData.hash_registro ? true : false)
+    const pdfDoc = await generarPDFFactura(factura as any, incluirQR)
     const pdfBuffer = pdfDoc.output('arraybuffer')
 
     // Devolver PDF como respuesta

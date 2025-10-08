@@ -71,6 +71,7 @@ const InvoicesPage = () => {
   const [datosFiscales, setDatosFiscales] = useState<FiscalData | null>(null)
   const [datosReceptor, setDatosReceptor] = useState<ReceptorData | null>(null)
   const [sistemaInicializado, setSistemaInicializado] = useState(false)
+  const [incluirQR, setIncluirQR] = useState(false) // Toggle para QR VeriFactu
   
   // Modales
   const [modalSeleccion, setModalSeleccion] = useState<ModalSeleccionClases>({
@@ -103,6 +104,7 @@ const InvoicesPage = () => {
       province: clase.students?.province || '',
       postalCode: clase.students?.postal_code || '',
       country: clase.students?.country || 'España',
+      dni: clase.students?.dni || '',
       nif: clase.students?.nif || '',
       birthDate: clase.students?.birth_date || '',
       courseId: clase.students?.course_id?.toString() || '1',
@@ -315,8 +317,21 @@ const InvoicesPage = () => {
       }
 
       // Crear datos del receptor desde los datos del estudiante
+      // Usar DNI o NIF, el que esté cumplimentado
+      console.log('=== DEBUG IDENTIFICACIÓN FISCAL ===')
+      console.log('student.dni:', student.dni)
+      console.log('student.nif:', student.nif)
+      console.log('student.dni type:', typeof student.dni)
+      console.log('student.nif type:', typeof student.nif)
+      console.log('student.dni truthy:', !!student.dni)
+      console.log('student.nif truthy:', !!student.nif)
+      console.log('student completo:', JSON.stringify(student, null, 2))
+      
+      const identificacionFiscal = student.dni || '00000000A'
+      console.log('identificacionFiscal seleccionada:', identificacionFiscal)
+      
       const datosReceptorEstudiante: ReceptorData = {
-        nif: student.nif || '00000000A',
+        nif: identificacionFiscal,
         nombre: `${student.receptorNombre || student.firstName} ${student.receptorApellidos || student.lastName}`,
         direccion: student.address || 'Dirección no especificada',
         codigoPostal: student.postalCode || '00000',
@@ -326,6 +341,9 @@ const InvoicesPage = () => {
         telefono: student.phone,
         email: student.receptorEmail || student.email
       }
+      
+      console.log('datosReceptorEstudiante creado:', JSON.stringify(datosReceptorEstudiante, null, 2))
+      console.log('Incluir QR (frontend):', incluirQR)
 
       const response = await fetch('/api/rrsif/generar-factura', {
         method: 'POST',
@@ -337,7 +355,8 @@ const InvoicesPage = () => {
           clasesIds: clasesSeleccionadas,
           datosFiscales,
           datosReceptor: datosReceptorEstudiante,
-          descripcion: `Clases particulares - ${clasesSeleccionadas.length} clase${clasesSeleccionadas.length !== 1 ? 's' : ''}`
+          descripcion: `Clases particulares - ${clasesSeleccionadas.length} clase${clasesSeleccionadas.length !== 1 ? 's' : ''}`,
+          incluirQR: incluirQR
         }),
       })
 
@@ -646,12 +665,37 @@ const InvoicesPage = () => {
               <Settings size={16} className="mr-2" />
               Configuración
             </Button>
+            
+            {/* Toggle QR VeriFactu */}
+            <div className={`flex items-center space-x-2 px-3 py-2 border rounded-lg transition-colors ${
+              incluirQR 
+                ? 'bg-primary/10 border-primary/30 text-primary' 
+                : 'bg-background border-border text-foreground-muted'
+            }`}>
+              <QrCode size={16} className={incluirQR ? 'text-primary' : 'text-foreground-muted'} />
+              <span className={`text-sm font-medium ${incluirQR ? 'text-primary' : 'text-foreground-muted'}`}>
+                QR VeriFactu
+              </span>
+              <button
+                onClick={() => setIncluirQR(!incluirQR)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  incluirQR ? 'bg-primary' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    incluirQR ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            
             <Button 
               onClick={handleNuevaFactura}
               disabled={!sistemaInicializado || !datosFiscales}
               className="flex items-center"
             >
-              
+              <Plus size={16} className="mr-2" />
               Nueva Factura
             </Button>
           </div>
@@ -762,6 +806,14 @@ const InvoicesPage = () => {
                       <div className="flex items-center space-x-1 text-xs text-foreground-muted">
                         <QrCode size={12} />
                         <span>RRSIF</span>
+                      </div>
+                      <div className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
+                        (invoice as any).incluye_qr 
+                          ? 'bg-success/20 text-success border border-success/30' 
+                          : 'bg-destructive/20 text-destructive border border-destructive/30'
+                      }`}>
+                        <QrCode size={12} />
+                        <span>{(invoice as any).incluye_qr ? 'QR VeriFactu' : 'Sin QR'}</span>
                       </div>
                       <div className="flex items-center space-x-1 text-xs text-foreground-muted">
                         <Shield size={12} />

@@ -68,12 +68,45 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const año = new Date().getFullYear()
+    const serie = RRSIF_CONSTANTS.SERIE_DEFAULT
+    
+    // Obtener el último número de factura del año actual
+    const { data: ultimaFactura, error } = await supabase
+      .from('facturas_rrsif')
+      .select('numero')
+      .like('numero', `${serie}${año}%`)
+      .order('numero', { ascending: false })
+      .limit(1)
+    
+    if (error) {
+      console.error('Error obteniendo última factura:', error)
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Error obteniendo numeración de la base de datos' 
+        },
+        { status: 500 }
+      )
+    }
+    
+    // Calcular siguiente número correlativo
+    let siguienteNumero = 1
+    if (ultimaFactura && ultimaFactura.length > 0) {
+      const ultimoNumero = ultimaFactura[0].numero
+      // Extraer el número correlativo del formato SERIE-YYYY-NNNN
+      const partes = ultimoNumero.split('-')
+      if (partes.length === 3 && partes[2]) {
+        siguienteNumero = parseInt(partes[2]) + 1
+      }
+    }
+    
     return NextResponse.json({
       success: true,
-      numeracionActual,
-      añoActual,
+      numeracionActual: siguienteNumero - 1,
+      añoActual: año,
       serie: RRSIF_CONSTANTS.SERIE_DEFAULT,
-      siguienteNumero: formatearNumeroFactura(RRSIF_CONSTANTS.SERIE_DEFAULT, numeracionActual + 1)
+      siguienteNumero: formatearNumeroFactura(RRSIF_CONSTANTS.SERIE_DEFAULT, siguienteNumero)
     })
     
   } catch (error) {

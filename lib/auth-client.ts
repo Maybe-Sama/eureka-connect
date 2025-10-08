@@ -13,6 +13,7 @@ export interface User {
   userType: 'teacher' | 'student'
   studentId?: number
   studentName?: string
+  courseName?: string
 }
 
 export interface AuthResult {

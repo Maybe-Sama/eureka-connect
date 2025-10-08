@@ -145,6 +145,37 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, isMobile }
           })}
         </nav>
 
+        {/* Logout Button */}
+        <div className="px-4 py-4">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleLogout}
+            className={cn(
+              "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group",
+              "hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100",
+              "hover:border-red-200 hover:text-red-700",
+              "border border-transparent hover:shadow-lg hover:shadow-red-200/50",
+              "text-foreground-secondary hover:text-red-700",
+              "focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
+            )}
+          >
+            <LogOut 
+              size={20} 
+              className={cn(
+                "transition-all duration-300 group-hover:scale-110 group-hover:rotate-12",
+                "text-foreground-muted group-hover:text-red-600"
+              )} 
+            />
+            <span className="font-medium group-hover:font-semibold transition-all duration-300">
+              Cerrar Sesión
+            </span>
+          </motion.button>
+        </div>
+
         {/* Footer */}
         <div className="p-4 border-t border-border">
           <div className="text-center text-sm text-foreground-muted">

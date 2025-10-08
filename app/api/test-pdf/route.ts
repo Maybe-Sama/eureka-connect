@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     console.log('Generando PDF de prueba...')
     
     // Generar PDF
-    const pdfDoc = await generarPDFFactura(facturaPrueba as any)
+    const pdfDoc = await generarPDFFactura(facturaPrueba as any, false) // Sin QR por defecto
     const pdfBuffer = pdfDoc.output('arraybuffer')
     
     console.log('PDF generado exitosamente, tamaño:', pdfBuffer.byteLength, 'bytes')

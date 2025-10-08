@@ -27,6 +27,7 @@ export interface User {
   userType: 'teacher' | 'student'
   studentId?: number
   studentName?: string
+  courseName?: string
 }
 
 export interface AuthResult {
@@ -131,10 +132,16 @@ export async function authenticateStudent(studentCode: string, password: string)
     const hashedPassword = hashPassword(password)
     const normalizedCode = normalizeStudentCode(studentCode)
     
-    // Buscar estudiante por código (solo campos que existen en students)
+    // Buscar estudiante por código con información del curso
     const { data: student, error: studentError } = await supabaseAdmin
       .from('students')
-      .select('id, first_name, last_name')
+      .select(`
+        id, 
+        first_name, 
+        last_name,
+        course_id,
+        courses!inner(name)
+      `)
       .eq('student_code', normalizedCode)
       .maybeSingle()
 
@@ -180,7 +187,8 @@ export async function authenticateStudent(studentCode: string, password: string)
         email: systemUser.email,
         userType: 'student',
         studentId: student.id,
-        studentName: `${student.first_name} ${student.last_name}`
+        studentName: `${student.first_name} ${student.last_name}`,
+        courseName: student.courses?.name
       },
       token: sessionToken
     }
@@ -226,17 +234,23 @@ export async function validateSession(token: string): Promise<AuthResult> {
       return { success: false, error: 'Usuario no encontrado' }
     }
 
-    // Si es estudiante, obtener nombre del estudiante
+    // Si es estudiante, obtener nombre del estudiante y curso
     let studentName: string | undefined
+    let courseName: string | undefined
     if (user.user_type === 'student' && user.student_id) {
       const { data: student } = await supabaseAdmin
         .from('students')
-        .select('first_name, last_name')
+        .select(`
+          first_name, 
+          last_name,
+          courses!inner(name)
+        `)
         .eq('id', user.student_id)
         .single()
       
       if (student) {
         studentName = `${student.first_name} ${student.last_name}`
+        courseName = student.courses?.name
       }
     }
 
@@ -247,7 +261,8 @@ export async function validateSession(token: string): Promise<AuthResult> {
         email: user.email,
         userType: user.user_type as 'teacher' | 'student',
         studentId: user.student_id,
-        studentName
+        studentName,
+        courseName
       }
     }
   } catch (error) {

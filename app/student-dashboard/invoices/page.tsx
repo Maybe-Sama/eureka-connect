@@ -30,7 +30,7 @@ export default function StudentInvoicesPage() {
   const [loadingData, setLoadingData] = useState(true)
   const [filter, setFilter] = useState<'all' | 'paid' | 'pending'>('all')
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false)
 
   useEffect(() => {
     if (!loading && !isStudent) {
@@ -150,13 +150,13 @@ export default function StudentInvoicesPage() {
     .filter(inv => inv.status.toLowerCase() === 'pending' || inv.status.toLowerCase() === 'pendiente')
     .reduce((sum, inv) => sum + inv.total, 0)
 
-  const handleViewInvoice = (invoice: Invoice) => {
+  const handlePreviewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice)
-    setShowInvoiceModal(true)
+    setShowInvoicePreview(true)
   }
 
-  const handleCloseModal = () => {
-    setShowInvoiceModal(false)
+  const handleClosePreview = () => {
+    setShowInvoicePreview(false)
     setSelectedInvoice(null)
   }
 
@@ -300,9 +300,6 @@ export default function StudentInvoicesPage() {
               <thead className="bg-background-tertiary">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
-                    Número
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
                     Fecha
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
@@ -314,7 +311,7 @@ export default function StudentInvoicesPage() {
                   <th className="px-6 py-4 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-foreground-muted uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -322,7 +319,7 @@ export default function StudentInvoicesPage() {
               <tbody className="bg-background-secondary divide-y divide-border">
                 {filteredInvoices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-foreground-muted">
+                    <td colSpan={5} className="px-6 py-12 text-center text-foreground-muted">
                       <FileText size={48} className="mx-auto text-foreground-muted/30 mb-4" />
                       <p className="text-lg font-medium">No hay facturas disponibles</p>
                       <p className="text-sm mt-2">Las facturas aparecerán aquí cuando sean generadas</p>
@@ -333,11 +330,6 @@ export default function StudentInvoicesPage() {
                     const statusInfo = getStatusInfo(invoice.status)
                     return (
                       <tr key={invoice.id} className="hover:bg-background-tertiary transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-foreground">
-                            {invoice.invoice_number}
-                          </div>
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-foreground">
                             {new Date(invoice.date).toLocaleDateString('es-ES', {
@@ -364,17 +356,30 @@ export default function StudentInvoicesPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleViewInvoice(invoice)}
-                            className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
-                            title="Ver detalles de la factura"
-                          >
-                            <Eye 
-                              size={18} 
-                              className="transition-transform duration-300 group-hover:scale-110" 
-                            />
-                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handlePreviewInvoice(invoice)}
+                              className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                              title="Previsualizar factura"
+                            >
+                              <Eye 
+                                size={18} 
+                                className="transition-transform duration-300 group-hover:scale-110" 
+                              />
+                              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadPDF(invoice)}
+                              className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20 text-success hover:from-success/20 hover:to-success/10 hover:border-success/30 hover:shadow-lg hover:shadow-success/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                              title="Descargar PDF"
+                            >
+                              <Download 
+                                size={18} 
+                                className="transition-transform duration-300 group-hover:scale-110" 
+                              />
+                              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )
@@ -395,21 +400,21 @@ export default function StudentInvoicesPage() {
           </p>
         </div>
 
-        {/* Invoice Modal */}
+        {/* Invoice Preview */}
         <AnimatePresence>
-          {showInvoiceModal && selectedInvoice && (
+          {showInvoicePreview && selectedInvoice && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-              onClick={handleCloseModal}
+              onClick={handleClosePreview}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-background rounded-xl border border-border w-full max-w-4xl max-h-[90vh] overflow-hidden"
+                className="bg-background rounded-xl border border-border w-full max-w-6xl max-h-[95vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
@@ -420,7 +425,7 @@ export default function StudentInvoicesPage() {
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold text-foreground">
-                        Factura {selectedInvoice.invoice_number}
+                        Previsualización de Factura
                       </h2>
                       <p className="text-sm text-foreground-muted">
                         {new Date(selectedInvoice.date).toLocaleDateString('es-ES', {
@@ -432,57 +437,21 @@ export default function StudentInvoicesPage() {
                     </div>
                   </div>
                   <button
-                    onClick={handleCloseModal}
+                    onClick={handleClosePreview}
                     className="p-2 hover:bg-background-tertiary rounded-lg transition-colors"
                   >
                     <X size={20} />
                   </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 space-y-6 max-h-[calc(90vh-140px)] overflow-y-auto">
-                  {/* Invoice Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-foreground">Información de la Factura</h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-foreground-muted">Número:</span>
-                          <span className="font-medium text-foreground">{selectedInvoice.invoice_number}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-foreground-muted">Fecha:</span>
-                          <span className="font-medium text-foreground">
-                            {new Date(selectedInvoice.date).toLocaleDateString('es-ES')}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-foreground-muted">Estado:</span>
-                          <span className="font-medium text-foreground">
-                            {getStatusInfo(selectedInvoice.status).text}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-foreground-muted">Total:</span>
-                          <span className="font-bold text-lg text-foreground">€{selectedInvoice.total.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-foreground">Descripción</h3>
-                      <p className="text-foreground-muted">
-                        {selectedInvoice.description || 'Servicios de formación educativa'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Status Badge */}
-                  <div className="flex justify-center">
-                    <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border-2 ${getStatusInfo(selectedInvoice.status).color} ${getStatusInfo(selectedInvoice.status).bg} ${getStatusInfo(selectedInvoice.status).border}`}>
-                      <span className="mr-2">{getStatusInfo(selectedInvoice.status).icon}</span>
-                      {getStatusInfo(selectedInvoice.status).text}
-                    </span>
+                {/* PDF Preview */}
+                <div className="p-6">
+                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <iframe
+                      src={`/api/rrsif/pdf?id=${selectedInvoice.id}&preview=true`}
+                      className="w-full h-[70vh] border-0"
+                      title="Previsualización de factura"
+                    />
                   </div>
                 </div>
 
@@ -490,11 +459,11 @@ export default function StudentInvoicesPage() {
                 <div className="p-6 border-t border-border bg-muted/20">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-foreground-muted">
-                      Factura generada el {new Date(selectedInvoice.created_at).toLocaleDateString('es-ES')}
+                      Previsualización generada el {new Date().toLocaleDateString('es-ES')}
                     </div>
                     <div className="flex space-x-2">
                       <button
-                        onClick={handleCloseModal}
+                        onClick={handleClosePreview}
                         className="group relative px-6 py-3 bg-gradient-to-r from-background-tertiary to-background-tertiary/80 text-foreground rounded-xl hover:from-background-tertiary/80 hover:to-background-tertiary/60 hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2 font-medium border border-border"
                       >
                         <X size={16} className="transition-transform duration-300 group-hover:scale-110" />

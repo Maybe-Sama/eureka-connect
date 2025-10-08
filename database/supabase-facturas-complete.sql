@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS facturas_rrsif (
     pdf_generado BOOLEAN DEFAULT FALSE,
     pdf_path TEXT,
     pdf_size INTEGER,
+    incluye_qr BOOLEAN DEFAULT FALSE,
     
     FOREIGN KEY (student_id) REFERENCES students(id)
 );

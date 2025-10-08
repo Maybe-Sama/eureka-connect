@@ -189,6 +189,7 @@ export const dbOperations = {
           province,
           postal_code,
           country,
+          dni,
           nif,
           birth_date,
           course_id,

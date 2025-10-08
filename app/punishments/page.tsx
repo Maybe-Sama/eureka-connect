@@ -13,7 +13,9 @@ import {
   Clock, 
   AlertTriangle,
   Users,
-  RotateCcw
+  RotateCcw,
+  Target,
+  List
 } from 'lucide-react'
 import PunishmentTypeModal from '@/components/punishments/PunishmentTypeModal'
 
@@ -47,6 +49,10 @@ export default function PunishmentsPage() {
   const router = useRouter()
   const [punishmentTypes, setPunishmentTypes] = useState<PunishmentType[]>([])
   const [punishmentResults, setPunishmentResults] = useState<PunishmentResult[]>([])
+  const [students, setStudents] = useState<any[]>([])
+  const [selectedStudent, setSelectedStudent] = useState<number | null>(null)
+  const [studentCustomPunishments, setStudentCustomPunishments] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState<'types' | 'students' | 'roulette'>('types')
   const [loadingData, setLoadingData] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingType, setEditingType] = useState<PunishmentType | null>(null)
@@ -61,8 +67,15 @@ export default function PunishmentsPage() {
     if (isTeacher) {
       loadPunishmentTypes()
       loadPunishmentResults()
+      loadStudents()
     }
   }, [isTeacher])
+
+  useEffect(() => {
+    if (selectedStudent) {
+      loadStudentCustomPunishments(selectedStudent)
+    }
+  }, [selectedStudent])
 
   const loadPunishmentTypes = async () => {
     try {
@@ -87,6 +100,59 @@ export default function PunishmentsPage() {
       console.error('Error loading punishment results:', error)
     } finally {
       setLoadingData(false)
+    }
+  }
+
+  const loadStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select('id, first_name, last_name, student_code')
+        .order('first_name', { ascending: true })
+
+      if (error) throw error
+      setStudents(data || [])
+    } catch (error) {
+      console.error('Error loading students:', error)
+      toast.error('Error cargando estudiantes')
+    }
+  }
+
+  const loadStudentCustomPunishments = async (studentId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('student_custom_punishments')
+        .select(`
+          *,
+          punishment_type:punishment_types(*)
+        `)
+        .eq('student_id', studentId)
+        .order('order_position', { ascending: true })
+
+      if (error) throw error
+      setStudentCustomPunishments(data || [])
+    } catch (error) {
+      console.error('Error loading student custom punishments:', error)
+      toast.error('Error cargando castigos personalizados del estudiante')
+    }
+  }
+
+  const togglePunishmentLock = async (punishmentId: number, isUnlocked: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('student_custom_punishments')
+        .update({ is_unlocked: !isUnlocked })
+        .eq('id', punishmentId)
+
+      if (error) throw error
+      
+      toast.success(`Castigo ${!isUnlocked ? 'desbloqueado' : 'bloqueado'}`)
+      if (selectedStudent) {
+        loadStudentCustomPunishments(selectedStudent)
+      }
+    } catch (error) {
+      console.error('Error toggling punishment lock:', error)
+      toast.error('Error cambiando estado del castigo')
     }
   }
 
@@ -184,10 +250,10 @@ export default function PunishmentsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              🎯 Sistema de Castigos
+              🎯 Sistema de Castigos y Ruleta
             </h1>
             <p className="text-foreground-muted mt-2">
-              Gestiona los castigos y la ruleta de castigos
+              Gestiona tipos de castigos, controla estudiantes y lanza la ruleta
             </p>
           </div>
           <button
@@ -250,7 +316,53 @@ export default function PunishmentsPage() {
           </div>
         </div>
 
-        {/* Gestión de Tipos de Castigo */}
+        {/* Tabs de Navegación */}
+        <div className="glass-effect rounded-2xl p-2 border border-border">
+          <div className="flex space-x-1 bg-background-tertiary rounded-xl p-1">
+            <button
+              onClick={() => setActiveTab('types')}
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'types'
+                  ? 'bg-primary text-primary-foreground shadow-lg'
+                  : 'hover:bg-background-tertiary/70'
+              }`}
+            >
+              <Settings size={20} />
+              <span className="font-medium">Tipos de Castigos</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('students')}
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'students'
+                  ? 'bg-primary text-primary-foreground shadow-lg'
+                  : 'hover:bg-background-tertiary/70'
+              }`}
+            >
+              <Users size={20} />
+              <span className="font-medium">Control por Estudiante</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('roulette')}
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'roulette'
+                  ? 'bg-primary text-primary-foreground shadow-lg'
+                  : 'hover:bg-background-tertiary/70'
+              }`}
+            >
+              <Target size={20} />
+              <span className="font-medium">Lanzar Ruleta</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Tab: Tipos de Castigos */}
+        {activeTab === 'types' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* Gestión de Tipos de Castigo */}
         <div className="glass-effect rounded-2xl p-6 border border-border">
           <h2 className="text-xl font-bold text-foreground mb-6 flex items-center">
             <Settings className="mr-2 text-primary" size={24} />
@@ -363,6 +475,145 @@ export default function PunishmentsPage() {
             ))}
           </div>
         </div>
+          </motion.div>
+        )}
+
+        {/* Tab: Control por Estudiante */}
+        {activeTab === 'students' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* Control de Castigos por Estudiante */}
+        <div className="glass-effect rounded-2xl shadow-lg p-6 border border-border mt-8">
+          <h2 className="text-xl font-bold text-foreground mb-6 flex items-center">
+            <Users className="mr-2 text-primary" size={24} />
+            Control de Castigos por Estudiante
+          </h2>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Seleccionar Estudiante
+            </label>
+            <select
+              value={selectedStudent || ''}
+              onChange={(e) => setSelectedStudent(e.target.value ? parseInt(e.target.value) : null)}
+              className="w-64 px-3 py-2 bg-background-secondary border border-border rounded-lg text-foreground"
+            >
+              <option value="">Selecciona un estudiante</option>
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.first_name} {student.last_name} ({student.student_code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedStudent && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">
+                Castigos Personalizados del Estudiante
+              </h3>
+              
+              {studentCustomPunishments.length === 0 ? (
+                <p className="text-foreground-muted">No hay castigos personalizados para este estudiante.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {studentCustomPunishments.map((punishment) => (
+                    <div
+                      key={punishment.id}
+                      className="flex items-center justify-between p-4 bg-background-tertiary rounded-lg border border-border/50"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div 
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: punishment.punishment_type.color }}
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {punishment.punishment_type.name}
+                          </p>
+                          <div className="flex items-center space-x-2 text-sm text-foreground-muted">
+                            <span>Posición: {punishment.order_position || 'No asignada'}</span>
+                            <span>•</span>
+                            <span>{punishment.is_selected ? 'Seleccionado' : 'No seleccionado'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => togglePunishmentLock(punishment.id, punishment.is_unlocked)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            punishment.is_unlocked
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          }`}
+                        >
+                          {punishment.is_unlocked ? 'Desbloqueado' : 'Bloqueado'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+          </motion.div>
+        )}
+
+        {/* Tab: Lanzar Ruleta */}
+        {activeTab === 'roulette' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="glass-effect rounded-2xl p-6 border border-border">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
+                <Target className="mr-2 text-primary" size={24} />
+                Lanzar Ruleta para Estudiante
+              </h2>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Seleccionar Estudiante
+                </label>
+                <select
+                  value={selectedStudent || ''}
+                  onChange={(e) => setSelectedStudent(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-64 px-3 py-2 bg-background-secondary border border-border rounded-lg text-foreground"
+                >
+                  <option value="">Selecciona un estudiante</option>
+                  {students.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      {student.first_name} {student.last_name} ({student.student_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedStudent && (
+                <div className="text-center">
+                  <div className="mb-4">
+                    <p className="text-foreground-muted">
+                      Para lanzar la ruleta, ve a la página dedicada de ruleta del profesor.
+                    </p>
+                  </div>
+                  <a
+                    href="/teacher-roulette"
+                    className="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    <RotateCcw className="w-5 h-5" />
+                    <span>Ir a Panel de Ruleta</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Modal para agregar/editar tipos de castigo */}
         <PunishmentTypeModal

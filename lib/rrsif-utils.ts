@@ -297,7 +297,7 @@ export function formatearFechaFactura(fecha: string): string {
 export const RRSIF_CONSTANTS = {
   VERSION_SOFTWARE: '1.0.0',
   ID_SISTEMA: 'EURELA-CONNECT-RRSIF',
-  SERIE_DEFAULT: 'FAC',
+  SERIE_DEFAULT: 'ERK',
   TIPO_IVA_DEFAULT: 21,
   DESFASE_MAXIMO_SEGUNDOS: 60, // 1 minuto
   TAMANO_QR_MM: { min: 30, max: 40 },

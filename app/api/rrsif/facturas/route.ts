@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
           province,
           postal_code,
           country,
-          nif
+          dni,
+          has_shared_pricing
         )
       `)
       .order('created_at', { ascending: false })
@@ -38,8 +39,28 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Obtener clases para cada factura
+    const facturasConClases = await Promise.all(
+      facturas?.map(async (factura) => {
+        // Obtener clases de la factura
+        const { data: clasesData, error: clasesError } = await supabase
+          .from('factura_clases')
+          .select('*')
+          .eq('factura_id', factura.id)
+
+        if (clasesError) {
+          console.error(`Error obteniendo clases para factura ${factura.id}:`, clasesError)
+        }
+
+        return {
+          ...factura,
+          clases: clasesData || []
+        }
+      }) || []
+    )
+
     // Mapear datos de Supabase al formato esperado
-    const facturasFormateadas = facturas?.map(factura => ({
+    const facturasFormateadas = facturasConClases.map(factura => ({
       id: factura.id,
       invoiceNumber: factura.invoice_number,
       student_id: factura.student_id,
@@ -54,7 +75,8 @@ export async function GET(request: NextRequest) {
         province: factura.students?.province || '',
         postalCode: factura.students?.postal_code || '',
         country: factura.students?.country || 'España',
-        nif: factura.students?.nif || '',
+        dni: factura.students?.dni || '',
+        has_shared_pricing: factura.students?.has_shared_pricing || false,
         birthDate: '',
         courseId: '1',
         studentCode: `STU-${factura.student_id}`,
@@ -75,7 +97,15 @@ export async function GET(request: NextRequest) {
         telefono: factura.receptor_telefono,
         email: factura.receptor_email
       },
-      classes: [], // Se cargará por separado si es necesario
+      classes: factura.clases?.map(clase => ({
+        id: clase.id,
+        fecha: clase.fecha,
+        hora_inicio: clase.hora_inicio,
+        hora_fin: clase.hora_fin,
+        duracion: clase.duracion,
+        asignatura: clase.asignatura,
+        precio: clase.precio
+      })) || [],
       total: factura.total,
       month: factura.month,
       status: factura.status,
@@ -113,7 +143,8 @@ export async function GET(request: NextRequest) {
         timestamp: factura.timestamp,
         estado_envio: factura.estado_envio,
         url_verificacion: factura.url_verificacion
-      }
+      },
+      incluye_qr: factura.incluye_qr || (factura.hash_registro ? true : false)
     })) || []
 
     return NextResponse.json(facturasFormateadas)
@@ -178,7 +209,7 @@ export async function POST(request: NextRequest) {
         receptor_email: factura.datos_receptor?.email || '',
         
         // Registro de facturación RRSIF
-        serie: factura.registro_facturacion?.serie || 'FAC',
+        serie: factura.registro_facturacion?.serie || 'ERK',
         numero: factura.registro_facturacion?.numero || '',
         fecha_expedicion: factura.registro_facturacion?.fecha_expedicion || '',
         hash_registro: factura.registro_facturacion?.hash_registro || '',

@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
           tipo: 'completo',
           fecha_exportacion: new Date().toISOString(),
           sistema: {
-            nombre: 'EURELA-CONNECT-RRSIF',
+            nombre: 'EUREKA-CONNECT-RRSIF',
             version: '1.0.0',
             modo: 'local'
           },

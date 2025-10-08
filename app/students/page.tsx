@@ -612,7 +612,6 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
     hasSharedPricing: false,
     // Campos fiscales
     dni: '',
-    nif: '',
     address: '',
     postalCode: '',
     city: '',
@@ -658,9 +657,8 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       fixed_schedule: selectedSchedule.length > 0 ? JSON.stringify(selectedSchedule) : undefined,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-      // Campos fiscales
-      dni: formData.dni || undefined,
-      nif: formData.nif || undefined,
+        // Campos fiscales
+        dni: formData.dni || undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
@@ -873,31 +871,19 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">DNI del Receptor</label>
-                      <input
-                        type="text"
-                        value={formData.dni}
-                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">NIF del Receptor</label>
-                      <input
-                        type="text"
-                        value={formData.nif}
-                        onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
+                    <input
+                      type="text"
+                      value={formData.dni}
+                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                      placeholder="12345678A"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Receptor</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Padre/Madre/Tutor</label>
                     <input
                       type="text"
                       value={formData.address}
@@ -952,7 +938,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
 
                   <div className="grid grid-cols-2 gap-4 mt-6">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Receptor (Padre/Madre/Tutor)</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorNombre}
@@ -962,7 +948,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Receptor</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorApellidos}
@@ -974,7 +960,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Email del Receptor</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Email del Padre/Madre/Tutor</label>
                     <input
                       type="email"
                       value={formData.receptorEmail}
@@ -1208,9 +1194,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       student_code: student.student_code,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-      // Campos fiscales
-      dni: formData.dni || undefined,
-      nif: formData.nif || undefined,
+        // Campos fiscales
+        dni: formData.dni || undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
@@ -1422,31 +1407,19 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">DNI del Estudiante</label>
-                      <input
-                        type="text"
-                        value={formData.dni}
-                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">NIF del Estudiante</label>
-                      <input
-                        type="text"
-                        value={formData.nif}
-                        onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
+                    <input
+                      type="text"
+                      value={formData.dni}
+                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                      placeholder="12345678A"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Estudiante</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Padre/Madre/Tutor</label>
                     <input
                       type="text"
                       value={formData.address}
@@ -1501,7 +1474,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
 
                   <div className="grid grid-cols-2 gap-4 mt-6">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Receptor (Padre/Madre/Tutor)</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorNombre}
@@ -1511,7 +1484,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Receptor</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorApellidos}
@@ -1523,7 +1496,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Email del Receptor</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Email del Padre/Madre/Tutor</label>
                     <input
                       type="email"
                       value={formData.receptorEmail}

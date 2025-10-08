@@ -5,7 +5,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { studentId, clasesIds, datosFiscales, datosReceptor, descripcion } = body
+    const { studentId, clasesIds, datosFiscales, datosReceptor, descripcion, incluirQR = false } = body
 
     console.log('=== GENERANDO FACTURA ===')
     console.log('StudentId:', studentId)
@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     console.log('DatosFiscales recibidos:', JSON.stringify(datosFiscales, null, 2))
     console.log('DatosReceptor:', JSON.stringify(datosReceptor, null, 2))
     console.log('Descripción:', descripcion)
+    console.log('Incluir QR:', incluirQR)
 
     // Validar datos requeridos
     if (!studentId || !clasesIds || !datosFiscales || !datosReceptor) {
@@ -68,7 +69,8 @@ export async function POST(request: NextRequest) {
         province,
         postal_code,
         country,
-        nif
+        dni,
+        has_shared_pricing
       `)
       .eq('id', estudianteId)
       .single()
@@ -101,10 +103,14 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' }
     })
     
-    let numeroFactura = `FAC-${String(Date.now()).slice(-4)}`
+    let numeroFactura = 'ERK-0001' // Fallback correcto
     if (numeroResponse.ok) {
       const numeroData = await numeroResponse.json()
-      numeroFactura = numeroData.numero
+      if (numeroData.success && numeroData.numero) {
+        numeroFactura = numeroData.numero
+      }
+    } else {
+      console.warn('Error obteniendo número de factura, usando fallback:', numeroResponse.status)
     }
 
     const facturaData = {
@@ -122,7 +128,8 @@ export async function POST(request: NextRequest) {
         province: estudianteData.province,
         postalCode: estudianteData.postal_code,
         country: estudianteData.country,
-        nif: estudianteData.nif
+        dni: estudianteData.dni,
+        has_shared_pricing: estudianteData.has_shared_pricing || false
       },
       receptor: datosReceptor,
       classes: clasesData,
@@ -139,14 +146,14 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       registro_facturacion: {
-        serie: 'FAC',
+        serie: 'ERK',
         numero: String(Date.now()).slice(-4),
         fecha_expedicion: new Date().toISOString(),
         fecha_operacion: new Date().toISOString(),
-        hash_registro: `hash-${Date.now()}`,
+        hash_registro: incluirQR ? `hash-${Date.now()}` : null,
         timestamp: new Date().toISOString(),
         estado_envio: 'pendiente',
-        url_verificacion: `https://verifactu.aeat.es/verifactu/hash-${Date.now()}`,
+        url_verificacion: incluirQR ? `https://verifactu.aeat.es/verifactu/hash-${Date.now()}` : null,
         base_imponible: total * 0.826, // Base imponible (sin IVA)
         importe_total: total,
         desglose_iva: [{
@@ -201,7 +208,7 @@ export async function POST(request: NextRequest) {
           receptor_email: facturaData.datos_receptor?.email || '',
           
           // Registro de facturación RRSIF
-          serie: facturaData.registro_facturacion?.serie || 'FAC',
+          serie: facturaData.registro_facturacion?.serie || 'ERK',
           numero: facturaData.registro_facturacion?.numero || '',
           fecha_expedicion: facturaData.registro_facturacion?.fecha_expedicion || '',
           hash_registro: facturaData.registro_facturacion?.hash_registro || '',
@@ -213,6 +220,7 @@ export async function POST(request: NextRequest) {
           pdf_generado: false,
           pdf_path: null,
           pdf_size: null
+          // incluye_qr: incluirQR // Temporalmente comentado hasta que se ejecute la migración
         })
         .select()
 
@@ -267,7 +275,7 @@ export async function POST(request: NextRequest) {
 
     // Generar PDF
     try {
-      const pdfDoc = await generarPDFFactura(facturaData as any)
+      const pdfDoc = await generarPDFFactura(facturaData as any, incluirQR)
       const pdfBuffer = pdfDoc.output('arraybuffer')
       
       console.log('PDF generado exitosamente, tamaño:', pdfBuffer.byteLength, 'bytes')
