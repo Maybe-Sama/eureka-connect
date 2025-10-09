@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -16,7 +16,8 @@ import {
   BookOpen,
   Menu,
   X,
-  ClipboardList
+  ClipboardList,
+  LogOut
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -36,7 +37,8 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, logout } = useAuth()
 
   // Detectar si es móvil
   useEffect(() => {
@@ -49,6 +51,11 @@ export default function Sidebar() {
     
     return () => window.removeEventListener('resize', checkIsMobile)
   }, [])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
   // Si no hay usuario autenticado, no mostrar el sidebar
   if (!user) {
@@ -88,12 +95,19 @@ export default function Sidebar() {
             transition={{ delay: 0.2 }}
             className="flex items-center space-x-3"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">E</span>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+              <img 
+                src="/logo-inverse.png" 
+                alt="Profesor Eureka Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              EurekaProfe
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Profesor Eureka
+              </span>
+              
+            </div>
           </motion.div>
           
           {isMobile && (
@@ -143,26 +157,47 @@ export default function Sidebar() {
                     )} 
                   />
                   <span className="font-medium">{item.name}</span>
-                  
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute right-2 w-2 h-2 bg-primary-foreground rounded-full"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
                 </Link>
               </motion.div>
             )
           })}
         </nav>
 
+        {/* Logout Button */}
+        <div className="px-4 py-4">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleLogout}
+            className={cn(
+              "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group",
+              "hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100",
+              "hover:border-red-200 hover:text-red-700",
+              "border border-transparent hover:shadow-lg hover:shadow-red-200/50",
+              "text-foreground-secondary hover:text-red-700",
+              "focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
+            )}
+          >
+            <LogOut 
+              size={20} 
+              className={cn(
+                "transition-all duration-300 group-hover:scale-110 group-hover:rotate-12",
+                "text-foreground-muted group-hover:text-red-600"
+              )} 
+            />
+            <span className="font-medium group-hover:font-semibold transition-all duration-300">
+              Cerrar Sesión
+            </span>
+          </motion.button>
+        </div>
+
         {/* Footer */}
         <div className="p-4 border-t border-border">
           <div className="text-center text-sm text-foreground-muted">
-            <p>© 2025 EurekaProfe</p>
+            <p>© 2025 Profesor Eureka</p>
             <p className="text-xs mt-1">CRM Profesional</p>
           </div>
         </div>

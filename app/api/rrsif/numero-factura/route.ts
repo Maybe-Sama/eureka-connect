@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
     // Obtener el último número de factura del año actual
     const { data: ultimaFactura, error } = await supabase
       .from('facturas_rrsif')
-      .select('numero')
-      .like('numero', `${serie}${año}%`)
-      .order('numero', { ascending: false })
+      .select('invoice_number')
+      .like('invoice_number', `${serie}-%`)
+      .order('invoice_number', { ascending: false })
       .limit(1)
     
     if (error) {
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
     // Calcular siguiente número correlativo
     let siguienteNumero = 1
     if (ultimaFactura && ultimaFactura.length > 0) {
-      const ultimoNumero = ultimaFactura[0].numero
-      // Extraer el número correlativo del formato SERIE-YYYY-NNNN
+      const ultimoNumero = ultimaFactura[0].invoice_number
+      // Extraer el número correlativo del formato SERIE-NNNN
       const partes = ultimoNumero.split('-')
-      if (partes.length === 3 && partes[2]) {
-        siguienteNumero = parseInt(partes[2]) + 1
+      if (partes.length === 2 && partes[1]) {
+        siguienteNumero = parseInt(partes[1]) + 1
       }
     }
     
@@ -74,9 +74,9 @@ export async function GET(request: NextRequest) {
     // Obtener el último número de factura del año actual
     const { data: ultimaFactura, error } = await supabase
       .from('facturas_rrsif')
-      .select('numero')
-      .like('numero', `${serie}${año}%`)
-      .order('numero', { ascending: false })
+      .select('invoice_number')
+      .like('invoice_number', `${serie}-%`)
+      .order('invoice_number', { ascending: false })
       .limit(1)
     
     if (error) {
@@ -93,11 +93,11 @@ export async function GET(request: NextRequest) {
     // Calcular siguiente número correlativo
     let siguienteNumero = 1
     if (ultimaFactura && ultimaFactura.length > 0) {
-      const ultimoNumero = ultimaFactura[0].numero
-      // Extraer el número correlativo del formato SERIE-YYYY-NNNN
+      const ultimoNumero = ultimaFactura[0].invoice_number
+      // Extraer el número correlativo del formato SERIE-NNNN
       const partes = ultimoNumero.split('-')
-      if (partes.length === 3 && partes[2]) {
-        siguienteNumero = parseInt(partes[2]) + 1
+      if (partes.length === 2 && partes[1]) {
+        siguienteNumero = parseInt(partes[1]) + 1
       }
     }
     

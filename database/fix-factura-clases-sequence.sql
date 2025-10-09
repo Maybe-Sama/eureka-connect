@@ -60,3 +60,7 @@ SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factura_clases;
 
 
 
+
+
+
+

@@ -5,8 +5,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import StudentLayout from '@/components/layout/student-layout'
-import { FileText, Download, Eye, CheckCircle, Clock, XCircle, AlertCircle, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { FileText, Download, Eye, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface Invoice {
   id: string
@@ -28,9 +28,7 @@ export default function StudentInvoicesPage() {
   const router = useRouter()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loadingData, setLoadingData] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'paid' | 'pending'>('all')
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
-  const [showInvoicePreview, setShowInvoicePreview] = useState(false)
+  const [filterMonth, setFilterMonth] = useState<string>('')
 
   useEffect(() => {
     if (!loading && !isStudent) {
@@ -136,29 +134,18 @@ export default function StudentInvoicesPage() {
   }
 
   const filteredInvoices = invoices.filter(invoice => {
-    if (filter === 'all') return true
-    if (filter === 'paid') return invoice.status.toLowerCase() === 'paid' || invoice.status.toLowerCase() === 'pagada'
-    if (filter === 'pending') return invoice.status.toLowerCase() === 'pending' || invoice.status.toLowerCase() === 'pendiente'
-    return true
+    if (!filterMonth) return true
+    
+    const invoiceDate = new Date(invoice.date)
+    const invoiceMonth = invoiceDate.getMonth() + 1 // getMonth() returns 0-11, we want 1-12
+    const invoiceYear = invoiceDate.getFullYear()
+    
+    const [selectedYear, selectedMonth] = filterMonth.split('-').map(Number)
+    
+    return invoiceYear === selectedYear && invoiceMonth === selectedMonth
   })
 
-  const totalAmount = filteredInvoices.reduce((sum, inv) => sum + inv.total, 0)
-  const paidAmount = invoices
-    .filter(inv => inv.status.toLowerCase() === 'paid' || inv.status.toLowerCase() === 'pagada')
-    .reduce((sum, inv) => sum + inv.total, 0)
-  const pendingAmount = invoices
-    .filter(inv => inv.status.toLowerCase() === 'pending' || inv.status.toLowerCase() === 'pendiente')
-    .reduce((sum, inv) => sum + inv.total, 0)
 
-  const handlePreviewInvoice = (invoice: Invoice) => {
-    setSelectedInvoice(invoice)
-    setShowInvoicePreview(true)
-  }
-
-  const handleClosePreview = () => {
-    setShowInvoicePreview(false)
-    setSelectedInvoice(null)
-  }
 
   const handleDownloadPDF = async (invoice: Invoice) => {
     try {
@@ -187,6 +174,32 @@ export default function StudentInvoicesPage() {
       console.error('Error descargando PDF:', error)
       const event = new CustomEvent('toast', {
         detail: { message: 'Error al descargar el PDF', type: 'error' }
+      })
+      window.dispatchEvent(event)
+    }
+  }
+
+  const handleViewPDF = async (invoice: Invoice) => {
+    try {
+      const response = await fetch(`/api/rrsif/pdf?id=${invoice.id}`)
+      
+      if (!response.ok) {
+        throw new Error('Error generando PDF')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      
+      // Mostrar notificación de éxito
+      const event = new CustomEvent('toast', {
+        detail: { message: 'PDF abierto en nueva ventana', type: 'success' }
+      })
+      window.dispatchEvent(event)
+    } catch (error) {
+      console.error('Error visualizando PDF:', error)
+      const event = new CustomEvent('toast', {
+        detail: { message: 'Error visualizando PDF', type: 'error' }
       })
       window.dispatchEvent(event)
     }
@@ -223,73 +236,65 @@ export default function StudentInvoicesPage() {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-effect bg-primary/10 rounded-2xl shadow-lg p-6 border border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-foreground-secondary text-sm font-medium">Total Facturas</p>
-                <p className="text-3xl font-bold mt-2 text-foreground">{invoices.length}</p>
-              </div>
-              <FileText size={40} className="text-primary/50" />
-            </div>
-          </div>
-
-          <div className="glass-effect bg-success/10 rounded-2xl shadow-lg p-6 border border-success/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-foreground-secondary text-sm font-medium">Pagado</p>
-                <p className="text-3xl font-bold mt-2 text-foreground">€{paidAmount.toFixed(2)}</p>
-              </div>
-              <CheckCircle size={40} className="text-success/50" />
-            </div>
-          </div>
-
-          <div className="glass-effect bg-warning/10 rounded-2xl shadow-lg p-6 border border-warning/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-foreground-secondary text-sm font-medium">Pendiente</p>
-                <p className="text-3xl font-bold mt-2 text-foreground">€{pendingAmount.toFixed(2)}</p>
-              </div>
-              <Clock size={40} className="text-warning/50" />
-            </div>
-          </div>
-        </div>
 
         {/* Filters */}
         <div className="glass-effect rounded-2xl shadow-lg p-6 border border-border">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-medium text-foreground-secondary">Filtrar por:</span>
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                filter === 'all'
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-background-tertiary text-foreground-secondary hover:bg-background-tertiary/70'
-              }`}
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-sm font-medium text-foreground-secondary">Filtrar por mes:</span>
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-w-[200px]"
             >
-              Todas ({invoices.length})
-            </button>
-            <button
-              onClick={() => setFilter('paid')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                filter === 'paid'
-                  ? 'bg-success text-white shadow-lg'
-                  : 'bg-background-tertiary text-foreground-secondary hover:bg-background-tertiary/70'
-              }`}
-            >
-              Pagadas ({invoices.filter(i => i.status.toLowerCase() === 'paid' || i.status.toLowerCase() === 'pagada').length})
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                filter === 'pending'
-                  ? 'bg-warning text-white shadow-lg'
-                  : 'bg-background-tertiary text-foreground-secondary hover:bg-background-tertiary/70'
-              }`}
-            >
-              Pendientes ({invoices.filter(i => i.status.toLowerCase() === 'pending' || i.status.toLowerCase() === 'pendiente').length})
-            </button>
+              <option value="">Todos los meses</option>
+              {(() => {
+                const months = [
+                  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ]
+                
+                if (invoices.length === 0) {
+                  return <option value="" disabled>No hay facturas</option>
+                }
+                
+                // Encontrar la fecha de la primera factura
+                const firstInvoiceDate = new Date(Math.min(...invoices.map(inv => new Date(inv.date).getTime())))
+                const currentDate = new Date()
+                
+                const options = []
+                
+                // Generar opciones desde la primera factura hasta el mes actual
+                const startYear = firstInvoiceDate.getFullYear()
+                const startMonth = firstInvoiceDate.getMonth()
+                const endYear = currentDate.getFullYear()
+                const endMonth = currentDate.getMonth()
+                
+                for (let year = startYear; year <= endYear; year++) {
+                  const monthStart = year === startYear ? startMonth : 0
+                  const monthEnd = year === endYear ? endMonth : 11
+                  
+                  for (let month = monthStart; month <= monthEnd; month++) {
+                    const value = `${year}-${month + 1}`
+                    const label = `${months[month]} ${year}`
+                    options.push(
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    )
+                  }
+                }
+                
+                return options
+              })()}
+            </select>
+            {filterMonth && (
+              <button
+                onClick={() => setFilterMonth('')}
+                className="px-3 py-2 text-sm text-foreground-muted hover:text-foreground transition-colors"
+              >
+                Limpiar filtro
+              </button>
+            )}
           </div>
         </div>
 
@@ -358,9 +363,9 @@ export default function StudentInvoicesPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => handlePreviewInvoice(invoice)}
+                              onClick={() => handleViewPDF(invoice)}
                               className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
-                              title="Previsualizar factura"
+                              title="Ver factura en nueva ventana"
                             >
                               <Eye 
                                 size={18} 
@@ -400,93 +405,6 @@ export default function StudentInvoicesPage() {
           </p>
         </div>
 
-        {/* Invoice Preview */}
-        <AnimatePresence>
-          {showInvoicePreview && selectedInvoice && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-              onClick={handleClosePreview}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-background rounded-xl border border-border w-full max-w-6xl max-h-[95vh] overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <FileText size={20} className="text-primary" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">
-                        Previsualización de Factura
-                      </h2>
-                      <p className="text-sm text-foreground-muted">
-                        {new Date(selectedInvoice.date).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleClosePreview}
-                    className="p-2 hover:bg-background-tertiary rounded-lg transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-
-                {/* PDF Preview */}
-                <div className="p-6">
-                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <iframe
-                      src={`/api/rrsif/pdf?id=${selectedInvoice.id}&preview=true`}
-                      className="w-full h-[70vh] border-0"
-                      title="Previsualización de factura"
-                    />
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="p-6 border-t border-border bg-muted/20">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-foreground-muted">
-                      Previsualización generada el {new Date().toLocaleDateString('es-ES')}
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={handleClosePreview}
-                        className="group relative px-6 py-3 bg-gradient-to-r from-background-tertiary to-background-tertiary/80 text-foreground rounded-xl hover:from-background-tertiary/80 hover:to-background-tertiary/60 hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2 font-medium border border-border"
-                      >
-                        <X size={16} className="transition-transform duration-300 group-hover:scale-110" />
-                        <span>Cerrar</span>
-                      </button>
-                      <button
-                        onClick={() => handleDownloadPDF(selectedInvoice)}
-                        className="group relative px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl hover:from-primary/90 hover:to-primary/80 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2 font-medium"
-                      >
-                        <Download 
-                          size={16} 
-                          className="transition-transform duration-300 group-hover:scale-110" 
-                        />
-                        <span>Descargar PDF</span>
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </StudentLayout>
   )

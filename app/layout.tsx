@@ -2,7 +2,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata = {
-  title: 'EurekaProfe - CRM Profesional',
+  title: 'Profesor Eureka - CRM Profesional',
   description: 'Sistema de gestión para profesores autónomos',
 }
 

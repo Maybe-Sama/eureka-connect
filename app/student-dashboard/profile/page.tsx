@@ -6,9 +6,8 @@ import { useRouter } from 'next/navigation'
 import StudentLayout from '@/components/layout/student-layout'
 import * as Tabs from '@radix-ui/react-tabs'
 import { motion } from 'framer-motion'
-import { User, Target, FileText } from 'lucide-react'
+import { User, FileText } from 'lucide-react'
 import InfoPersonal from './InfoPersonal'
-import CastigosRuleta from './CastigosRuleta'
 import Documentos from './Documentos'
 
 export default function StudentProfilePage() {
@@ -66,17 +65,6 @@ export default function StudentProfilePage() {
                   <span className="font-medium">Información Personal</span>
                 </Tabs.Trigger>
                 <Tabs.Trigger
-                  value="castigos-ruleta"
-                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg hover:bg-background-tertiary/70 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="castigos-ruleta-panel"
-                  id="castigos-ruleta-tab"
-                >
-                  <Target size={20} aria-hidden="true" />
-                  <span className="font-medium">Castigos y Ruleta</span>
-                </Tabs.Trigger>
-                <Tabs.Trigger
                   value="docs"
                   className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg hover:bg-background-tertiary/70 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   role="tab"
@@ -107,21 +95,6 @@ export default function StudentProfilePage() {
               </motion.div>
             </Tabs.Content>
 
-            <Tabs.Content 
-              value="castigos-ruleta" 
-              className="mt-6"
-              role="tabpanel"
-              aria-labelledby="castigos-ruleta-tab"
-              id="castigos-ruleta-panel"
-            >
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <CastigosRuleta />
-              </motion.div>
-            </Tabs.Content>
 
             <Tabs.Content 
               value="docs" 

@@ -49,7 +49,8 @@ export function generarHashRegistro(registro: RegistroFacturacionAlta | Registro
  */
 export async function obtenerHashAnterior(): Promise<string | null> {
   try {
-    const response = await fetch('/api/rrsif/ultimo-hash')
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/rrsif/ultimo-hash`)
     if (response.ok) {
       const data = await response.json()
       return data.hash || null

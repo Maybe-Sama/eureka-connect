@@ -96,7 +96,7 @@ export default function InfoPersonal() {
               <h1 className="text-3xl font-bold text-primary-foreground">
                 {studentData.first_name} {studentData.last_name}
               </h1>
-              <p className="text-primary-foreground/80 mt-1">{user?.courseName || 'Estudiante EurekaProfe'}</p>
+              <p className="text-primary-foreground/80 mt-1">{user?.courseName || 'Estudiante Profesor Eureka'}</p>
             </div>
           </div>
         </div>

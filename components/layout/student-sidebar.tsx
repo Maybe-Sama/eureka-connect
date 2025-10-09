@@ -74,12 +74,19 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, isMobile }
             transition={{ delay: 0.2 }}
             className="flex items-center space-x-3"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">E</span>
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center overflow-hidden">
+              <img 
+                src="/logo-inverse.png" 
+                alt="Profesor Eureka Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              EurekaProfe
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Profesor Eureka
+              </span>
+              
+            </div>
           </motion.div>
           
           {isMobile && (
@@ -129,16 +136,6 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, isMobile }
                     )} 
                   />
                   <span className="font-medium">{item.name}</span>
-                  
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute right-2 w-2 h-2 bg-primary-foreground rounded-full"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
                 </Link>
               </motion.div>
             )
@@ -179,7 +176,7 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, isMobile }
         {/* Footer */}
         <div className="p-4 border-t border-border">
           <div className="text-center text-sm text-foreground-muted">
-            <p>© 2025 EurekaProfe</p>
+            <p>© 2025 Profesor Eureka</p>
             <p className="text-xs mt-1">Portal del Estudiante</p>
           </div>
         </div>

@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import StudentLayout from '@/components/layout/student-layout'
-import { Calendar as CalendarIcon, Clock, Book, ChevronLeft, ChevronRight } from 'lucide-react'
+import ExamManagerModal from '@/components/calendar/ExamManagerModal'
+import { Calendar as CalendarIcon, Clock, Book, ChevronLeft, ChevronRight, BookOpen, Star } from 'lucide-react'
 
 interface ClassData {
   id: number
@@ -25,13 +26,24 @@ interface FixedSchedule {
   subject: string
 }
 
+interface Exam {
+  id: number
+  subject: string
+  exam_date: string
+  exam_time?: string
+  notes?: string
+  grade?: number
+}
+
 export default function StudentCalendarPage() {
   const { user, loading, isStudent } = useAuth()
   const router = useRouter()
   const [classes, setClasses] = useState<ClassData[]>([])
   const [fixedSchedule, setFixedSchedule] = useState<FixedSchedule[]>([])
+  const [exams, setExams] = useState<Exam[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [showExamManager, setShowExamManager] = useState(false)
 
   const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
@@ -46,6 +58,16 @@ export default function StudentCalendarPage() {
       loadCalendarData()
     }
   }, [isStudent, user?.studentId, currentDate])
+
+  // Escuchar actualizaciones de exámenes desde el modal
+  useEffect(() => {
+    const handleExamsUpdated = () => {
+      loadCalendarData()
+    }
+
+    window.addEventListener('examsUpdated', handleExamsUpdated)
+    return () => window.removeEventListener('examsUpdated', handleExamsUpdated)
+  }, [])
 
   const loadCalendarData = async () => {
     try {
@@ -82,6 +104,19 @@ export default function StudentCalendarPage() {
           console.error('Error parsing fixed_schedule:', e)
         }
       }
+
+      // Cargar exámenes del estudiante
+      const { data: studentExams, error: examsError } = await supabase
+        .from('exams')
+        .select('*')
+        .eq('student_id', user?.studentId)
+        .order('exam_date', { ascending: true })
+
+      if (examsError) {
+        console.error('Error loading exams:', examsError)
+      } else {
+        setExams(studentExams || [])
+      }
     } catch (error) {
       console.error('Error loading calendar data:', error)
     } finally {
@@ -92,6 +127,16 @@ export default function StudentCalendarPage() {
   const getClassesForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0]
     return classes.filter(cls => cls.date === dateStr)
+  }
+
+  const getExamsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]
+    return exams.filter(exam => exam.exam_date === dateStr)
+  }
+
+  const getFixedScheduleForDate = (date: Date) => {
+    const dayOfWeek = date.getDay()
+    return fixedSchedule.filter(schedule => schedule.day_of_week === dayOfWeek)
   }
 
   const getDaysInMonth = () => {
@@ -221,7 +266,10 @@ export default function StudentCalendarPage() {
                 }
                 
                 const classesForDay = getClassesForDate(day)
+                const examsForDay = getExamsForDate(day)
+                const fixedScheduleForDay = getFixedScheduleForDate(day)
                 const isToday = day.toDateString() === new Date().toDateString()
+                const hasAnyActivity = classesForDay.length > 0 || examsForDay.length > 0 || fixedScheduleForDay.length > 0
                 
                 return (
                   <div
@@ -229,7 +277,7 @@ export default function StudentCalendarPage() {
                     className={`aspect-square p-2 rounded-lg border-2 transition-all hover:shadow-md ${
                       isToday 
                         ? 'border-primary bg-primary/10' 
-                        : classesForDay.length > 0
+                        : hasAnyActivity
                         ? 'border-primary/30 bg-primary/5'
                         : 'border-border bg-background-secondary'
                     }`}
@@ -237,19 +285,53 @@ export default function StudentCalendarPage() {
                     <div className="text-sm font-semibold text-foreground mb-1">
                       {day.getDate()}
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
+                      {/* Mostrar clases */}
                       {classesForDay.slice(0, 2).map((cls) => (
                         <div
-                          key={cls.id}
-                          className={`text-xs px-1 py-0.5 rounded truncate ${getStatusColor(cls.status)}`}
-                          title={`${cls.start_time} - ${getStatusText(cls.status)}`}
+                          key={`class-${cls.id}`}
+                          className={`flex items-center space-x-2 px-3 py-2 rounded-xl shadow-sm transition-all duration-200 hover:scale-105 ${getStatusColor(cls.status)}`}
+                          title={`Clase: ${cls.start_time} - ${getStatusText(cls.status)}`}
                         >
-                          {cls.start_time}
+                          <div className="w-2 h-2 rounded-full bg-current opacity-60"></div>
+                          <span className="text-xs font-medium truncate">{cls.start_time}</span>
                         </div>
                       ))}
-                      {classesForDay.length > 2 && (
-                        <div className="text-xs text-foreground-muted">
-                          +{classesForDay.length - 2}
+                      
+                      {/* Mostrar exámenes */}
+                      {examsForDay.slice(0, 1).map((exam) => (
+                        <div
+                          key={`exam-${exam.id}`}
+                          className="px-2 py-1 rounded-lg shadow-sm transition-all duration-200 hover:scale-105 bg-gradient-to-r from-red-50 to-red-100 text-red-700 border border-red-200"
+                          title={`Examen: ${exam.subject}${exam.exam_time ? ` - ${exam.exam_time}` : ''}${exam.notes ? ` - ${exam.notes}` : ''}`}
+                        >
+                          <div className="text-xs font-bold truncate mb-0.5">
+                            {exam.subject}
+                          </div>
+                          {exam.notes && (
+                            <div className="text-xs text-red-600 truncate">
+                              {exam.notes}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {/* Mostrar horario fijo */}
+                      {fixedScheduleForDay.slice(0, 1).map((schedule, index) => (
+                        <div
+                          key={`schedule-${index}`}
+                          className="flex items-center space-x-2 px-3 py-2 rounded-xl shadow-sm transition-all duration-200 hover:scale-105 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200"
+                          title={`Horario fijo: ${schedule.subject} - ${schedule.start_time}`}
+                        >
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <span className="text-xs font-medium truncate">{schedule.start_time}</span>
+                        </div>
+                      ))}
+                      
+                      {/* Contador de actividades adicionales */}
+                      {hasAnyActivity && (classesForDay.length + examsForDay.length + fixedScheduleForDay.length) > 3 && (
+                        <div className="flex items-center justify-center px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
+                          +{(classesForDay.length + examsForDay.length + fixedScheduleForDay.length) - 3} más
                         </div>
                       )}
                     </div>
@@ -259,32 +341,36 @@ export default function StudentCalendarPage() {
             </div>
           </div>
 
-          {/* Horario Fijo y Próximas Clases */}
+          {/* Horario Fijo y Próximos Exámenes */}
           <div className="space-y-6">
             {/* Horario Fijo */}
             {fixedSchedule.length > 0 && (
               <div className="glass-effect rounded-2xl shadow-lg p-6 border border-border">
-                <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
-                  <Book className="mr-2 text-primary" size={20} />
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center">
+                  <div className="p-2 bg-primary/10 rounded-lg mr-3">
+                    <Book className="text-primary" size={20} />
+                  </div>
                   Horario Fijo
                 </h2>
                 <div className="space-y-3">
                   {fixedSchedule.map((schedule, index) => (
                     <div
                       key={index}
-                      className="p-3 bg-primary/10 rounded-lg border border-primary/20"
+                      className="group p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20 hover:border-primary/40 hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold text-foreground">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold text-foreground">
                           {daysOfWeek[schedule.day_of_week]}
                         </span>
-                        <span className="text-xs text-foreground-secondary">
+                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
                           {schedule.subject}
                         </span>
                       </div>
                       <div className="flex items-center text-sm text-foreground-secondary">
-                        <Clock size={14} className="mr-1" />
-                        {schedule.start_time} - {schedule.end_time}
+                        <div className="p-1 bg-primary/20 rounded mr-2">
+                          <Clock size={12} className="text-primary" />
+                        </div>
+                        <span className="font-medium">{schedule.start_time} - {schedule.end_time}</span>
                       </div>
                     </div>
                   ))}
@@ -292,49 +378,97 @@ export default function StudentCalendarPage() {
               </div>
             )}
 
-            {/* Próximas Clases */}
+            {/* Próximos Exámenes */}
             <div className="glass-effect rounded-2xl shadow-lg p-6 border border-border">
-              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
-                <CalendarIcon className="mr-2 text-primary" size={20} />
-                Próximas Clases
-              </h2>
-              <div className="space-y-3">
-                {classes.slice(0, 5).map((cls) => (
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-foreground flex items-center">
+                  <div className="p-2 bg-primary/10 rounded-lg mr-3">
+                    <BookOpen className="text-primary" size={20} />
+                  </div>
+                  Próximos Exámenes
+                </h2>
+                <button
+                  onClick={() => setShowExamManager(true)}
+                  className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                >
+                  Gestionar
+                </button>
+              </div>
+              <div className="space-y-4">
+                {exams.slice(0, 5).map((exam) => (
                   <div
-                    key={cls.id}
-                    className={`p-3 rounded-lg border-2 ${getStatusColor(cls.status)}`}
+                    key={exam.id}
+                    className="group p-4 rounded-xl border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:border-primary/40 hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold">
-                        {new Date(cls.date).toLocaleDateString('es-ES', {
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="text-sm font-bold text-foreground mb-1">
+                          {exam.subject}
+                        </div>
+                        {exam.notes && (
+                          <div className="text-xs text-foreground-secondary mb-2">
+                            <span className="font-medium">Tema:</span> {exam.notes}
+                          </div>
+                        )}
+                      </div>
+                      {exam.grade && (
+                        <div className="flex items-center text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full ml-2">
+                          <Star size={14} className="mr-1 text-yellow-600" />
+                          <span className="font-bold text-yellow-700">
+                            {exam.grade}/10
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center text-sm text-foreground-secondary">
+                      <div className="p-1 bg-primary/20 rounded mr-2">
+                        <CalendarIcon size={12} className="text-primary" />
+                      </div>
+                      <span className="font-medium">
+                        {new Date(exam.exam_date).toLocaleDateString('es-ES', {
                           weekday: 'short',
                           day: 'numeric',
                           month: 'short'
                         })}
                       </span>
-                      <span className="text-xs font-medium">
-                        {getStatusText(cls.status)}
-                      </span>
-                    </div>
-                      <div className="flex items-center text-sm">
-                      <Clock size={14} className="mr-1" />
-                      {cls.start_time} - {cls.end_time}
-                    </div>
-                    <div className="text-xs text-foreground-muted mt-1">
-                      Duración: {cls.duration} min
+                      {exam.exam_time && (
+                        <>
+                          <div className="p-1 bg-primary/20 rounded mx-2">
+                            <Clock size={12} className="text-primary" />
+                          </div>
+                          <span className="font-medium">{exam.exam_time}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
-                {classes.length === 0 && (
-                  <p className="text-foreground-muted text-sm text-center py-4">
-                    No hay clases programadas para este mes
-                  </p>
+                {exams.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="p-4 bg-primary/5 rounded-2xl inline-block mb-4">
+                      <BookOpen size={32} className="text-primary/50" />
+                    </div>
+                    <p className="text-foreground-muted text-sm mb-4">
+                      No tienes exámenes registrados
+                    </p>
+                    <button
+                      onClick={() => setShowExamManager(true)}
+                      className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                    >
+                      Crear primer examen
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal Gestor de Exámenes */}
+      <ExamManagerModal
+        isOpen={showExamManager}
+        onClose={() => setShowExamManager(false)}
+      />
     </StudentLayout>
   )
 }

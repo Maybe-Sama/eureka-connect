@@ -99,15 +99,15 @@ export async function POST(request: NextRequest) {
 
     // Obtener número correlativo de factura
     const numeroResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/rrsif/numero-factura`, {
-      method: 'POST',
+      method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     })
     
     let numeroFactura = 'ERK-0001' // Fallback correcto
     if (numeroResponse.ok) {
       const numeroData = await numeroResponse.json()
-      if (numeroData.success && numeroData.numero) {
-        numeroFactura = numeroData.numero
+      if (numeroData.success && numeroData.siguienteNumero) {
+        numeroFactura = numeroData.siguienteNumero
       }
     } else {
       console.warn('Error obteniendo número de factura, usando fallback:', numeroResponse.status)
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         numero: String(Date.now()).slice(-4),
         fecha_expedicion: new Date().toISOString(),
         fecha_operacion: new Date().toISOString(),
-        hash_registro: incluirQR ? `hash-${Date.now()}` : null,
+        hash_registro: `hash-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         timestamp: new Date().toISOString(),
         estado_envio: 'pendiente',
         url_verificacion: incluirQR ? `https://verifactu.aeat.es/verifactu/hash-${Date.now()}` : null,

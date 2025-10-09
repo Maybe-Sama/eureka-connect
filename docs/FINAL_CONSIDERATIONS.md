@@ -56,32 +56,31 @@ const { data: student } = await supabaseAdmin
 studentName = `${student.first_name} ${student.last_name}`
 ```
 
-#### **Castigos en Base de Datos**
+#### **Datos del Estudiante en Base de Datos**
 - ✅ **Esquema SQL** completo con tablas relacionadas
-- ✅ **APIs RESTful** para CRUD de castigos
+- ✅ **APIs RESTful** para CRUD de datos del estudiante
 - ✅ **Validación de datos** en servidor
 - ✅ **Relaciones foreign key** para integridad
 
 ### 3. **Seguridad Implementada**
 
 #### **Control de Permisos por Roles**
-- ✅ **API de permisos** (`/api/punishments/permissions`)
 - ✅ **Verificación de tokens** JWT
 - ✅ **Validación de roles** (profesor/estudiante)
-- ✅ **Restricciones por acción** (spin, complete, view)
+- ✅ **Restricciones por acción** (view, edit, delete)
 
 #### **Reglas de Seguridad**
 ```typescript
-// Solo el profesor puede lanzar la ruleta para otros
+// Control de acceso por roles
 if (userData.user_type === 'teacher') {
   hasPermission = true
 } else if (userData.user_type === 'student' && isOwner) {
-  hasPermission = true // Solo su propia ruleta
+  hasPermission = true // Solo sus propios datos
 }
 
-// Solo el profesor puede marcar como completado
-if (is_completed !== undefined && userData.user_type !== 'teacher') {
-  return NextResponse.json({ error: 'Only teachers can mark as completed' })
+// Validación de permisos por acción
+if (action === 'edit' && userData.user_type !== 'teacher') {
+  return NextResponse.json({ error: 'Insufficient permissions' })
 }
 ```
 
@@ -99,9 +98,9 @@ if (is_completed !== undefined && userData.user_type !== 'teacher') {
 - ✅ **Estados visuales** claros (activo, hover, focus)
 - ✅ **Iconos descriptivos** para cada sección
 
-#### **Ruleta Interactiva**
+#### **Interfaz Interactiva**
 - ✅ **Animaciones fluidas** con Framer Motion
-- ✅ **Feedback visual** durante el giro
+- ✅ **Feedback visual** en interacciones
 - ✅ **Estados de carga** informativos
 - ✅ **Mensajes de error** claros
 
@@ -189,8 +188,6 @@ if (is_completed !== undefined && userData.user_type !== 'teacher') {
 ### **Estructura Modular**
 ```
 components/
-├── punishments/
-│   └── PunishmentTypeModal.tsx
 ├── layout/
 │   └── student-sidebar.tsx
 └── ui/
@@ -200,10 +197,8 @@ hooks/
 └── useAuthToken.ts
 
 api/
-└── punishments/
-    ├── types/route.ts
-    ├── results/route.ts
-    └── permissions/route.ts
+└── students/
+    └── route.ts
 ```
 
 ### **Configuración Centralizada**
