@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Edit, Trash2, BookOpen, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { toast } from 'sonner'
 import { SubjectSelector } from '@/components/courses/SubjectSelector'
 
@@ -136,8 +137,10 @@ const CoursesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center">
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
+        </div>
       </div>
     )
   }
@@ -155,11 +158,14 @@ const CoursesPage = () => {
             <BookOpen size={32} className="mr-3 text-primary" />
             Gestión de Cursos
           </h1>
-          <Button onClick={() => {
-            console.log('Botón Añadir Curso clickeado, abriendo modal...') // Log de depuración
-            setIsAddModalOpen(true)
-            console.log('Estado del modal después de abrir:', true) // Log de depuración
-          }} className="flex items-center">
+          <Button 
+            onClick={() => {
+              console.log('Botón Añadir Curso clickeado, abriendo modal...') // Log de depuración
+              setIsAddModalOpen(true)
+              console.log('Estado del modal después de abrir:', true) // Log de depuración
+            }} 
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center"
+          >
             <Plus size={20} className="mr-2" />
             Añadir Curso
           </Button>
@@ -332,12 +338,12 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary p-8 rounded-lg shadow-xl w-full max-w-md border border-border"
+        className="bg-background p-8 rounded-lg shadow-xl w-full max-w-md border border-border"
       >
         <h2 className="text-2xl font-bold text-foreground mb-6">{title}</h2>
         <form onSubmit={handleSubmit}>
@@ -442,7 +448,7 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit">Guardar Curso</Button>
+            <Button type="submit" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white">Guardar Curso</Button>
           </div>
         </form>
       </motion.div>

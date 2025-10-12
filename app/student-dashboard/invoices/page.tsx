@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import StudentLayout from '@/components/layout/student-layout'
 import { FileText, Download, Eye, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { motion } from 'framer-motion'
 
 interface Invoice {
@@ -156,14 +156,35 @@ export default function StudentInvoicesPage() {
       }
 
       const blob = await response.blob()
+      
+      // Validar que el blob sea válido
+      if (!blob || blob.size === 0) {
+        throw new Error('El archivo PDF está vacío o corrupto')
+      }
+
+      // Verificar que el blob sea de tipo PDF
+      if (blob.type && !blob.type.includes('pdf') && !blob.type.includes('application/octet-stream')) {
+        console.warn('Tipo de archivo inesperado:', blob.type)
+      }
+
       const url = window.URL.createObjectURL(blob)
+      
+      // Validar que la URL se haya creado correctamente
+      if (!url || url === 'null' || url === 'undefined') {
+        throw new Error('Error creando URL del archivo')
+      }
+
       const link = document.createElement('a')
       link.href = url
       link.download = `factura-${invoice.invoice_number}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      
+      // Limpiar la URL después de un breve delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+      }, 1000)
       
       // Mostrar notificación de éxito
       const event = new CustomEvent('toast', {
@@ -188,8 +209,30 @@ export default function StudentInvoicesPage() {
       }
 
       const blob = await response.blob()
+      
+      // Validar que el blob sea válido
+      if (!blob || blob.size === 0) {
+        throw new Error('El archivo PDF está vacío o corrupto')
+      }
+
+      // Verificar que el blob sea de tipo PDF
+      if (blob.type && !blob.type.includes('pdf') && !blob.type.includes('application/octet-stream')) {
+        console.warn('Tipo de archivo inesperado:', blob.type)
+      }
+
       const url = window.URL.createObjectURL(blob)
+      
+      // Validar que la URL se haya creado correctamente
+      if (!url || url === 'null' || url === 'undefined') {
+        throw new Error('Error creando URL del archivo')
+      }
+
       window.open(url, '_blank')
+      
+      // Limpiar la URL después de un breve delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+      }, 1000)
       
       // Mostrar notificación de éxito
       const event = new CustomEvent('toast', {
@@ -207,14 +250,11 @@ export default function StudentInvoicesPage() {
 
   if (loading || loadingData) {
     return (
-      <StudentLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-foreground-muted">Cargando facturas...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center">
+          <DiagonalBoxLoader size="lg" color="hsl(var(--student-primary))" />
         </div>
-      </StudentLayout>
+      </div>
     )
   }
 
@@ -223,28 +263,27 @@ export default function StudentInvoicesPage() {
   }
 
   return (
-    <StudentLayout>
-      <div className="max-w-7xl mx-auto space-y-6 p-6 lg:p-8">
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="glass-effect rounded-2xl shadow-lg p-6 border border-border">
-          <h1 className="text-3xl font-bold text-foreground flex items-center">
-            <FileText className="mr-3 text-primary" size={32} />
+        <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+            <FileText className="mr-2 sm:mr-3 text-primary" size={32} />
             Mis Facturas
           </h1>
-          <p className="text-foreground-secondary mt-2">
+          <p className="text-foreground-secondary mt-2 text-sm sm:text-base">
             Consulta el historial de tus facturas y estados de pago
           </p>
         </div>
 
 
         {/* Filters */}
-        <div className="glass-effect rounded-2xl shadow-lg p-6 border border-border">
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <span className="text-sm font-medium text-foreground-secondary">Filtrar por mes:</span>
             <select
               value={filterMonth}
               onChange={(e) => setFilterMonth(e.target.value)}
-              className="px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-w-[200px]"
+              className="px-3 sm:px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-student-primary min-w-[200px] text-sm sm:text-base"
             >
               <option value="">Todos los meses</option>
               {(() => {
@@ -290,7 +329,7 @@ export default function StudentInvoicesPage() {
             {filterMonth && (
               <button
                 onClick={() => setFilterMonth('')}
-                className="px-3 py-2 text-sm text-foreground-muted hover:text-foreground transition-colors"
+                className="px-3 py-2 text-xs sm:text-sm text-foreground-muted hover:text-foreground transition-colors"
               >
                 Limpiar filtro
               </button>
@@ -300,7 +339,8 @@ export default function StudentInvoicesPage() {
 
         {/* Invoices Table */}
         <div className="glass-effect rounded-2xl shadow-lg overflow-hidden border border-border">
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-background-tertiary">
                 <tr>
@@ -364,7 +404,7 @@ export default function StudentInvoicesPage() {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleViewPDF(invoice)}
-                              className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                              className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-student-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-student-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
                               title="Ver factura en nueva ventana"
                             >
                               <Eye 
@@ -375,14 +415,14 @@ export default function StudentInvoicesPage() {
                             </button>
                             <button
                               onClick={() => handleDownloadPDF(invoice)}
-                              className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20 text-success hover:from-success/20 hover:to-success/10 hover:border-success/30 hover:shadow-lg hover:shadow-success/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                              className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-student-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-student-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
                               title="Descargar PDF"
                             >
                               <Download 
                                 size={18} 
                                 className="transition-transform duration-300 group-hover:scale-110" 
                               />
-                              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             </button>
                           </div>
                         </td>
@@ -393,11 +433,69 @@ export default function StudentInvoicesPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden">
+            {filteredInvoices.length === 0 ? (
+              <div className="px-4 py-12 text-center text-foreground-muted">
+                <FileText size={48} className="mx-auto text-foreground-muted/30 mb-4" />
+                <p className="text-lg font-medium">No hay facturas disponibles</p>
+                <p className="text-sm mt-2">Las facturas aparecerán aquí cuando sean generadas</p>
+              </div>
+            ) : (
+              <div className="p-4 space-y-4">
+                {filteredInvoices.map((invoice) => {
+                  const statusInfo = getStatusInfo(invoice.status)
+                  return (
+                    <div key={invoice.id} className="bg-background-secondary rounded-xl p-4 border border-border hover:bg-background-tertiary transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-foreground mb-1">
+                            {new Date(invoice.date).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                          <div className="text-sm text-foreground-muted mb-2">
+                            {invoice.description || 'Servicios de formación'}
+                          </div>
+                          <div className="text-lg font-bold text-foreground">
+                            €{invoice.total.toFixed(2)}
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border-2 ${statusInfo.color} ${statusInfo.bg} ${statusInfo.border}`}>
+                          <span className="mr-1">{statusInfo.icon}</span>
+                          {statusInfo.text}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleViewPDF(invoice)}
+                          className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-student-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-student-primary/10 hover:border-primary/30 transition-all duration-300"
+                        >
+                          <Eye size={16} />
+                          <span className="text-sm font-medium">Ver</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownloadPDF(invoice)}
+                          className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-student-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-student-primary/10 hover:border-primary/30 transition-all duration-300"
+                        >
+                          <Download size={16} />
+                          <span className="text-sm font-medium">Descargar</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Help Section */}
-        <div className="glass-effect bg-primary/5 border border-primary/20 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+        <div className="glass-effect bg-primary/5 border border-primary/20 rounded-2xl p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
             ¿Tienes alguna pregunta sobre tus facturas?
           </h3>
           <p className="text-foreground-secondary text-sm">
@@ -406,7 +504,6 @@ export default function StudentInvoicesPage() {
         </div>
 
       </div>
-    </StudentLayout>
   )
 }
 

@@ -18,6 +18,15 @@ interface FixedScheduleItem {
   is_scheduled: boolean
   class_id?: number
   class_date?: string
+  students?: {
+    first_name: string
+    last_name: string
+    email: string
+  }
+  courses?: {
+    name: string
+    color: string
+  }
 }
 
 interface ScheduledClassItem {
@@ -34,6 +43,15 @@ interface ScheduledClassItem {
   date: string
   price: number
   is_recurring: boolean
+  students?: {
+    first_name: string
+    last_name: string
+    email: string
+  }
+  courses?: {
+    name: string
+    color: string
+  }
 }
 
 interface WeeklyCalendarProps {
@@ -182,7 +200,7 @@ export const WeeklyCalendar = ({
     
     // Convertir tiempo a minutos para comparación
     const timeToMinutes = (timeStr: string) => {
-      // Remover segundos si existen
+      // Remover segundos si existen y normalizar formato
       const cleanTime = timeStr.split(':').slice(0, 2).join(':')
       const [hours, minutes] = cleanTime.split(':').map(Number)
       return hours * 60 + minutes
@@ -195,6 +213,7 @@ export const WeeklyCalendar = ({
     const targetDateString = targetDate.toISOString().split('T')[0]
     
     
+    
     // Buscar clase programada específica (is_recurring: false) que coincida con la fecha
     const scheduledClass = scheduledClasses.find(cls => {
       if (cls.day_of_week !== day) return false
@@ -203,12 +222,41 @@ export const WeeklyCalendar = ({
       const classDate = new Date(cls.date).toISOString().split('T')[0]
       if (classDate !== targetDateString) return false
       
+      // Debug para verificar fechas
+      if (scheduledClasses.length > 0 && day === 7) {
+        console.log('Date comparison:')
+        console.log('  Class date:', cls.date, '-> normalized:', classDate)
+        console.log('  Target date:', targetDateString)
+        console.log('  Dates match:', classDate === targetDateString)
+      }
+      
       const startMinutes = timeToMinutes(cls.start_time)
       const endMinutes = timeToMinutes(cls.end_time)
       
       // La clase programada debe estar activa en este slot de tiempo
       // Incluir el slot de tiempo donde termina la clase (<= en lugar de <)
       const isInTimeRange = currentTimeMinutes >= startMinutes && currentTimeMinutes < endMinutes
+      
+      // Debug temporal para clases programadas
+      if (scheduledClasses.length > 0 && day === 7) { // Solo para domingo (día 7)
+        console.log('=== DEBUG SCHEDULED CLASS SEARCH ===')
+        console.log('Searching for day:', day, 'time:', time, 'target date:', targetDateString)
+        console.log('Class being checked:', {
+          id: cls.id,
+          student_name: cls.student_name,
+          day_of_week: cls.day_of_week,
+          date: cls.date,
+          classDate: classDate,
+          start_time: cls.start_time,
+          end_time: cls.end_time,
+          isInTimeRange: isInTimeRange
+        })
+        console.log('Time comparison:')
+        console.log('  Current time:', time, '-> minutes:', currentTimeMinutes)
+        console.log('  Class start:', cls.start_time, '-> minutes:', startMinutes)
+        console.log('  Class end:', cls.end_time, '-> minutes:', endMinutes)
+        console.log('  Is in range:', currentTimeMinutes >= startMinutes && currentTimeMinutes < endMinutes)
+      }
       
       return isInTimeRange
     })
@@ -272,11 +320,21 @@ export const WeeklyCalendar = ({
     <div className="overflow-x-auto">
       <div className="min-w-[800px]">
         {/* Header con botón de configuración */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="grid grid-cols-8 gap-1 flex-1">
-            <div className="h-12"></div>
+        <div className="mb-4">
+          <div className="grid grid-cols-8 gap-1">
+            {/* Botón de configuración de colores en la primera columna */}
+            <div className="h-12 flex items-center justify-center">
+              <button
+                onClick={() => setIsColorPanelOpen(true)}
+                className="flex items-center space-x-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors"
+                title="Configurar colores de alumnos"
+              >
+                <Palette className="w-4 h-4" />
+                <span className="text-sm font-medium">Colores</span>
+              </button>
+            </div>
             {weekDates.map((date, index) => (
-              <div key={index} className="h-12 flex items-center justify-center text-sm font-medium text-foreground bg-background-secondary rounded-lg">
+              <div key={index} className="h-12 flex items-center justify-center text-sm font-medium text-foreground bg-background/40 rounded-lg border border-gray-200/40">
                 <div className="text-center">
                   <div className="font-semibold">{getDayName(date.getDay()).slice(0, 3)}</div>
                   <div className="text-xs text-foreground-muted">{date.getDate()}</div>
@@ -284,19 +342,9 @@ export const WeeklyCalendar = ({
               </div>
             ))}
           </div>
-          
-          {/* Botón de configuración de colores */}
-          <button
-            onClick={() => setIsColorPanelOpen(true)}
-            className="ml-4 flex items-center space-x-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors"
-            title="Configurar colores de alumnos"
-          >
-            <Palette className="w-4 h-4" />
-            <span className="text-sm font-medium">Colores</span>
-          </button>
         </div>
 
-        {/* Time slots con horas entre filas */}
+        {/* Time slots con horas en las celdas */}
         <div className="relative">
           {timeSlots.map((time, index) => {
             const isHourMark = shouldShowHourLabel(time)
@@ -304,22 +352,15 @@ export const WeeklyCalendar = ({
             
             return (
               <div key={time}>
-                {/* Etiqueta de hora posicionada ENTRE las filas (antes de la fila) */}
-                {isHourMark && (
-                  <div className="grid grid-cols-8 gap-1 relative -mb-3 z-10">
-                    <div className="flex items-center justify-center">
-                      <span className="text-xs font-semibold text-primary bg-background px-2 py-0.5 rounded-full border border-primary/30">
-                        {getHourLabel(time)}
-                      </span>
-                    </div>
-                    <div className="col-span-7"></div>
-                  </div>
-                )}
-                
                 {/* Fila de franjas de tiempo */}
                 <div className="grid grid-cols-8 gap-1 mb-0">
-                  <div className="h-8 flex items-center justify-center bg-background-secondary/30 rounded-lg">
-                    {/* Espacio vacío para la columna de tiempos */}
+                  <div className="h-8 flex items-center justify-center bg-background/50 rounded-lg border border-gray-200/50">
+                    {/* Hora centrada en la celda */}
+                    {isHourMark && (
+                      <span className="text-xs font-semibold text-primary">
+                        {getHourLabel(time)}
+                      </span>
+                    )}
                   </div>
                   {weekDates.map((date, dayIndex) => {
                     const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay()
@@ -336,17 +377,17 @@ export const WeeklyCalendar = ({
                             ? item.type === 'scheduled'
                               ? getStudentColor(item.data.student_id)
                               : getStudentColor(item.data.student_id)
-                            : 'bg-background hover:bg-background-tertiary'
+                            : 'bg-background/30 hover:bg-background/50 border border-gray-200/50'
                         } ${
-                          isFirstSlot ? 'rounded-t-lg border-t-2 border-l-2 border-r-2 border-border' : ''
+                          isFirstSlot ? 'rounded-t-lg border-t-2 border-l-2 border-r-2 border-gray-300/60' : ''
                         } ${
-                          isLastSlot ? 'rounded-b-lg border-b-2 border-l-2 border-r-2 border-border' : ''
+                          isLastSlot ? 'rounded-b-lg border-b-2 border-l-2 border-r-2 border-gray-300/60' : ''
                         } ${
-                          isMiddleSlot ? 'rounded-none border-l-2 border-r-2 border-border' : ''
+                          isMiddleSlot ? 'rounded-none border-l-2 border-r-2 border-gray-300/60' : ''
                         } ${
-                          !isFirstSlot && !isLastSlot && !isMiddleSlot ? 'rounded-lg border-2 border-border' : ''
+                          !isFirstSlot && !isLastSlot && !isMiddleSlot ? 'rounded-lg border-2 border-gray-300/60' : ''
                         } ${
-                          !item ? 'border-t border-border/30' : ''
+                          !item ? 'border-t border-gray-200/40' : ''
                         }`}
                         onClick={() => {
                           if (item) {
@@ -363,20 +404,23 @@ export const WeeklyCalendar = ({
                         }}
                       >
                         {/* Línea separadora sutil para cada cuarto de hora */}
-                        <div className="absolute top-0 left-0 right-0 h-px bg-border/20"></div>
+                        <div className="absolute top-0 left-0 right-0 h-px bg-gray-200/30"></div>
                         
                         {item && isFirstSlot && (
                           <div className="h-full p-1 flex flex-col justify-center overflow-hidden">
-                            <div className="text-[9px] font-semibold text-black leading-tight">
+                            <div className="text-[11px] font-semibold text-black leading-tight">
                               {item.type === 'scheduled' ? '📅' : '🔄'}
                             </div>
-                            <div className="text-[10px] font-medium text-black truncate">
-                              {item.data.student_name}
+                            <div className="text-[12px] font-medium text-black truncate">
+                              {item.data.student_name || (item.data.students ? `${item.data.students.first_name || ''} ${item.data.students.last_name || ''}`.trim() : 'Sin nombre')}
                             </div>
-                            <div className="text-[8px] text-foreground-muted truncate">
+                            <div className="text-[10px] font-medium text-black truncate">
+                              {item.data.course_name || (item.data.courses ? item.data.courses.name : 'Sin curso')}
+                            </div>
+                            <div className="text-[9px] text-black truncate">
                               {item.data.subject || 'Sin asignatura'}
                             </div>
-                            <div className="text-[7px] text-foreground-muted">
+                            <div className="text-[8px] text-black">
                               {item.data.start_time} - {item.data.end_time}
                             </div>
                           </div>

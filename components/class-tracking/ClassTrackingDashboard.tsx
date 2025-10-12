@@ -18,11 +18,10 @@ import {
   Edit,
   Plus,
   Search,
-  Info,
-  Loader2
+  Info
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ClimbingBoxLoader } from '@/components/ui/ClimbingBoxLoader'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { ClassTrackingCard } from './ClassTrackingCard'
 import { ClassDetailsModal } from './ClassDetailsModal'
 import { MonthlyReportModal } from './MonthlyReportModal'
@@ -220,10 +219,9 @@ const ClassTrackingDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
         <div className="text-center">
-          <ClimbingBoxLoader size="lg" className="mb-4" />
-          <p className="text-foreground-muted text-lg font-medium">Cargando datos...</p>
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
         </div>
       </div>
     )
@@ -235,7 +233,7 @@ const ClassTrackingDashboard = () => {
       <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <Loader2 size={32} className="animate-spin text-green-500" />
+            <DiagonalBoxLoader size="lg" color="hsl(var(--success))" />
           </div>
           <p className="text-foreground-muted text-lg font-medium">Actualizando clases hasta hoy...</p>
           <p className="text-foreground-muted text-sm mt-2">Esto puede tardar unos momentos</p>
@@ -266,7 +264,7 @@ const ClassTrackingDashboard = () => {
                 className="flex items-center bg-green-500/10 border-green-500 hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUpdatingClasses ? (
-                  <Loader2 size={20} className="mr-2 animate-spin" />
+                  <DiagonalBoxLoader size="sm" color="hsl(var(--success))" className="mr-2" />
                 ) : (
                   <RefreshCw size={20} className="mr-2" />
                 )}

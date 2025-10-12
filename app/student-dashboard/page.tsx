@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { ClimbingBoxLoader } from 'react-spinners'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 
 export default function StudentDashboard() {
   const { user, loading, isStudent } = useAuth()
@@ -24,8 +24,7 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <ClimbingBoxLoader color="hsl(var(--primary))" />
-        <p className="mt-4 text-foreground-muted">Cargando...</p>
+        <DiagonalBoxLoader size="lg" color="hsl(var(--student-primary))" />
       </div>
     </div>
   )

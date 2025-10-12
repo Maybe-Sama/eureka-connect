@@ -14,6 +14,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { FiscalData, ReceptorData } from '@/types'
 import { validarDatosFiscales, validarDatosReceptor } from '@/lib/rrsif-utils'
 
@@ -360,10 +361,10 @@ const ConfiguracionFiscalModal = ({
                 <Button 
                   onClick={handleSave}
                   disabled={erroresFiscales.length > 0 || isLoading}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
                 >
                   {isLoading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <DiagonalBoxLoader size="sm" color="white" />
                   ) : (
                     <Save size={16} />
                   )}

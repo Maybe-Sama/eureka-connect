@@ -44,15 +44,86 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ id: classId, message: 'Clase creada exitosamente' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating class:', error)
+    
+    // Manejar error de duplicado específicamente
+    if (error.code === '23505' || error.message?.includes('duplicate key')) {
+      const details = error.details || ''
+      let errorMessage = 'Ya existe una clase programada para este estudiante en la misma fecha y horario'
+      
+      // Si hay detalles sobre el conflicto, extraer información útil
+      if (details.includes('student_id, date, start_time, end_time')) {
+        errorMessage = 'Ya existe una clase programada para este estudiante en la misma fecha. Verifica que no haya conflictos de horario.'
+      }
+      
+      return NextResponse.json({ 
+        error: errorMessage,
+        code: error.code,
+        details: error.details
+      }, { status: 409 })
+    }
+    
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, start_time, end_time, duration, date, day_of_week, notes } = body
+
+    if (!id || !start_time || !end_time || !duration || !date) {
+      return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
+    }
+
+    // Update the class
+    await dbOperations.updateClass(Number(id), {
+      start_time,
+      end_time,
+      duration: Number(duration),
+      day_of_week: Number(day_of_week) || 1,
+      date,
+      notes: notes || null
+    })
+
+    return NextResponse.json({ message: 'Clase actualizada exitosamente' })
+  } catch (error: any) {
+    console.error('Error updating class:', error)
+    
+    // Handle duplicate key error
+    if (error.code === '23505' || error.message?.includes('duplicate key')) {
+      return NextResponse.json({ 
+        error: 'Ya existe una clase programada para este estudiante en la misma fecha y horario',
+        code: error.code
+      }, { status: 409 })
+    }
+    
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Validar que la URL sea válida
+    if (!request.url) {
+      return NextResponse.json(
+        { error: 'URL de request inválida' },
+        { status: 400 }
+      )
+    }
+
+    let searchParams
+    try {
+      const url = new URL(request.url)
+      searchParams = url.searchParams
+    } catch (urlError) {
+      console.error('Error creando URL:', urlError)
+      return NextResponse.json(
+        { error: 'URL de request malformada' },
+        { status: 400 }
+      )
+    }
     const ids = searchParams.get('ids')
     
     if (!ids) {

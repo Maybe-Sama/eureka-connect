@@ -21,6 +21,7 @@ import {
   User
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { SimpleWeeklyScheduleSelector } from '@/components/students/SimpleWeeklyScheduleSelector'
 import { toast } from 'sonner'
 import { generateStudentCode, formatStudentCode, parseFixedSchedule } from '@/lib/utils'
@@ -276,8 +277,10 @@ const StudentsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center">
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
+        </div>
       </div>
     )
   }
@@ -295,7 +298,10 @@ const StudentsPage = () => {
             <Users size={32} className="mr-3 text-primary" />
             Gestión de Alumnos
           </h1>
-          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center">
+          <Button 
+            onClick={() => setIsAddModalOpen(true)} 
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center"
+          >
             <Plus size={20} className="mr-2" />
             Añadir Alumno
           </Button>
@@ -465,10 +471,20 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.2 }}
-    className="glass-effect card-hover rounded-lg p-5 border border-border relative overflow-hidden"
+    className="glass-effect card-hover rounded-lg p-5 border border-border relative overflow-hidden group"
     style={{ borderColor: student.course_color }}
   >
-    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: student.course_color }} />
+    {/* Top border lightning */}
+    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
+    
+    {/* Right border lightning */}
+    <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
+    
+    {/* Bottom border lightning */}
+    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
+    
+    {/* Left border lightning */}
+    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
     
     <div className="flex items-center justify-between mb-3">
       <h3 className="text-xl font-semibold text-foreground flex items-center">
@@ -704,12 +720,12 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
+        className="bg-background rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -1046,7 +1062,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
               <Button type="button" variant="ghost" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary-hover">
+              <Button type="submit" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white">
                 Crear Alumno
               </Button>
             </div>
@@ -1241,12 +1257,12 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
+        className="bg-background rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -1557,7 +1573,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
               <Button type="button" variant="ghost" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary-hover">
+              <Button type="submit" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white">
                 Guardar Cambios
               </Button>
             </div>

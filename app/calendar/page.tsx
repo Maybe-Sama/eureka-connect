@@ -11,28 +11,43 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ClimbingBoxLoader } from '@/components/ui/ClimbingBoxLoader'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { WeeklyCalendar } from '@/components/calendar/WeeklyCalendar'
 import { AddClassModal } from '@/components/calendar/AddClassModal'
 import { DeleteClassModal } from '@/components/calendar/DeleteClassModal'
+import { EditOrDeleteModal } from '@/components/calendar/EditOrDeleteModal'
+import { EditClassModal } from '@/components/calendar/EditClassModal'
 import { Class, Student } from '@/types'
 import { formatDate, formatTime } from '@/lib/utils'
 import { toast } from 'sonner'
-import { dbOperations } from '@/lib/database'
+// Removed direct database import - using API routes instead
 
 const CalendarPage = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ day: number; time: string } | undefined>(undefined)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isEditOrDeleteModalOpen, setIsEditOrDeleteModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedClass, setSelectedClass] = useState<any>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
   const [fixedSchedules, setFixedSchedules] = useState<any[]>([])
   const [scheduledClasses, setScheduledClasses] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
   const [students, setStudents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [hiddenFixedSchedules, setHiddenFixedSchedules] = useState<Set<string>>(new Set())
+  const [hiddenFixedSchedules, setHiddenFixedSchedules] = useState<Record<string, Set<string>>>({})
+
+  // Función para obtener la clave de la semana actual
+  const getCurrentWeekKey = (weekDate: Date) => {
+    const startOfWeek = new Date(weekDate)
+    // Use the same logic as getWeekDates to ensure consistency
+    const dayOfWeek = weekDate.getDay()
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    startOfWeek.setDate(weekDate.getDate() - daysToSubtract)
+    return startOfWeek.toISOString().split('T')[0]
+  }
 
   // Cargar excepciones guardadas al inicializar
   useEffect(() => {
@@ -40,61 +55,112 @@ const CalendarPage = () => {
     if (savedExceptions) {
       try {
         const parsed = JSON.parse(savedExceptions)
-        setHiddenFixedSchedules(new Set(parsed))
-        console.log('Excepciones cargadas desde localStorage:', parsed.length)
+        // Convertir array de arrays a Record<string, Set<string>>
+        const exceptionsByWeek: Record<string, Set<string>> = {}
+        Object.entries(parsed).forEach(([week, exceptions]) => {
+          exceptionsByWeek[week] = new Set(exceptions as string[])
+        })
+        setHiddenFixedSchedules(exceptionsByWeek)
+        console.log('Excepciones cargadas desde localStorage:', Object.keys(exceptionsByWeek).length, 'semanas')
       } catch (error) {
         console.error('Error cargando excepciones:', error)
-        setHiddenFixedSchedules(new Set())
+        setHiddenFixedSchedules({})
       }
     }
   }, [])
 
   // Guardar excepciones en localStorage cuando cambien
   useEffect(() => {
-    if (hiddenFixedSchedules.size > 0) {
-      const exceptionsArray = Array.from(hiddenFixedSchedules)
-      localStorage.setItem('hiddenFixedSchedules', JSON.stringify(exceptionsArray))
-      console.log('Excepciones guardadas en localStorage:', exceptionsArray.length)
+    if (Object.keys(hiddenFixedSchedules).length > 0) {
+      // Convertir Sets a arrays para JSON
+      const exceptionsToSave: Record<string, string[]> = {}
+      Object.entries(hiddenFixedSchedules).forEach(([week, exceptions]) => {
+        exceptionsToSave[week] = Array.from(exceptions)
+      })
+      localStorage.setItem('hiddenFixedSchedules', JSON.stringify(exceptionsToSave))
+      console.log('Excepciones guardadas en localStorage:', Object.keys(exceptionsToSave).length, 'semanas')
     } else {
       localStorage.removeItem('hiddenFixedSchedules')
       console.log('Excepciones eliminadas de localStorage')
     }
   }, [hiddenFixedSchedules])
 
-  // Monitorear cambios en isAddModalOpen
-  useEffect(() => {
-    console.log('=== CAMBIO EN isAddModalOpen ===')
-    console.log('isAddModalOpen:', isAddModalOpen)
-    console.log('selectedTimeSlot:', selectedTimeSlot)
-  }, [isAddModalOpen, selectedTimeSlot])
+  // Función para debuggear clases programadas
+  const debugScheduledClasses = () => {
+    console.log('=== DEBUG SCHEDULED CLASSES ===')
+    console.log('Scheduled classes state:', scheduledClasses)
+    console.log('Week dates:', getWeekDates())
+    
+    console.log('--- CLASES EN ESTADO DEL COMPONENTE ---')
+    scheduledClasses.forEach((cls: any, index: number) => {
+      console.log(`Class ${index + 1}:`, {
+        id: cls.id,
+        student_name: cls.student_name,
+        date: cls.date,
+        day_of_week: cls.day_of_week,
+        start_time: cls.start_time,
+        end_time: cls.end_time,
+        is_recurring: cls.is_recurring
+      })
+    })
+    
+    console.log('--- CLASES EN LOCALSTORAGE (DEBUG) ---')
+    const debugClasses = JSON.parse(localStorage.getItem('debugClasses') || '[]')
+    debugClasses.forEach((cls: any, index: number) => {
+      console.log(`Debug Class ${index + 1}:`, {
+        id: cls.id,
+        student_id: cls.student_id,
+        date: cls.date,
+        day_of_week: cls.day_of_week,
+        start_time: cls.start_time,
+        end_time: cls.end_time,
+        is_recurring: cls.is_recurring,
+        created_at: cls.created_at
+      })
+    })
+  }
 
-  // Fetch data from database
+  // Fetch data from API routes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true)
+        const [classesResponse, coursesResponse, studentsResponse] = await Promise.all([
+          fetch('/api/classes'),
+          fetch('/api/courses'),
+          fetch('/api/students')
+        ])
+        
+        if (!classesResponse.ok || !coursesResponse.ok || !studentsResponse.ok) {
+          throw new Error('Error fetching data from API')
+        }
+        
         const [classesData, coursesData, studentsData] = await Promise.all([
-          dbOperations.getAllClasses(),
-          dbOperations.getAllCourses(),
-          dbOperations.getAllStudents()
+          classesResponse.json(),
+          coursesResponse.json(),
+          studentsResponse.json()
         ])
         
         // Separar clases fijas (is_recurring: true) de clases programadas (is_recurring: false)
-        const fixedClasses = classesData.filter(cls => cls.is_recurring)
+        const fixedClasses = classesData.filter((cls: any) => cls.is_recurring)
         const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
         
-        console.log('=== DEBUG Calendar Data Loading ===')
-        console.log('All classes:', classesData)
-        console.log('Fixed classes (is_recurring: true):', fixedClasses)
-        console.log('Scheduled classes (is_recurring: false):', scheduledClassesData)
+        // Debug temporal para ver qué datos llegan
+        console.log('=== DEBUG API DATA ===')
+        console.log('Total classes from API:', classesData.length)
+        console.log('Fixed classes (recurring):', fixedClasses.length)
+        console.log('Scheduled classes (non-recurring):', scheduledClassesData.length)
         
+        if (scheduledClassesData.length > 0) {
+          console.log('First scheduled class:', scheduledClassesData[0])
+        }
         
         setScheduledClasses(scheduledClassesData)
         setCourses(coursesData)
         setStudents(studentsData)
         
         // Generate fixed schedules from recurring classes only
-        const fixedSchedulesData = fixedClasses.map(cls => ({
+        const fixedSchedulesData = fixedClasses.map((cls: any) => ({
           student_id: cls.student_id,
           student_name: cls.student_name,
           course_name: cls.course_name,
@@ -124,10 +190,7 @@ const CalendarPage = () => {
       newWeek.setDate(prev.getDate() - 7)
       return newWeek
     })
-    // Limpiar excepciones al cambiar de semana
-    setHiddenFixedSchedules(new Set())
-    localStorage.removeItem('hiddenFixedSchedules')
-    console.log('Cambio de semana: excepciones limpiadas')
+    console.log('Cambio a semana anterior')
   }
 
   const goToNextWeek = () => {
@@ -136,50 +199,52 @@ const CalendarPage = () => {
       newWeek.setDate(prev.getDate() + 7)
       return newWeek
     })
-    // Limpiar excepciones al cambiar de semana
-    setHiddenFixedSchedules(new Set())
-    localStorage.removeItem('hiddenFixedSchedules')
-    console.log('Cambio de semana: excepciones limpiadas')
+    console.log('Cambio a semana siguiente')
   }
 
   const goToToday = () => {
     setCurrentWeek(new Date())
-    // Limpiar excepciones al cambiar de semana
-    setHiddenFixedSchedules(new Set())
-    localStorage.removeItem('hiddenFixedSchedules')
-    console.log('Ir a hoy: excepciones limpiadas')
+    console.log('Ir a hoy')
   }
 
   const restoreAllFixedSchedules = () => {
     console.log('=== RESTAURAR HORARIOS FIJOS ===')
-    console.log('Horarios fijos ocultos antes:', hiddenFixedSchedules.size)
-    console.log('Lista de horarios ocultos:', Array.from(hiddenFixedSchedules))
+    const currentWeekKey = getCurrentWeekKey(currentWeek)
+    const currentWeekExceptions = hiddenFixedSchedules[currentWeekKey] || new Set()
     
-    if (hiddenFixedSchedules.size === 0) {
-      console.log('No hay horarios fijos ocultos para restaurar')
-      toast.info('No hay horarios fijos ocultos para restaurar')
+    console.log('Horarios fijos ocultos en esta semana:', currentWeekExceptions.size)
+    console.log('Lista de horarios ocultos en esta semana:', Array.from(currentWeekExceptions))
+    
+    if (currentWeekExceptions.size === 0) {
+      console.log('No hay horarios fijos ocultos en esta semana para restaurar')
+      toast.info('No hay horarios fijos ocultos en esta semana para restaurar')
       return
     }
     
-    const countToRestore = hiddenFixedSchedules.size
+    const countToRestore = currentWeekExceptions.size
     
-    // Limpiar todas las excepciones
-    setHiddenFixedSchedules(new Set())
+    // Limpiar solo las excepciones de la semana actual
+    setHiddenFixedSchedules(prev => {
+      const newExceptions = { ...prev }
+      delete newExceptions[currentWeekKey]
+      return newExceptions
+    })
     
-    // También limpiar localStorage manualmente
-    localStorage.removeItem('hiddenFixedSchedules')
-    
-    console.log('Horarios fijos ocultos después: 0')
-    console.log('localStorage limpiado')
+    console.log('Horarios fijos ocultos en esta semana después: 0')
     console.log('=== RESTAURACIÓN COMPLETADA ===')
     
-    toast.success(`Restaurados ${countToRestore} horarios fijos`)
+    toast.success(`Restaurados ${countToRestore} horarios fijos de esta semana`)
   }
 
   const getWeekDates = () => {
     const dates = []
     const startOfWeek = new Date(currentWeek)
-    startOfWeek.setDate(currentWeek.getDate() - currentWeek.getDay() + 1)
+    // Calculate the start of the week that contains the current date
+    // If currentWeek is Sunday (0), we want the week that starts on Monday of the previous week
+    // If currentWeek is Monday (1), we want the week that starts on Monday of the current week
+    const dayOfWeek = currentWeek.getDay()
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Sunday = 0, so subtract 6 to get to Monday of previous week
+    startOfWeek.setDate(currentWeek.getDate() - daysToSubtract)
     
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek)
@@ -197,24 +262,25 @@ const CalendarPage = () => {
   }
 
   const handleTimeSlotClick = (day: number, time: string) => {
-    console.log('=== CLICK EN SLOT DE TIEMPO ===')
-    console.log('Day:', day, 'Time:', time)
     setSelectedTimeSlot({ day, time })
-    console.log('Abriendo modal de nueva clase...')
     setIsAddModalOpen(true)
-    console.log('isAddModalOpen debería ser true')
   }
 
   const handleClassClick = (classItem: any) => {
     setSelectedClass(classItem)
-    setIsDeleteModalOpen(true)
+    setIsEditOrDeleteModalOpen(true)
   }
 
   const handleFixedScheduleClick = (fixedSchedule: any) => {
+    // Find course_id from the course_name
+    const course = courses.find(c => c.name === fixedSchedule.course_name)
+    const courseId = course?.id
+    
     // Convertir fixedSchedule a formato de clase para usar el modal de borrado
     const classItem = {
       id: fixedSchedule.class_id || 0,
       student_id: fixedSchedule.student_id,
+      course_id: courseId, // Add course_id
       student_name: fixedSchedule.student_name,
       course_name: fixedSchedule.course_name,
       course_color: fixedSchedule.course_color,
@@ -227,42 +293,175 @@ const CalendarPage = () => {
       is_recurring: true
     }
     setSelectedClass(classItem)
+    setIsEditOrDeleteModalOpen(true)
+  }
+
+  const handleEditClass = () => {
+    setIsEditOrDeleteModalOpen(false)
+    setIsEditModalOpen(true)
+  }
+
+  const handleDeleteClassAction = () => {
+    setIsEditOrDeleteModalOpen(false)
     setIsDeleteModalOpen(true)
   }
 
   const handleAddClass = async (newClass: any) => {
-    console.log('Enviando clase a la API:', newClass)
-    
-    const response = await fetch('/api/classes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newClass),
-    })
+    try {
+      const response = await fetch('/api/classes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newClass),
+      })
 
-    console.log('Respuesta de la API:', response.status, response.ok)
-
-    if (response.ok) {
-      const result = await response.json()
-      console.log('Resultado de creación:', result)
-      
-      // Refresh only scheduled classes (is_recurring: false)
-      const classesResponse = await fetch('/api/classes')
-      if (classesResponse.ok) {
-        const classesData = await classesResponse.json()
-        console.log('=== DEBUG After Class Creation ===')
-        console.log('Todas las clases después de crear:', classesData)
-        const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
-        console.log('Clases programadas filtradas:', scheduledClassesData)
-        console.log('Clases con is_recurring false:', classesData.filter((cls: any) => cls.is_recurring === false))
-        setScheduledClasses(scheduledClassesData)
+      if (response.ok) {
+        const result = await response.json()
+        
+        // Guardar en localStorage para debugging
+        const debugClasses = JSON.parse(localStorage.getItem('debugClasses') || '[]')
+        debugClasses.push({
+          ...newClass,
+          id: result.id,
+          created_at: new Date().toISOString()
+        })
+        localStorage.setItem('debugClasses', JSON.stringify(debugClasses))
+        
+        // Refresh only scheduled classes (is_recurring: false)
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
+          setScheduledClasses(scheduledClassesData)
+        }
+        toast.success('Clase programada agregada correctamente')
+      } else {
+        const errorData = await response.json()
+        
+        // Manejar error de duplicado específicamente
+        if (errorData.code === '23505' || errorData.message?.includes('duplicate key')) {
+          throw new Error('Ya existe una clase programada para este estudiante en la misma fecha y horario')
+        }
+        
+        throw new Error(errorData.error || 'Error al agregar la clase')
       }
-      toast.success('Clase programada agregada correctamente')
-    } else {
-      const errorData = await response.json()
-      console.error('Error en la respuesta:', errorData)
-      throw new Error(errorData.error || 'Error al agregar la clase')
+    } catch (error) {
+      console.error('Error en handleAddClass:', error)
+      toast.error('Error al crear la clase: ' + (error as Error).message)
+      throw error
+    }
+  }
+
+  const handleUpdateClass = async (updatedClass: any) => {
+    try {
+      setIsUpdating(true)
+      
+      if (selectedClass.is_recurring) {
+        // Para horarios fijos, crear una nueva clase individual con los datos actualizados
+        // y ocultar el horario fijo original para esta semana
+        // Validate required fields
+        if (!selectedClass.course_id) {
+          throw new Error('No se pudo encontrar el curso del estudiante')
+        }
+        
+        const newClassData = {
+          student_id: selectedClass.student_id,
+          course_id: selectedClass.course_id,
+          start_time: updatedClass.start_time,
+          end_time: updatedClass.end_time,
+          duration: updatedClass.duration,
+          day_of_week: updatedClass.day_of_week,
+          date: updatedClass.date,
+          subject: selectedClass.subject,
+          is_recurring: false, // Nueva clase individual
+          price: selectedClass.price || 0,
+          notes: updatedClass.notes || `Clase modificada desde horario fijo - ${selectedClass.student_name}`
+        }
+        
+        // Crear la nueva clase individual
+        const response = await fetch('/api/classes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newClassData),
+        })
+        
+        if (response.ok) {
+          // Ocultar el horario fijo original para esta semana
+          const weekStart = getWeekDates()[0]
+          const weekEnd = getWeekDates()[6]
+          const exceptionKey = `${selectedClass.student_id}-${selectedClass.day_of_week}-${selectedClass.start_time}-${weekStart.toISOString().split('T')[0]}-${weekEnd.toISOString().split('T')[0]}`
+          const currentWeekKey = getCurrentWeekKey(currentWeek)
+          
+          setHiddenFixedSchedules(prev => ({
+            ...prev,
+            [currentWeekKey]: new Set([...Array.from(prev[currentWeekKey] || new Set()), exceptionKey])
+          }))
+          
+          // Refresh classes data
+          const classesResponse = await fetch('/api/classes')
+          if (classesResponse.ok) {
+            const classesData = await classesResponse.json()
+            const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
+            setScheduledClasses(scheduledClassesData)
+          }
+          
+          toast.success('Clase individual creada y horario fijo ocultado para esta semana')
+        } else {
+          const errorData = await response.json()
+          
+          if (errorData.code === '23505' || errorData.message?.includes('duplicate key')) {
+            throw new Error('Ya existe una clase programada para este estudiante en la misma fecha y horario')
+          }
+          
+          throw new Error(errorData.error || 'Error al crear la clase individual')
+        }
+      } else {
+        // Para clases programadas, actualizar normalmente
+        // Validate required fields for scheduled classes
+        if (!selectedClass.course_id) {
+          throw new Error('No se pudo encontrar el curso del estudiante')
+        }
+        
+        const response = await fetch('/api/classes', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedClass),
+        })
+
+        if (response.ok) {
+          // Refresh classes data
+          const classesResponse = await fetch('/api/classes')
+          if (classesResponse.ok) {
+            const classesData = await classesResponse.json()
+            const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
+            setScheduledClasses(scheduledClassesData)
+          }
+          
+          toast.success('Clase actualizada correctamente')
+        } else {
+          const errorData = await response.json()
+          
+          if (errorData.code === '23505' || errorData.message?.includes('duplicate key')) {
+            throw new Error('Ya existe una clase programada para este estudiante en la misma fecha y horario')
+          }
+          
+          throw new Error(errorData.error || 'Error al actualizar la clase')
+        }
+      }
+      
+      setIsEditModalOpen(false)
+      setSelectedClass(null)
+    } catch (error) {
+      console.error('Error en handleUpdateClass:', error)
+      toast.error('Error al actualizar la clase: ' + (error as Error).message)
+      throw error
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -276,9 +475,13 @@ const CalendarPage = () => {
         const weekStart = getWeekDates()[0]
         const weekEnd = getWeekDates()[6]
         const exceptionKey = `${selectedClass.student_id}-${selectedClass.day_of_week}-${selectedClass.start_time}-${weekStart.toISOString().split('T')[0]}-${weekEnd.toISOString().split('T')[0]}`
+        const currentWeekKey = getCurrentWeekKey(currentWeek)
         
         // Agregar a la lista de horarios fijos ocultos para esta semana
-        setHiddenFixedSchedules(prev => new Set(Array.from(prev).concat(exceptionKey)))
+        setHiddenFixedSchedules(prev => ({
+          ...prev,
+          [currentWeekKey]: new Set([...Array.from(prev[currentWeekKey] || new Set()), exceptionKey])
+        }))
         
         toast.success('Horario fijo eliminado de esta semana')
       } else {
@@ -315,10 +518,9 @@ const CalendarPage = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
         <div className="text-center">
-          <ClimbingBoxLoader size="lg" className="mb-4" />
-          <p className="text-foreground-muted text-lg font-medium">Cargando calendario...</p>
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
         </div>
       </div>
     )
@@ -345,6 +547,14 @@ const CalendarPage = () => {
           
           <div className="flex items-center gap-3">
             <Button
+              onClick={debugScheduledClasses}
+              variant="outline"
+              size="sm"
+              className="text-blue-600 border-blue-600 hover:bg-blue-600/10 hover:text-blue-600"
+            >
+              Debug Clases
+            </Button>
+            <Button
               onClick={restoreAllFixedSchedules}
               variant="outline"
               size="sm"
@@ -352,9 +562,9 @@ const CalendarPage = () => {
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Restaurar Horarios Fijos
-              {hiddenFixedSchedules.size > 0 && (
+              {(hiddenFixedSchedules[getCurrentWeekKey(currentWeek)]?.size || 0) > 0 && (
                 <span className="ml-2 px-2 py-1 bg-warning/20 text-warning text-xs rounded-full">
-                  {hiddenFixedSchedules.size}
+                  {hiddenFixedSchedules[getCurrentWeekKey(currentWeek)]?.size || 0}
                 </span>
               )}
             </Button>
@@ -363,14 +573,8 @@ const CalendarPage = () => {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                console.log('=== CLICK EN BOTÓN NUEVA CLASE ===')
-                console.log('isAddModalOpen antes:', isAddModalOpen)
-                console.log('Evento:', e)
                 setSelectedTimeSlot(undefined)
-                console.log('Llamando setIsAddModalOpen(true)...')
                 setIsAddModalOpen(true)
-                console.log('isAddModalOpen después: true')
-                console.log('=== FIN CLICK BOTÓN ===')
               }}
               className="bg-gradient-to-r from-primary to-accent"
               type="button"
@@ -438,7 +642,7 @@ const CalendarPage = () => {
           fixedSchedules={fixedSchedules}
           scheduledClasses={scheduledClasses}
           students={students}
-          hiddenFixedSchedules={hiddenFixedSchedules}
+          hiddenFixedSchedules={hiddenFixedSchedules[getCurrentWeekKey(currentWeek)] || new Set()}
           onTimeSlotClick={handleTimeSlotClick}
           onClassClick={handleClassClick}
           onFixedScheduleClick={handleFixedScheduleClick}
@@ -450,15 +654,45 @@ const CalendarPage = () => {
       <AddClassModal
         isOpen={isAddModalOpen}
         onClose={() => {
-          console.log('Cerrando modal de nueva clase')
           setIsAddModalOpen(false)
         }}
         onSave={async (classData) => {
-          await handleAddClass(classData)
-          setIsAddModalOpen(false)
+          try {
+            await handleAddClass(classData)
+            setIsAddModalOpen(false)
+          } catch (error) {
+            // El error ya se maneja en handleAddClass
+          }
         }}
         students={students}
         selectedTimeSlot={selectedTimeSlot}
+      />
+      
+      <EditOrDeleteModal
+        isOpen={isEditOrDeleteModalOpen}
+        onClose={() => {
+          setIsEditOrDeleteModalOpen(false)
+          setSelectedClass(null)
+        }}
+        onEdit={handleEditClass}
+        onDelete={handleDeleteClassAction}
+        classItem={selectedClass}
+      />
+      
+      <EditClassModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedClass(null)
+        }}
+        onSave={async (classData) => {
+          try {
+            await handleUpdateClass(classData)
+          } catch (error) {
+            // El error ya se maneja en handleUpdateClass
+          }
+        }}
+        classItem={selectedClass}
       />
       
       <DeleteClassModal

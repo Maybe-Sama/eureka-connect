@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { getTimeSlots, getDayName } from '@/lib/utils'
@@ -45,37 +45,74 @@ export const AddClassModal = ({
         notes: ''
       })
       setIsSubmitting(false)
+    } else {
+      // Limpiar formulario cuando se cierra el modal
+      setFormData({
+        student_id: '',
+        start_time: '16:00',
+        end_time: '17:00',
+        duration: 60,
+        date: new Date().toISOString().split('T')[0],
+        notes: ''
+      })
+      setIsSubmitting(false)
     }
   }, [isOpen, selectedTimeSlot])
 
-  // Debug: Log form data changes
-  console.log('=== FORM DATA DEBUG ===')
-  console.log('formData:', formData)
-  console.log('isSubmitting:', isSubmitting)
-  console.log('students count:', students.length)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('=== FORM SUBMIT TRIGGERED ===')
     
     if (isSubmitting) {
-      console.log('Already submitting, ignoring...')
       return // Prevenir múltiples envíos
     }
     
-    console.log('Setting isSubmitting to true...')
+    // Validate required fields
+    if (!formData.student_id) {
+      toast.error('Debes seleccionar un alumno')
+      return
+    }
+    
+    if (!formData.start_time) {
+      toast.error('Debes seleccionar una hora de inicio')
+      return
+    }
+    
+    if (!formData.date) {
+      toast.error('Debes seleccionar una fecha')
+      return
+    }
+    
+    // Validar que la duración sea válida
+    if (formData.duration <= 0) {
+      toast.error('La duración debe ser mayor a 0')
+      return
+    }
+    
+    // Validación temporal para evitar crear muchas clases mientras debuggeamos
+    if (students.length > 0) {
+      const student = students.find(s => s.id === Number(formData.student_id))
+      if (student) {
+        // Verificar si ya hay clases para este estudiante en esta fecha
+        const existingClasses = JSON.parse(localStorage.getItem('debugClasses') || '[]')
+        const duplicateClass = existingClasses.find((cls: any) => 
+          cls.student_id === Number(formData.student_id) && 
+          cls.date === formData.date
+        )
+        
+        if (duplicateClass) {
+          toast.error('Ya hay una clase programada para este estudiante en esta fecha. Usa el botón "Debug Clases" para ver las clases existentes.')
+          return
+        }
+      }
+    }
+    
     setIsSubmitting(true)
     
     try {
-      console.log('=== DEBUG Form Submit ===')
-      console.log('Form data:', formData)
-      console.log('Selected student ID:', formData.student_id)
-      
       const selectedStudent = students.find(s => s.id === Number(formData.student_id))
-      console.log('Selected student:', selectedStudent)
       
       if (!selectedStudent) {
-        console.log('No student selected, showing error')
         toast.error('Debes seleccionar un alumno')
         setIsSubmitting(false)
         return
@@ -83,12 +120,6 @@ export const AddClassModal = ({
       
       // Usar directamente la fecha seleccionada en el formulario
       const targetDate = new Date(formData.date + 'T00:00:00') // Evitar problemas de zona horaria
-      
-      console.log('=== DEBUG Date Calculation ===')
-      console.log('Selected time slot day:', selectedTimeSlot?.day)
-      console.log('Form date:', formData.date)
-      console.log('Target date:', targetDate.toISOString().split('T')[0])
-      console.log('Target date day of week:', targetDate.getDay() === 0 ? 7 : targetDate.getDay())
       
       // Calcular hora de fin basada en la duración
       const startTime = formData.start_time
@@ -111,14 +142,6 @@ export const AddClassModal = ({
       const endMinutes = finalEndMinutes % 60
       const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
       
-      console.log('=== DEBUG Time Calculation ===')
-      console.log('Start time:', startTime)
-      console.log('Duration:', formData.duration, 'minutes')
-      console.log('Start total minutes:', startTotalMinutes)
-      console.log('End total minutes:', endTotalMinutes)
-      console.log('Final end minutes:', finalEndMinutes)
-      console.log('End time:', endTime)
-      
       const classData = {
         student_id: Number(formData.student_id),
         course_id: selectedStudent.course_id, // Obtener del alumno
@@ -133,18 +156,17 @@ export const AddClassModal = ({
         notes: formData.notes || `Clase programada - ${selectedStudent.first_name} ${selectedStudent.last_name}`
       }
       
-      console.log('Datos de la clase a crear:', classData)
-      console.log('SelectedTimeSlot:', selectedTimeSlot)
-      console.log('Fecha calculada:', targetDate.toISOString().split('T')[0])
+      if (typeof onSave !== 'function') {
+        toast.error('Error: función de guardado no disponible')
+        setIsSubmitting(false)
+        return
+      }
       
-      console.log('Calling onSave with classData...')
       await onSave(classData)
-      console.log('Class saved successfully, closing modal...')
-      onClose()
     } catch (error) {
-      console.error('Error saving class:', error)
-      toast.error('Error al crear la clase. Inténtalo de nuevo.')
-      // No cerrar el modal si hay error, para que el usuario pueda intentar de nuevo
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear la clase. Inténtalo de nuevo.'
+      toast.error(errorMessage)
+      throw error // Re-lanzar el error para que el componente padre lo maneje
     } finally {
       setIsSubmitting(false)
     }
@@ -180,26 +202,19 @@ export const AddClassModal = ({
     })
   }
 
-  console.log('=== DEBUG Modal Render ===')
-  console.log('Modal is open:', isOpen)
-  console.log('Form data:', formData)
-  console.log('Students:', students)
-
   if (!isOpen) {
-    console.log('Modal no está abierto, no renderizando')
     return null
   }
 
-  console.log('Modal está abierto, renderizando...')
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary p-8 rounded-lg shadow-xl w-full max-w-md border border-border"
-      >
+    <AnimatePresence>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-background p-8 rounded-lg shadow-xl w-full max-w-md border border-border"
+        >
         <h2 className="text-2xl font-bold text-foreground mb-6">Nueva Clase</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -315,19 +330,34 @@ export const AddClassModal = ({
             </Button>
             <Button 
               type="button" 
+              variant="outline" 
+              onClick={() => {
+                setFormData({
+                  student_id: '',
+                  start_time: selectedTimeSlot?.time || '16:00',
+                  end_time: '17:00',
+                  duration: 60,
+                  date: new Date().toISOString().split('T')[0],
+                  notes: ''
+                })
+                setIsSubmitting(false)
+              }}
               className="flex-1"
               disabled={isSubmitting}
-              onClick={async (e) => {
-                console.log('=== BUTTON CLICKED ===')
-                e.preventDefault()
-                await handleSubmit(e as any)
-              }}
+            >
+              Limpiar
+            </Button>
+            <Button 
+              type="submit" 
+              className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Creando...' : 'Crear Clase'}
             </Button>
           </div>
         </form>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   )
 }

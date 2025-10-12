@@ -221,7 +221,15 @@ export const dbOperations = {
       throw error
     }
 
-    return data || []
+    // Mapear los datos para incluir student_name y course_name
+    const mappedData = (data || []).map(cls => ({
+      ...cls,
+      student_name: cls.students ? `${cls.students.first_name} ${cls.students.last_name}` : null,
+      course_name: cls.courses?.name || null,
+      course_color: cls.courses?.color || null
+    }))
+
+    return mappedData
   },
 
   async getClassById(id: number) {

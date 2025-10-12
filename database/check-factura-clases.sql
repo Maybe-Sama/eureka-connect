@@ -25,3 +25,8 @@ SELECT MIN(id) as min_id, MAX(id) as max_id FROM factura_clases;
 
 
 
+
+
+
+
+

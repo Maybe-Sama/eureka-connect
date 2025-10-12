@@ -57,7 +57,7 @@ const PDF_CONFIG = {
  */
 async function cargarLogo(): Promise<string> {
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'logo.png')
+    const logoPath = path.join(process.cwd(), 'public', 'logo1.png')
     const logoBuffer = fs.readFileSync(logoPath)
     const base64 = logoBuffer.toString('base64')
     return `data:image/png;base64,${base64}`
@@ -422,7 +422,7 @@ function generarPiePagina(doc: jsPDF, factura: FacturaRRSIF): void {
   // Logo pequeño a la izquierda
   const logoSize = 8
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'logo.png')
+    const logoPath = path.join(process.cwd(), 'public', 'logo1.png')
     const logoBuffer = fs.readFileSync(logoPath)
     const base64 = logoBuffer.toString('base64')
     const logoDataURL = `data:image/png;base64,${base64}`

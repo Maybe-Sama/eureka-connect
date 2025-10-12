@@ -19,7 +19,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ClimbingBoxLoader } from '@/components/ui/ClimbingBoxLoader'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { ClassItem } from './ClassItem'
 import { toast } from 'sonner'
 
@@ -164,7 +164,6 @@ export const ClassDetailsModal = ({
   }
 
   const handleClose = () => {
-    onClassUpdate() // Refresh the main dashboard
     onClose()
   }
 
@@ -210,12 +209,12 @@ export const ClassDetailsModal = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-border"
+        className="bg-background rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
       >
         {/* Header */}
         <div className="p-6 border-b border-border">
@@ -330,10 +329,10 @@ export const ClassDetailsModal = ({
         </div>
 
         {/* Classes List */}
-        <div className="p-6 overflow-y-auto max-h-96">
+        <div className="p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <ClimbingBoxLoader size="md" />
+              <DiagonalBoxLoader size="md" color="hsl(var(--primary))" />
             </div>
           ) : filteredClasses.length > 0 ? (
             <div className="space-y-3">

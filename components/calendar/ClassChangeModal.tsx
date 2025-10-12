@@ -21,18 +21,12 @@ export const ClassChangeModal = ({
   if (!isOpen || !classItem) return null
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-background-secondary rounded-xl p-6 w-full max-w-md border border-border"
+        className="bg-background rounded-xl p-6 w-full max-w-md border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-6">
@@ -92,7 +86,7 @@ export const ClassChangeModal = ({
           </Button>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
 

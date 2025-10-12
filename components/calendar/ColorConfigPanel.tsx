@@ -235,7 +235,7 @@ export const ColorConfigPanel = ({ isOpen, onClose, students, onColorChange }: C
               <button
                 onClick={handleSave}
                 disabled={!hasChanges}
-                className="flex items-center space-x-2 px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Save className="w-4 h-4" />
                 <span>Guardar Cambios</span>

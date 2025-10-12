@@ -87,14 +87,14 @@ export async function authenticateTeacher(email: string, password: string): Prom
 }
 
 /**
- * Authenticate student
+ * Authenticate student (by code or email)
  */
-export async function authenticateStudent(studentCode: string, password: string): Promise<AuthResult> {
+export async function authenticateStudent(identifier: string, password: string): Promise<AuthResult> {
   try {
     const response = await fetch('/api/auth/login/student', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ studentCode, password })
+      body: JSON.stringify({ identifier, password })
     })
 
     const result = await response.json()

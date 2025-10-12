@@ -18,6 +18,7 @@ import {
   LogOut
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 
 export default function TeacherDashboard() {
   const { user, loading, isTeacher } = useAuth()
@@ -31,10 +32,9 @@ export default function TeacherDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-foreground-muted">Cargando...</p>
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
         </div>
       </div>
     )

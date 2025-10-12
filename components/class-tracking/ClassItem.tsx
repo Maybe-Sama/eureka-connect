@@ -13,10 +13,12 @@ import {
   Edit,
   Trash2,
   Save,
-  X
+  X,
+  BookOpen
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { CourseFilteredSubjectSelector } from './CourseFilteredSubjectSelector'
 
 interface ClassData {
   id: number
@@ -57,7 +59,8 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
   const [editData, setEditData] = useState({
     status: classData.status,
     payment_status: classData.payment_status,
-    payment_notes: classData.payment_notes || ''
+    payment_notes: classData.payment_notes || '',
+    subject: classData.subject || ''
   })
 
   // Update editData when classData changes
@@ -65,9 +68,10 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
     setEditData({
       status: classData.status,
       payment_status: classData.payment_status,
-      payment_notes: classData.payment_notes || ''
+      payment_notes: classData.payment_notes || '',
+      subject: classData.subject || ''
     })
-  }, [classData.status, classData.payment_status, classData.payment_notes])
+  }, [classData.status, classData.payment_status, classData.payment_notes, classData.subject])
 
   const handleSave = async () => {
     try {
@@ -119,7 +123,8 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
         setEditData({
           status: updatedClass.status,
           payment_status: updatedClass.payment_status,
-          payment_notes: updatedClass.payment_notes || ''
+          payment_notes: updatedClass.payment_notes || '',
+          subject: updatedClass.subject || ''
         })
         
         setIsEditing(false)
@@ -139,10 +144,12 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
     setEditData({
       status: classData.status,
       payment_status: classData.payment_status,
-      payment_notes: classData.payment_notes || ''
+      payment_notes: classData.payment_notes || '',
+      subject: classData.subject || ''
     })
     setIsEditing(false)
   }
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -316,6 +323,18 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
             <p className="text-xs text-foreground-muted">
               <strong>Fecha de pago:</strong> {new Date(classData.payment_date).toLocaleDateString('es-ES')}
             </p>
+          </div>
+        )}
+
+        {/* Edit Subject */}
+        {isEditing && (
+          <div className="mb-3">
+            <CourseFilteredSubjectSelector
+              selectedSubject={editData.subject}
+              onSubjectChange={(subject) => setEditData({ ...editData, subject })}
+              courseName={classData.courses.name}
+              placeholder="Selecciona una asignatura"
+            />
           </div>
         )}
 

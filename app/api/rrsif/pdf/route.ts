@@ -4,7 +4,26 @@ import { generarPDFFactura } from '@/lib/pdf-generator'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Validar que la URL sea válida
+    if (!request.url) {
+      return NextResponse.json(
+        { error: 'URL de request inválida' },
+        { status: 400 }
+      )
+    }
+
+    let searchParams
+    try {
+      const url = new URL(request.url)
+      searchParams = url.searchParams
+    } catch (urlError) {
+      console.error('Error creando URL:', urlError)
+      return NextResponse.json(
+        { error: 'URL de request malformada' },
+        { status: 400 }
+      )
+    }
+
     const facturaId = searchParams.get('id')
 
     if (!facturaId) {

@@ -5,6 +5,7 @@ import { verifyStudentCode, registerStudent, authenticateStudent } from '@/lib/a
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { UserPlus, Check, X, Key, Lock, ArrowRight, ArrowLeft, Sparkles, ShieldCheck } from 'lucide-react'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 
 export default function RegisterForm() {
   const [step, setStep] = useState<'code' | 'password'>('code')
@@ -263,7 +264,7 @@ export default function RegisterForm() {
                   />
                   <div className="absolute right-5 top-1/2 transform -translate-y-1/2">
                     {codeValidating && (
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+                      <DiagonalBoxLoader size="sm" color="hsl(var(--warning))" />
                     )}
                     {!codeValidating && codeValid === true && (
                       <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center animate-scale-in">
@@ -315,7 +316,7 @@ export default function RegisterForm() {
                 <span className="relative flex items-center justify-center space-x-2">
                   {loading || codeValidating ? (
                     <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                      <DiagonalBoxLoader size="sm" color="white" />
                       <span>Verificando...</span>
                     </>
                   ) : codeValid === true ? (
@@ -416,7 +417,7 @@ export default function RegisterForm() {
                   <span className="relative flex items-center justify-center space-x-2">
                     {loading ? (
                       <>
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        <DiagonalBoxLoader size="sm" color="white" />
                         <span>Creando cuenta...</span>
                       </>
                     ) : (

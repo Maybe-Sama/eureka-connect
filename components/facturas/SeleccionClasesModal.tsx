@@ -17,6 +17,7 @@ import {
   Plus
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { ClasePagada, Student, ModalSeleccionClases } from '@/types'
 import { formatearFechaFactura, formatearImporte } from '@/lib/rrsif-utils'
 
@@ -399,7 +400,7 @@ const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudi
                       className="flex items-center space-x-2"
                     >
                       {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <DiagonalBoxLoader size="sm" color="white" />
                       ) : (
                         <Check size={16} />
                       )}

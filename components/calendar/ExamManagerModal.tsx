@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Plus, Edit2, Calendar, BookOpen, Clock, FileText, Star, CalendarIcon } from 'lucide-react'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 
 interface Exam {
   id: number
@@ -215,7 +216,7 @@ export default function ExamManagerModal({ isOpen, onClose }: ExamManagerModalPr
 
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <DiagonalBoxLoader size="md" color="hsl(var(--primary))" />
               </div>
             ) : (
               <div className="space-y-4">
@@ -412,7 +413,7 @@ export default function ExamManagerModal({ isOpen, onClose }: ExamManagerModalPr
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white rounded-lg transition-colors disabled:opacity-50"
                   >
                     {loading ? 'Guardando...' : editingExam ? 'Actualizar' : 'Crear'}
                   </button>

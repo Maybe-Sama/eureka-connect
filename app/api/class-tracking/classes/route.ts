@@ -3,7 +3,25 @@ import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Validar que la URL sea válida
+    if (!request.url) {
+      return NextResponse.json(
+        { error: 'URL de request inválida' },
+        { status: 400 }
+      )
+    }
+
+    let searchParams
+    try {
+      const url = new URL(request.url)
+      searchParams = url.searchParams
+    } catch (urlError) {
+      console.error('Error creando URL:', urlError)
+      return NextResponse.json(
+        { error: 'URL de request malformada' },
+        { status: 400 }
+      )
+    }
     const studentId = searchParams.get('studentId')
     const monthYear = searchParams.get('month') || new Date().toISOString().slice(0, 7)
     const classType = searchParams.get('type') // 'recurring', 'eventual', or null for all
@@ -141,7 +159,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { classId, status, paymentStatus, paymentNotes, payment_status, payment_notes } = body
+    const { classId, status, paymentStatus, paymentNotes, payment_status, payment_notes, subject } = body
 
     if (!classId) {
       return NextResponse.json({ error: 'classId es requerido' }, { status: 400 })
@@ -175,6 +193,10 @@ export async function PUT(request: NextRequest) {
 
     if (finalPaymentNotes !== undefined) {
       updateData.payment_notes = finalPaymentNotes
+    }
+
+    if (subject !== undefined) {
+      updateData.subject = subject
     }
 
     if (Object.keys(updateData).length === 0) {
