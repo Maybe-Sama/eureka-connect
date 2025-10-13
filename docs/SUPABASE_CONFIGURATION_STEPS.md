@@ -1,4 +1,4 @@
-# 🚀 Guía de Configuración de Supabase - EurekaProfe CRM
+# 🚀 Guía de Configuración de Supabase - Profesor Eureka CRM
 
 ## 📋 Pasos para Conectar tu Proyecto con Supabase
 
@@ -151,7 +151,7 @@
 
 ### 10. 🎉 ¡Listo!
 
-Tu proyecto EurekaProfe CRM ahora está completamente conectado a Supabase con las nuevas funcionalidades:
+Tu proyecto Profesor Eureka CRM ahora está completamente conectado a Supabase con las nuevas funcionalidades:
 
 - ✅ **Base de datos PostgreSQL** en la nube
 - ✅ **Códigos únicos** de 20 dígitos para estudiantes

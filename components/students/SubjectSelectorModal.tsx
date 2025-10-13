@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Search, BookOpen, GraduationCap, Users, Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
 // Importar datos de asignaturas de manera dinámica
 const subjectsData = {
   "primaria": {
@@ -53,13 +54,8 @@ export function SubjectSelectorModal({
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-
-  // Sincronizar searchTerm con selectedSubject cuando se cierra el dropdown
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm('')
-    }
-  }, [isOpen])
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Flatten all subjects into a searchable array
   const allSubjects = useMemo(() => {
@@ -174,8 +170,45 @@ export function SubjectSelectorModal({
     { value: 'especialidades', label: 'Especialidades' }
   ]
 
+  // Manejar clics fuera del componente
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+        setSearchTerm('')
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
+
+  // Manejar selección de asignatura
+  const handleSubjectSelect = (subjectName: string) => {
+    onSubjectChange(subjectName)
+    setIsOpen(false)
+    setSearchTerm('')
+  }
+
+  // Manejar apertura del dropdown
+  const handleInputFocus = () => {
+    setSearchTerm(selectedSubject)
+    setIsOpen(true)
+  }
+
+  // Manejar cambio en el input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setIsOpen(true)
+  }
+
   return (
-    <div className={cn("relative", className)}>
+    <div ref={containerRef} className={cn("relative", className)}>
       <label className="block text-sm font-medium text-foreground mb-2">
         Asignatura
       </label>
@@ -184,16 +217,11 @@ export function SubjectSelectorModal({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-muted pointer-events-none" size={16} />
         <input
+          ref={inputRef}
           type="text"
           value={isOpen ? searchTerm : selectedSubject}
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setIsOpen(true)
-          }}
-          onFocus={() => {
-            setSearchTerm(selectedSubject)
-            setIsOpen(true)
-          }}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
           placeholder={placeholder}
           className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
         />
@@ -201,72 +229,58 @@ export function SubjectSelectorModal({
 
       {/* Dropdown */}
       {isOpen && (
-        <>
-          {/* Overlay to close dropdown - DEBE estar antes del dropdown para el z-index correcto */}
-          <div
-            className="fixed inset-0 z-[60]"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIsOpen(false)
-            }}
-          />
-          
-          <div 
-            className="absolute z-[70] w-full mt-1 bg-background-secondary border border-border rounded-lg shadow-lg max-h-64 overflow-hidden"
-          >
-            {/* Category filter */}
-            <div className="p-2 border-b border-border">
-              <div className="flex flex-wrap gap-1">
-                {categories.map(category => (
-                  <button
-                    key={category.value}
-                    onClick={() => setSelectedCategory(category.value)}
-                    className={cn(
-                      "px-2 py-1 text-xs rounded transition-colors",
-                      selectedCategory === category.value
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-foreground hover:bg-background-tertiary"
-                    )}
-                  >
-                    {category.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Search results */}
-            <div className="max-h-48 overflow-y-auto">
-              {filteredSubjects.length > 0 ? (
-                filteredSubjects.slice(0, 20).map((subject, index) => (
-                  <button
-                    key={`${subject.category}-${index}`}
-                    onClick={() => {
-                      onSubjectChange(subject.name)
-                      setSearchTerm('')
-                      setIsOpen(false)
-                    }}
-                    className="w-full px-3 py-2 text-left hover:bg-background-tertiary transition-colors border-b border-border last:border-b-0"
-                  >
-                    <div className="flex items-center space-x-2">
-                      {getCategoryIcon(subject.category)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{subject.name}</p>
-                        <p className="text-xs text-foreground-muted truncate">{subject.level}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="px-3 py-4 text-center text-foreground-muted">
-                  <Search size={20} className="mx-auto mb-1 opacity-50" />
-                  <p className="text-xs">No se encontraron asignaturas</p>
-                </div>
-              )}
+        <div className="absolute z-[70] w-full mt-1 bg-background-secondary border border-border rounded-lg shadow-lg max-h-64 overflow-hidden">
+          {/* Category filter */}
+          <div className="p-2 border-b border-border">
+            <div className="flex flex-wrap gap-1">
+              {categories.map(category => (
+                <button
+                  key={category.value}
+                  onClick={() => setSelectedCategory(category.value)}
+                  className={cn(
+                    "px-2 py-1 text-xs rounded transition-colors",
+                    selectedCategory === category.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-foreground hover:bg-background-tertiary"
+                  )}
+                >
+                  {category.label}
+                </button>
+              ))}
             </div>
           </div>
-        </>
+
+          {/* Search results */}
+          <div className="max-h-48 overflow-y-auto">
+            {filteredSubjects.length > 0 ? (
+              filteredSubjects.slice(0, 20).map((subject, index) => (
+                <button
+                  key={`${subject.category}-${index}`}
+                  onClick={() => handleSubjectSelect(subject.name)}
+                  className="w-full px-3 py-2 text-left hover:bg-background-tertiary transition-colors border-b border-border last:border-b-0"
+                >
+                  <div className="flex items-center space-x-2">
+                    {getCategoryIcon(subject.category)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{subject.name}</p>
+                      <p className="text-xs text-foreground-muted truncate">{subject.level}</p>
+                    </div>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-4 text-center text-foreground-muted">
+                <Search size={20} className="mx-auto mb-1 opacity-50" />
+                <p className="text-xs">No se encontraron asignaturas</p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
 }
+
+
+
+

@@ -189,6 +189,7 @@ export const dbOperations = {
           province,
           postal_code,
           country,
+          dni,
           nif,
           birth_date,
           course_id,
@@ -220,7 +221,15 @@ export const dbOperations = {
       throw error
     }
 
-    return data || []
+    // Mapear los datos para incluir student_name y course_name
+    const mappedData = (data || []).map(cls => ({
+      ...cls,
+      student_name: cls.students ? `${cls.students.first_name} ${cls.students.last_name}` : null,
+      course_name: cls.courses?.name || null,
+      course_color: cls.courses?.color || null
+    }))
+
+    return mappedData
   },
 
   async getClassById(id: number) {
@@ -293,6 +302,84 @@ export const dbOperations = {
       console.error('Error deleting class:', error)
       throw error
     }
+  },
+
+  // Funciones para manejar status_invoice
+  async markClassesAsInvoiced(classIds: number[]) {
+    const { error } = await supabase
+      .from('classes')
+      .update({ status_invoice: true })
+      .in('id', classIds)
+
+    if (error) {
+      console.error('Error marking classes as invoiced:', error)
+      throw error
+    }
+  },
+
+  async unmarkClassesAsInvoiced(classIds: number[]) {
+    const { error } = await supabase
+      .from('classes')
+      .update({ status_invoice: false })
+      .in('id', classIds)
+
+    if (error) {
+      console.error('Error unmarking classes as invoiced:', error)
+      throw error
+    }
+  },
+
+  async getClassesForInvoice() {
+    const { data, error } = await supabase
+      .from('classes')
+      .select(`
+        *,
+        students!classes_student_id_fkey (
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          address,
+          city,
+          province,
+          postal_code,
+          country,
+          dni,
+          nif,
+          birth_date,
+          course_id,
+          student_code,
+          has_shared_pricing,
+          receptor_nombre,
+          receptor_apellidos,
+          receptor_email,
+          created_at,
+          updated_at
+        ),
+        courses:course_id (
+          id,
+          name,
+          description,
+          price,
+          shared_class_price,
+          duration,
+          color,
+          is_active,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('status_invoice', false)
+      .in('payment_status', ['paid'])
+      .order('date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching classes for invoice:', error)
+      throw error
+    }
+
+    return data || []
   },
 
   // Invoices

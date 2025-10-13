@@ -18,9 +18,12 @@ import {
   Loader2,
   Mail,
   Phone,
-  User
+  User,
+  Monitor,
+  ExternalLink
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { SimpleWeeklyScheduleSelector } from '@/components/students/SimpleWeeklyScheduleSelector'
 import { toast } from 'sonner'
 import { generateStudentCode, formatStudentCode, parseFixedSchedule } from '@/lib/utils'
@@ -73,6 +76,8 @@ interface Student {
   receptor_nombre?: string
   receptor_apellidos?: string
   receptor_email?: string
+  // Campo para enlace a pizarra digital
+  digital_board_link?: string
   created_at: string
   updated_at: string
 }
@@ -155,7 +160,9 @@ const StudentsPage = () => {
         // Datos del receptor
         receptor_nombre: studentData.receptorNombre,
         receptor_apellidos: studentData.receptorApellidos,
-        receptor_email: studentData.receptorEmail
+        receptor_email: studentData.receptorEmail,
+        // Enlace a pizarra digital
+        digital_board_link: studentData.digital_board_link
       }
       
       console.log('Sending student data:', requestData)
@@ -276,8 +283,10 @@ const StudentsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center">
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
+        </div>
       </div>
     )
   }
@@ -295,7 +304,10 @@ const StudentsPage = () => {
             <Users size={32} className="mr-3 text-primary" />
             Gestión de Alumnos
           </h1>
-          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center">
+          <Button 
+            onClick={() => setIsAddModalOpen(true)} 
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center"
+          >
             <Plus size={20} className="mr-2" />
             Añadir Alumno
           </Button>
@@ -460,15 +472,32 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
   return monthlyIncome
 }
 
-const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps) => (
+const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps) => {
+  const openDigitalBoard = () => {
+    if (student.digital_board_link) {
+      window.open(student.digital_board_link, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  return (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.2 }}
-    className="glass-effect card-hover rounded-lg p-5 border border-border relative overflow-hidden"
+    className="glass-effect card-hover rounded-lg p-5 border border-border relative overflow-hidden group"
     style={{ borderColor: student.course_color }}
   >
-    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: student.course_color }} />
+    {/* Top border lightning */}
+    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
+    
+    {/* Right border lightning */}
+    <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
+    
+    {/* Bottom border lightning */}
+    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
+    
+    {/* Left border lightning */}
+    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: student.course_color }} />
     
     <div className="flex items-center justify-between mb-3">
       <h3 className="text-xl font-semibold text-foreground flex items-center">
@@ -479,6 +508,17 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
         <Button variant="ghost" size="sm" onClick={() => onView(student)} className="text-foreground-muted hover:text-primary">
           <Eye size={16} />
         </Button>
+        {student.digital_board_link && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={openDigitalBoard}
+            className="text-primary hover:text-primary/80"
+            title="Abrir pizarra digital"
+          >
+            <Monitor size={16} />
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={onDelete} className="text-destructive hover:text-destructive/80">
           <Trash2 size={16} />
         </Button>
@@ -588,7 +628,8 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
       </div>
     </div>
   </motion.div>
-)
+  )
+}
 
 interface AddStudentModalProps {
   isOpen: boolean
@@ -612,7 +653,6 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
     hasSharedPricing: false,
     // Campos fiscales
     dni: '',
-    nif: '',
     address: '',
     postalCode: '',
     city: '',
@@ -621,7 +661,9 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
     // Campos del receptor (padre/madre/tutor)
     receptorNombre: '',
     receptorApellidos: '',
-    receptorEmail: ''
+    receptorEmail: '',
+    // Campo para enlace a pizarra digital
+    digitalBoardLink: ''
   })
   const [selectedSchedule, setSelectedSchedule] = useState<TimeSlot[]>([])
   const [studentCode, setStudentCode] = useState('')
@@ -658,14 +700,19 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       fixed_schedule: selectedSchedule.length > 0 ? JSON.stringify(selectedSchedule) : undefined,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-      // Campos fiscales
-      dni: formData.dni || undefined,
-      nif: formData.nif || undefined,
+        // Campos fiscales
+        dni: formData.dni || undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
       province: formData.province || undefined,
       country: formData.country || 'España',
+      // Campos del receptor
+      receptorNombre: formData.receptorNombre || undefined,
+      receptorApellidos: formData.receptorApellidos || undefined,
+      receptorEmail: formData.receptorEmail || undefined,
+      // Enlace a pizarra digital
+      digital_board_link: formData.digitalBoardLink || undefined,
       schedule: selectedSchedule
     }
     
@@ -696,7 +743,9 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       // Campos del receptor
       receptorNombre: '',
       receptorApellidos: '',
-      receptorEmail: ''
+      receptorEmail: '',
+      // Campo para enlace a pizarra digital
+      digitalBoardLink: ''
     })
     setSelectedSchedule([])
     setStudentCode('')
@@ -706,12 +755,12 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
+        className="bg-background rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -873,31 +922,19 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">DNI del Receptor</label>
-                      <input
-                        type="text"
-                        value={formData.dni}
-                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">NIF del Receptor</label>
-                      <input
-                        type="text"
-                        value={formData.nif}
-                        onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
+                    <input
+                      type="text"
+                      value={formData.dni}
+                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                      placeholder="12345678A"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Receptor</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Padre/Madre/Tutor</label>
                     <input
                       type="text"
                       value={formData.address}
@@ -952,7 +989,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
 
                   <div className="grid grid-cols-2 gap-4 mt-6">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Receptor (Padre/Madre/Tutor)</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorNombre}
@@ -962,7 +999,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Receptor</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorApellidos}
@@ -974,7 +1011,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Email del Receptor</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Email del Padre/Madre/Tutor</label>
                     <input
                       type="email"
                       value={formData.receptorEmail}
@@ -982,6 +1019,18 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                       placeholder="email@ejemplo.com"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">Enlace a Pizarra Digital</label>
+                    <input
+                      type="url"
+                      value={formData.digitalBoardLink}
+                      onChange={(e) => setFormData({ ...formData, digitalBoardLink: e.target.value })}
+                      placeholder="https://ejemplo.com/pizarra"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">URL de la pizarra digital para este estudiante</p>
                   </div>
                 </div>
 
@@ -1060,7 +1109,7 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
               <Button type="button" variant="ghost" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary-hover">
+              <Button type="submit" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white">
                 Crear Alumno
               </Button>
             </div>
@@ -1099,6 +1148,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
     receptorNombre: student.receptor_nombre || '',
     receptorApellidos: student.receptor_apellidos || '',
     receptorEmail: student.receptor_email || '',
+    // Campo para enlace a pizarra digital
+    digitalBoardLink: student.digital_board_link || '',
     address: student.address || '',
     postalCode: student.postal_code || '',
     city: student.city || '',
@@ -1208,9 +1259,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       student_code: student.student_code,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-      // Campos fiscales
-      dni: formData.dni || undefined,
-      nif: formData.nif || undefined,
+        // Campos fiscales
+        dni: formData.dni || undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
@@ -1220,6 +1270,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       receptor_nombre: formData.receptorNombre || undefined,
       receptor_apellidos: formData.receptorApellidos || undefined,
       receptor_email: formData.receptorEmail || undefined,
+      // Enlace a pizarra digital
+      digital_board_link: formData.digitalBoardLink || undefined,
       schedule: selectedSchedule
     })
   }
@@ -1247,7 +1299,9 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       // Campos del receptor
       receptorNombre: student.receptorNombre || '',
       receptorApellidos: student.receptorApellidos || '',
-      receptorEmail: student.receptorEmail || ''
+      receptorEmail: student.receptorEmail || '',
+      // Campo para enlace a pizarra digital
+      digitalBoardLink: student.digital_board_link || ''
     })
     setSelectedSchedule([])
     onClose()
@@ -1256,12 +1310,12 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
+        className="bg-background rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-border"
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -1422,31 +1476,19 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">DNI del Estudiante</label>
-                      <input
-                        type="text"
-                        value={formData.dni}
-                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">NIF del Estudiante</label>
-                      <input
-                        type="text"
-                        value={formData.nif}
-                        onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                        placeholder="12345678A"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
+                    <input
+                      type="text"
+                      value={formData.dni}
+                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                      placeholder="12345678A"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Estudiante</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Dirección del Padre/Madre/Tutor</label>
                     <input
                       type="text"
                       value={formData.address}
@@ -1501,7 +1543,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
 
                   <div className="grid grid-cols-2 gap-4 mt-6">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Receptor (Padre/Madre/Tutor)</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Nombre del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorNombre}
@@ -1511,7 +1553,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Receptor</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Apellidos del Padre/Madre/Tutor</label>
                       <input
                         type="text"
                         value={formData.receptorApellidos}
@@ -1523,7 +1565,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">Email del Receptor</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Email del Padre/Madre/Tutor</label>
                     <input
                       type="email"
                       value={formData.receptorEmail}
@@ -1531,6 +1573,18 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                       placeholder="email@ejemplo.com"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">Enlace a Pizarra Digital</label>
+                    <input
+                      type="url"
+                      value={formData.digitalBoardLink}
+                      onChange={(e) => setFormData({ ...formData, digitalBoardLink: e.target.value })}
+                      placeholder="https://ejemplo.com/pizarra"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">URL de la pizarra digital para este estudiante</p>
                   </div>
                 </div>
               </div>
@@ -1584,7 +1638,7 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
               <Button type="button" variant="ghost" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary-hover">
+              <Button type="submit" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white">
                 Guardar Cambios
               </Button>
             </div>

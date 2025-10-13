@@ -13,10 +13,12 @@ import {
   Edit,
   Trash2,
   Save,
-  X
+  X,
+  BookOpen
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { CourseFilteredSubjectSelector } from './CourseFilteredSubjectSelector'
 
 interface ClassData {
   id: number
@@ -57,7 +59,8 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
   const [editData, setEditData] = useState({
     status: classData.status,
     payment_status: classData.payment_status,
-    payment_notes: classData.payment_notes || ''
+    payment_notes: classData.payment_notes || classData.notes || '',
+    subject: classData.subject || ''
   })
 
   // Update editData when classData changes
@@ -65,9 +68,10 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
     setEditData({
       status: classData.status,
       payment_status: classData.payment_status,
-      payment_notes: classData.payment_notes || ''
+      payment_notes: classData.payment_notes || classData.notes || '',
+      subject: classData.subject || ''
     })
-  }, [classData.status, classData.payment_status, classData.payment_notes])
+  }, [classData.status, classData.payment_status, classData.payment_notes, classData.notes, classData.subject])
 
   const handleSave = async () => {
     try {
@@ -119,7 +123,8 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
         setEditData({
           status: updatedClass.status,
           payment_status: updatedClass.payment_status,
-          payment_notes: updatedClass.payment_notes || ''
+          payment_notes: updatedClass.payment_notes || '',
+          subject: updatedClass.subject || ''
         })
         
         setIsEditing(false)
@@ -139,10 +144,12 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
     setEditData({
       status: classData.status,
       payment_status: classData.payment_status,
-      payment_notes: classData.payment_notes || ''
+      payment_notes: classData.payment_notes || '',
+      subject: classData.subject || ''
     })
     setIsEditing(false)
   }
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -236,19 +243,12 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
           </div>
         </div>
 
-        {/* Subject and Notes */}
-        {(classData.subject || classData.notes) && (
+        {/* Subject */}
+        {classData.subject && (
           <div className="mb-3">
-            {classData.subject && (
-              <p className="text-sm text-foreground-muted mb-1">
-                <strong>Asignatura:</strong> {classData.subject}
-              </p>
-            )}
-            {classData.notes && (
-              <p className="text-sm text-foreground-muted">
-                <strong>Notas:</strong> {classData.notes}
-              </p>
-            )}
+            <p className="text-sm text-foreground-muted mb-1">
+              <strong>Asignatura:</strong> {classData.subject}
+            </p>
           </div>
         )}
 
@@ -301,14 +301,6 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
           </div>
         </div>
 
-        {/* Payment Notes */}
-        {classData.payment_notes && (
-          <div className="mb-3">
-            <p className="text-xs text-foreground-muted">
-              <strong>Notas de pago:</strong> {classData.payment_notes}
-            </p>
-          </div>
-        )}
 
         {/* Payment Date */}
         {classData.payment_date && (
@@ -319,11 +311,23 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
           </div>
         )}
 
+        {/* Edit Subject */}
+        {isEditing && (
+          <div className="mb-3">
+            <CourseFilteredSubjectSelector
+              selectedSubject={editData.subject}
+              onSubjectChange={(subject) => setEditData({ ...editData, subject })}
+              courseName={classData.courses.name}
+              placeholder="Selecciona una asignatura"
+            />
+          </div>
+        )}
+
         {/* Edit Payment Notes */}
         {isEditing && (
           <div className="mb-3">
             <label className="block text-sm font-medium text-foreground mb-2">
-              Notas de pago:
+              Notas:
             </label>
             <input
               type="text"

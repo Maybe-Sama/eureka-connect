@@ -97,12 +97,12 @@ export const MonthlyReportModal = ({ isOpen, onClose, report, month }: MonthlyRe
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-background-secondary rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-border"
+        className="bg-background rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-border"
       >
         {/* Header */}
         <div className="p-6 border-b border-border">

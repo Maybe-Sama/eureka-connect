@@ -3,7 +3,25 @@ import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Validar que la URL sea válida
+    if (!request.url) {
+      return NextResponse.json(
+        { error: 'URL de request inválida' },
+        { status: 400 }
+      )
+    }
+
+    let searchParams
+    try {
+      const url = new URL(request.url)
+      searchParams = url.searchParams
+    } catch (urlError) {
+      console.error('Error creando URL:', urlError)
+      return NextResponse.json(
+        { error: 'URL de request malformada' },
+        { status: 400 }
+      )
+    }
     const monthYear = searchParams.get('month') || new Date().toISOString().slice(0, 7)
 
     // Get monthly report

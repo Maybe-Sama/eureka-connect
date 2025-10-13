@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
           tipo: 'completo',
           fecha_exportacion: new Date().toISOString(),
           sistema: {
-            nombre: 'EURELA-CONNECT-RRSIF',
+            nombre: 'EUREKA-CONNECT-RRSIF',
             version: '1.0.0',
             modo: 'local'
           },
@@ -150,7 +150,25 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Validar que la URL sea válida
+    if (!request.url) {
+      return NextResponse.json(
+        { error: 'URL de request inválida' },
+        { status: 400 }
+      )
+    }
+
+    let searchParams
+    try {
+      const url = new URL(request.url)
+      searchParams = url.searchParams
+    } catch (urlError) {
+      console.error('Error creando URL:', urlError)
+      return NextResponse.json(
+        { error: 'URL de request malformada' },
+        { status: 400 }
+      )
+    }
     const tipo = searchParams.get('tipo') || 'completo'
 
     // Obtener estadísticas de exportación

@@ -3,17 +3,16 @@ import { authenticateStudent } from '@/lib/auth-complex'
 
 export async function POST(request: NextRequest) {
   try {
-    const { studentCode, password } = await request.json()
+    const { identifier, password } = await request.json()
 
-    if (!studentCode || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { success: false, error: 'Código de estudiante y contraseña requeridos' },
+        { success: false, error: 'Código de estudiante/email y contraseña requeridos' },
         { status: 400 }
       )
     }
 
-    const result = await authenticateStudent(studentCode, password)
-
+    const result = await authenticateStudent(identifier, password)
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error authenticating student:', error)

@@ -1,4 +1,4 @@
-# Configuración de Supabase para EurekaProfe CRM
+# Configuración de Supabase para Profesor Eureka CRM
 
 Este proyecto ha sido migrado de SQLite a Supabase para una mejor escalabilidad y funcionalidades en la nube.
 

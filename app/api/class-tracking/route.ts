@@ -4,7 +4,25 @@ import { generateClassesFromStartDate } from '@/lib/class-generation'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Validar que la URL sea válida
+    if (!request.url) {
+      return NextResponse.json(
+        { error: 'URL de request inválida' },
+        { status: 400 }
+      )
+    }
+
+    let searchParams
+    try {
+      const url = new URL(request.url)
+      searchParams = url.searchParams
+    } catch (urlError) {
+      console.error('Error creando URL:', urlError)
+      return NextResponse.json(
+        { error: 'URL de request malformada' },
+        { status: 400 }
+      )
+    }
     const monthYear = searchParams.get('month') || new Date().toISOString().slice(0, 7) // YYYY-MM format
     const studentId = searchParams.get('studentId')
 
@@ -50,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     // For each student, get their classes and calculate stats
     const trackingData = []
-    let skippedStudents = []
+    const skippedStudents = []
     
     for (const student of students) {
       // Validate student has required fields

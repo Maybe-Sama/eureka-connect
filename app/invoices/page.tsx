@@ -25,6 +25,7 @@ import {
   Building
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { 
   Invoice, 
   Student, 
@@ -57,6 +58,7 @@ import {
 import { toast } from 'sonner'
 import SeleccionClasesModal from '@/components/facturas/SeleccionClasesModal'
 import ConfiguracionFiscalModal from '@/components/facturas/ConfiguracionFiscalModal'
+import ClasesFacturadasModal from '@/components/facturas/ClasesFacturadasModal'
 
 const InvoicesPage = () => {
   const [invoices, setInvoices] = useState<FacturaRRSIF[]>([])
@@ -71,6 +73,7 @@ const InvoicesPage = () => {
   const [datosFiscales, setDatosFiscales] = useState<FiscalData | null>(null)
   const [datosReceptor, setDatosReceptor] = useState<ReceptorData | null>(null)
   const [sistemaInicializado, setSistemaInicializado] = useState(false)
+  const [incluirQR, setIncluirQR] = useState(false) // Toggle para QR VeriFactu
   
   // Modales
   const [modalSeleccion, setModalSeleccion] = useState<ModalSeleccionClases>({
@@ -81,6 +84,13 @@ const InvoicesPage = () => {
     clasesSeleccionadas: []
   })
   const [modalConfiguracion, setModalConfiguracion] = useState(false)
+  const [modalClasesFacturadas, setModalClasesFacturadas] = useState<{
+    isOpen: boolean
+    clases: any[]
+  }>({
+    isOpen: false,
+    clases: []
+  })
 
   // Función auxiliar para mapear clases a ClasePagada
   const mapearClaseAPagada = (clase: any) => {
@@ -103,6 +113,7 @@ const InvoicesPage = () => {
       province: clase.students?.province || '',
       postalCode: clase.students?.postal_code || '',
       country: clase.students?.country || 'España',
+      dni: clase.students?.dni || '',
       nif: clase.students?.nif || '',
       birthDate: clase.students?.birth_date || '',
       courseId: clase.students?.course_id?.toString() || '1',
@@ -255,9 +266,13 @@ const InvoicesPage = () => {
       console.log('Status:', (classes[0] as any)?.status)
     }
     
-    // Obtener todas las clases pagadas
+    // Obtener todas las clases pagadas (mostrar todas, validar después)
     const todasLasClasesPagadas = classes
-      .filter((clase: any) => clase.payment_status === 'paid' || clase.status === 'completed')
+      .filter((clase: any) => {
+        const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+        console.log(`Clase ${clase.id}: paid=${isPaid}, status_invoice=${clase.status_invoice} (type: ${typeof clase.status_invoice})`)
+        return isPaid
+      })
       .map(mapearClaseAPagada)
     
     console.log('Clases pagadas encontradas:', todasLasClasesPagadas.length)
@@ -292,6 +307,10 @@ const InvoicesPage = () => {
       return
     }
 
+    console.log('=== CONFIRMANDO SELECCIÓN ===')
+    console.log('Datos fiscales disponibles:', JSON.stringify(datosFiscales, null, 2))
+    console.log('Clases seleccionadas:', clasesSeleccionadas)
+
     try {
       // Obtener las clases seleccionadas del modal
       const clasesSeleccionadasData = modalSeleccion.clasesPagadas.filter(clase => 
@@ -303,6 +322,22 @@ const InvoicesPage = () => {
         return
       }
 
+      // Verificar si hay clases ya facturadas para mostrar advertencia
+      const clasesYaFacturadas = clasesSeleccionadasData.filter(clase => {
+        // Buscar la clase original en el estado de classes para verificar status_invoice
+        const claseOriginal = classes.find(c => c.id.toString() === clase.id)
+        return claseOriginal && claseOriginal.status_invoice === true
+      })
+
+      if (clasesYaFacturadas.length > 0) {
+        const nombresClases = clasesYaFacturadas.map(clase => 
+          `${clase.asignatura} (${clase.fecha})`
+        ).join(', ')
+        
+        // Mostrar advertencia pero permitir continuar
+        toast.warning(`Advertencia: Las siguientes clases ya han sido facturadas anteriormente: ${nombresClases}. Se crearán nuevas facturas para estas clases.`)
+      }
+
       // Obtener datos del estudiante de la primera clase seleccionada
       const student = clasesSeleccionadasData[0].student
       if (!student) {
@@ -311,8 +346,21 @@ const InvoicesPage = () => {
       }
 
       // Crear datos del receptor desde los datos del estudiante
+      // Usar DNI o NIF, el que esté cumplimentado
+      console.log('=== DEBUG IDENTIFICACIÓN FISCAL ===')
+      console.log('student.dni:', student.dni)
+      console.log('student.nif:', student.nif)
+      console.log('student.dni type:', typeof student.dni)
+      console.log('student.nif type:', typeof student.nif)
+      console.log('student.dni truthy:', !!student.dni)
+      console.log('student.nif truthy:', !!student.nif)
+      console.log('student completo:', JSON.stringify(student, null, 2))
+      
+      const identificacionFiscal = student.dni || '00000000A'
+      console.log('identificacionFiscal seleccionada:', identificacionFiscal)
+      
       const datosReceptorEstudiante: ReceptorData = {
-        nif: student.nif || '00000000A',
+        nif: identificacionFiscal,
         nombre: `${student.receptorNombre || student.firstName} ${student.receptorApellidos || student.lastName}`,
         direccion: student.address || 'Dirección no especificada',
         codigoPostal: student.postalCode || '00000',
@@ -322,6 +370,9 @@ const InvoicesPage = () => {
         telefono: student.phone,
         email: student.receptorEmail || student.email
       }
+      
+      console.log('datosReceptorEstudiante creado:', JSON.stringify(datosReceptorEstudiante, null, 2))
+      console.log('Incluir QR (frontend):', incluirQR)
 
       const response = await fetch('/api/rrsif/generar-factura', {
         method: 'POST',
@@ -333,7 +384,8 @@ const InvoicesPage = () => {
           clasesIds: clasesSeleccionadas,
           datosFiscales,
           datosReceptor: datosReceptorEstudiante,
-          descripcion: `Clases particulares - ${clasesSeleccionadas.length} clase${clasesSeleccionadas.length !== 1 ? 's' : ''}`
+          descripcion: `Clases particulares - ${clasesSeleccionadas.length} clase${clasesSeleccionadas.length !== 1 ? 's' : ''}`,
+          incluirQR: incluirQR
         }),
       })
 
@@ -366,9 +418,39 @@ const InvoicesPage = () => {
         }
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Error al generar la factura')
-        if (error.detalles) {
-          console.error('Detalles del error:', error.detalles)
+        
+        // Mostrar mensaje de error específico para clases ya facturadas
+        if (error.tipo === 'clases_ya_facturadas') {
+          // Mostrar toast de error
+          toast.error(error.error || 'No se puede crear la factura', {
+            description: 'Algunas clases ya han sido utilizadas en otras facturas',
+            duration: 5000,
+            action: {
+              label: 'Ver detalles',
+              onClick: () => {
+                // Obtener información detallada de las clases facturadas
+                fetch(`/api/classes?ids=${error.clasesFacturadas.join(',')}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    setModalClasesFacturadas({
+                      isOpen: true,
+                      clases: data || []
+                    })
+                  })
+                  .catch(err => {
+                    console.error('Error obteniendo detalles de clases:', err)
+                    // Fallback: mostrar alert con detalles básicos
+                    alert(error.details)
+                  })
+              }
+            }
+          })
+        } else {
+          toast.error(error.error || 'Error al generar la factura')
+        }
+        
+        if (error.details) {
+          console.error('Detalles del error:', error.details)
         }
       }
     } catch (error) {
@@ -444,16 +526,26 @@ const InvoicesPage = () => {
     }
   }
 
-  const handleFinalizarFactura = async (invoiceId: string) => {
-    if (!confirm('¿Estás seguro de que quieres finalizar esta factura? Una vez finalizada no se podrá eliminar.')) return
+  const [showFinalizarModal, setShowFinalizarModal] = useState(false)
+  const [facturaAFinalizar, setFacturaAFinalizar] = useState<string | null>(null)
+  const [isFinalizando, setIsFinalizando] = useState(false)
 
+  const handleFinalizarFactura = (invoiceId: string) => {
+    setFacturaAFinalizar(invoiceId)
+    setShowFinalizarModal(true)
+  }
+
+  const confirmarFinalizar = async () => {
+    if (!facturaAFinalizar) return
+
+    setIsFinalizando(true)
     try {
       const response = await fetch(`/api/rrsif/finalizar-factura`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ facturaId: invoiceId }),
+        body: JSON.stringify({ facturaId: facturaAFinalizar }),
       })
 
       if (response.ok) {
@@ -464,12 +556,17 @@ const InvoicesPage = () => {
           const invoicesData = await invoicesResponse.json()
           setInvoices(invoicesData)
         }
+        setShowFinalizarModal(false)
+        setFacturaAFinalizar(null)
       } else {
-        toast.error('Error al finalizar la factura')
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Error al finalizar la factura')
       }
     } catch (error) {
       console.error('Error finalizando factura:', error)
       toast.error('Error al finalizar la factura')
+    } finally {
+      setIsFinalizando(false)
     }
   }
 
@@ -483,11 +580,19 @@ const InvoicesPage = () => {
 
       if (response.ok) {
         toast.success('Factura provisional eliminada exitosamente')
+        
         // Refresh invoices
         const invoicesResponse = await fetch('/api/rrsif/facturas')
         if (invoicesResponse.ok) {
           const invoicesData = await invoicesResponse.json()
           setInvoices(invoicesData)
+        }
+        
+        // Refresh classes para actualizar el status_invoice
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          setClasses(classesData)
         }
       } else {
         const error = await response.json()
@@ -516,11 +621,19 @@ const InvoicesPage = () => {
 
       if (response.ok) {
         toast.success('Factura anulada exitosamente')
+        
         // Refresh invoices
         const invoicesResponse = await fetch('/api/rrsif/facturas')
         if (invoicesResponse.ok) {
           const invoicesData = await invoicesResponse.json()
           setInvoices(invoicesData)
+        }
+        
+        // Refresh classes para actualizar el status_invoice
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          setClasses(classesData)
         }
       } else {
         toast.error('Error al anular la factura')
@@ -557,6 +670,96 @@ const InvoicesPage = () => {
     }
   }
 
+  const handleVerificarClases = async () => {
+    try {
+      setIsLoading(true)
+      
+      const response = await fetch('/api/rrsif/verificar-clases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        
+        if (result.clasesCorregidas > 0) {
+          toast.success(`${result.clasesCorregidas} clases recuperadas y disponibles para facturar`)
+          
+          // Refrescar las clases disponibles
+          const classesResponse = await fetch('/api/classes')
+          if (classesResponse.ok) {
+            const classesData = await classesResponse.json()
+            setClasses(classesData)
+          }
+        } else {
+          toast.info('Todas las clases están correctamente marcadas')
+        }
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Error verificando clases')
+      }
+    } catch (error) {
+      console.error('Error verificando clases:', error)
+      toast.error('Error verificando clases')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDebugClases = () => {
+    console.log('=== DEBUG CLASES ===')
+    console.log('Total clases cargadas:', classes.length)
+    
+    if (classes.length > 0) {
+      console.log('Primeras 5 clases:')
+      classes.slice(0, 5).forEach((clase, index) => {
+        console.log(`${index + 1}. ID: ${clase.id}`)
+        console.log(`   - Payment status: ${clase.payment_status}`)
+        console.log(`   - Status: ${clase.status}`)
+        console.log(`   - Status invoice: ${clase.status_invoice} (type: ${typeof clase.status_invoice})`)
+        console.log(`   - Price: €${clase.price}`)
+        console.log(`   - Date: ${clase.date}`)
+        console.log('---')
+      })
+    }
+    
+    // Filtrar clases como lo hace el sistema
+    const clasesFiltradas = classes.filter((clase: any) => {
+      const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+      const notInvoiced = clase.status_invoice !== true
+      return isPaid && notInvoiced
+    })
+    
+    console.log(`Clases que pasan el filtro: ${clasesFiltradas.length}`)
+    
+    if (clasesFiltradas.length > 0) {
+      console.log('Clases filtradas:')
+      clasesFiltradas.forEach((clase, index) => {
+        console.log(`${index + 1}. ID: ${clase.id} - ${clase.date} - €${clase.price}`)
+      })
+    }
+    
+    // Mostrar en un alert también
+    const debugInfo = `
+Total clases: ${classes.length}
+Clases filtradas: ${clasesFiltradas.length}
+
+Primeras 3 clases:
+${classes.slice(0, 3).map((c, i) => 
+  `${i+1}. ID ${c.id} - Payment: ${c.payment_status} - Status: ${c.status} - Invoice: ${c.status_invoice}`
+).join('\n')}
+
+Clases que pasan filtro:
+${clasesFiltradas.slice(0, 3).map((c, i) => 
+  `${i+1}. ID ${c.id} - ${c.date} - €${c.price}`
+).join('\n')}
+    `
+    
+    alert(debugInfo)
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
@@ -585,8 +788,10 @@ const InvoicesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center">
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
+        </div>
       </div>
     )
   }
@@ -627,12 +832,55 @@ const InvoicesPage = () => {
               <Settings size={16} className="mr-2" />
               Configuración
             </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleVerificarClases}
+              className="flex items-center"
+            >
+              <Shield size={16} className="mr-2" />
+              Verificar Clases
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleDebugClases}
+              className="flex items-center"
+            >
+              <Settings size={16} className="mr-2" />
+              Debug Clases
+            </Button>
+            
+            {/* Toggle QR VeriFactu */}
+            <div className={`flex items-center space-x-2 px-3 py-2 border rounded-lg transition-colors ${
+              incluirQR 
+                ? 'bg-primary/10 border-primary/30 text-primary' 
+                : 'bg-background border-border text-foreground-muted'
+            }`}>
+              <QrCode size={16} className={incluirQR ? 'text-primary' : 'text-foreground-muted'} />
+              <span className={`text-sm font-medium ${incluirQR ? 'text-primary' : 'text-foreground-muted'}`}>
+                QR VeriFactu
+              </span>
+              <button
+                onClick={() => setIncluirQR(!incluirQR)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  incluirQR ? 'bg-primary' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    incluirQR ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            
             <Button 
               onClick={handleNuevaFactura}
               disabled={!sistemaInicializado || !datosFiscales}
-              className="flex items-center"
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              
+              <Plus size={16} className="mr-2" />
               Nueva Factura
             </Button>
           </div>
@@ -744,6 +992,14 @@ const InvoicesPage = () => {
                         <QrCode size={12} />
                         <span>RRSIF</span>
                       </div>
+                      <div className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
+                        (invoice as any).incluye_qr 
+                          ? 'bg-success/20 text-success border border-success/30' 
+                          : 'bg-destructive/20 text-destructive border border-destructive/30'
+                      }`}>
+                        <QrCode size={12} />
+                        <span>{(invoice as any).incluye_qr ? 'QR VeriFactu' : 'Sin QR'}</span>
+                      </div>
                       <div className="flex items-center space-x-1 text-xs text-foreground-muted">
                         <Shield size={12} />
                         <span>Hash: {invoice.registro_facturacion?.hash_registro?.substring(0, 8)}...</span>
@@ -763,15 +1019,39 @@ const InvoicesPage = () => {
                     {getStatusText(invoice.status)}
                   </span>
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
-                      <Mail size={16} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDownloadPDF(invoice)}>
-                      <Download size={16} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleViewPDF(invoice)}>
-                      <Eye size={16} />
-                    </Button>
+                    <button
+                      onClick={() => handleSendInvoice(invoice.id)}
+                      className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 text-blue-500 hover:from-blue-500/20 hover:to-blue-500/10 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                      title="Enviar factura por email"
+                    >
+                      <Mail 
+                        size={16} 
+                        className="transition-transform duration-300 group-hover:scale-110" 
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </button>
+                    <button
+                      onClick={() => handleDownloadPDF(invoice)}
+                      className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20 text-green-500 hover:from-green-500/20 hover:to-green-500/10 hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                      title="Descargar PDF de la factura"
+                    >
+                      <Download 
+                        size={16} 
+                        className="transition-transform duration-300 group-hover:scale-110" 
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </button>
+                    <button
+                      onClick={() => handleViewPDF(invoice)}
+                      className="group relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:scale-105 active:scale-95"
+                      title="Ver factura en nueva ventana"
+                    >
+                      <Eye 
+                        size={16} 
+                        className="transition-transform duration-300 group-hover:scale-110" 
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </button>
                     {invoice.estado_factura === 'provisional' ? (
                       <>
                         <Button 
@@ -836,6 +1116,8 @@ const InvoicesPage = () => {
         onClose={() => setModalSeleccion(prev => ({ ...prev, isOpen: false }))}
         onConfirmar={handleConfirmarSeleccion}
         onSeleccionarEstudiante={handleSeleccionarEstudiante}
+        classes={classes}
+        onUpdateClasses={(updatedClasses) => setClasses(updatedClasses)}
       />
 
       <ConfiguracionFiscalModal
@@ -845,6 +1127,106 @@ const InvoicesPage = () => {
         datosFiscales={datosFiscales || undefined}
         datosReceptor={datosReceptor || undefined}
       />
+
+      <ClasesFacturadasModal
+        isOpen={modalClasesFacturadas.isOpen}
+        onClose={() => setModalClasesFacturadas({ isOpen: false, clases: [] })}
+        clasesFacturadas={modalClasesFacturadas.clases}
+        onEliminarFactura={(claseId) => {
+          // Aquí podrías implementar navegación a la factura que contiene esta clase
+          console.log('Ver factura que contiene la clase:', claseId)
+        }}
+      />
+
+      {/* Modal de Confirmación para Finalizar Factura */}
+      <AnimatePresence>
+        {showFinalizarModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowFinalizarModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-background rounded-xl border border-border w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-border">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <AlertCircle size={20} className="text-warning" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground">
+                      Finalizar Factura
+                    </h2>
+                    <p className="text-sm text-foreground-muted">
+                      Esta acción no se puede deshacer
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle size={20} className="text-warning mt-0.5" />
+                    <div>
+                      <p className="text-foreground font-medium">
+                        ¿Estás seguro de que quieres finalizar esta factura?
+                      </p>
+                      <p className="text-sm text-foreground-muted mt-2">
+                        Una vez finalizada, la factura será visible para el estudiante y no se podrá eliminar.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-warning/5 border border-warning/20 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 text-warning">
+                      <AlertCircle size={16} />
+                      <span className="font-medium text-sm">Importante</span>
+                    </div>
+                    <p className="text-sm text-foreground-muted mt-2">
+                      Esta acción es irreversible. La factura pasará de estado "Provisional" a "Final".
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-border bg-muted/20">
+                <div className="flex items-center justify-end space-x-3">
+                  <button
+                    onClick={() => setShowFinalizarModal(false)}
+                    disabled={isFinalizando}
+                    className="px-4 py-2 bg-background-tertiary text-foreground rounded-lg hover:bg-background-tertiary/70 transition-colors disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmarFinalizar}
+                    disabled={isFinalizando}
+                    className="px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning/90 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {isFinalizando ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <CheckCircle size={16} />
+                    )}
+                    <span>{isFinalizando ? 'Finalizando...' : 'Finalizar Factura'}</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

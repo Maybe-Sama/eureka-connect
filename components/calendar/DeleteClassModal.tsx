@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Trash2, AlertTriangle, Calendar, RotateCcw } from 'lucide-react'
+import { Trash2, AlertTriangle, Clock, RotateCcw } from 'lucide-react'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 
 interface DeleteClassModalProps {
   isOpen: boolean
@@ -21,22 +22,20 @@ export const DeleteClassModal = ({
 }: DeleteClassModalProps) => {
   if (!isOpen || !classItem) return null
 
+  // Debug temporal para verificar los datos
+  console.log('DeleteClassModal - classItem:', classItem)
+  console.log('student_name:', classItem.student_name)
+
   const isRecurring = classItem.is_recurring
-  const classType = isRecurring ? 'horario fijo' : 'clase programada'
+  const classType = isRecurring ? 'horario fijo' : 'clase eventual'
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-background-secondary rounded-xl p-6 w-full max-w-md border border-border"
+        className="bg-background rounded-xl p-6 w-full max-w-md border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-6">
@@ -49,20 +48,17 @@ export const DeleteClassModal = ({
           </h2>
           
           <div className="bg-background rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span className="font-medium text-foreground">
-                {classItem.student_name}
+            <div className="text-center mb-3">
+              <span className="text-lg font-semibold text-foreground">
+                {classItem.student_name || `Estudiante ID: ${classItem.student_id}`}
               </span>
             </div>
-            <div className="text-sm text-foreground-muted">
-              {classItem.subject || 'Sin asignatura'}
-            </div>
-            <div className="text-sm text-foreground-muted">
-              {classItem.start_time} - {classItem.end_time}
+            <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-2">
+              <Clock className="w-4 h-4" />
+              <span>{classItem.start_time} - {classItem.end_time}</span>
             </div>
             {!isRecurring && (
-              <div className="text-sm text-foreground-muted">
+              <div className="text-center text-sm text-foreground-muted">
                 {new Date(classItem.date).toLocaleDateString('es-ES')}
               </div>
             )}
@@ -88,7 +84,7 @@ export const DeleteClassModal = ({
                 <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
                 <div className="text-left">
                   <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
-                    Clase programada específica
+                    Clase eventual
                   </p>
                   <p className="text-xs text-red-700 dark:text-red-300">
                     Se eliminará completamente del calendario. Esta acción no se puede deshacer.
@@ -115,7 +111,7 @@ export const DeleteClassModal = ({
           >
             {isDeleting ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <DiagonalBoxLoader size="sm" color="white" className="mr-2" />
                 Eliminando...
               </>
             ) : (
@@ -127,6 +123,6 @@ export const DeleteClassModal = ({
           </Button>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }

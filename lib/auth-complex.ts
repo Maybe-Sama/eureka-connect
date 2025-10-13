@@ -27,6 +27,7 @@ export interface User {
   userType: 'teacher' | 'student'
   studentId?: number
   studentName?: string
+  courseName?: string
 }
 
 export interface AuthResult {
@@ -125,38 +126,109 @@ export async function authenticateTeacher(email: string, password: string): Prom
   }
 }
 
-// Autenticar estudiante
-export async function authenticateStudent(studentCode: string, password: string): Promise<AuthResult> {
+// Autenticar estudiante (por código o email)
+export async function authenticateStudent(identifier: string, password: string): Promise<AuthResult> {
   try {
-    const hashedPassword = hashPassword(password)
-    const normalizedCode = normalizeStudentCode(studentCode)
+    console.log('🔵 authenticateStudent called with:', { identifier: identifier?.substring(0, 10) + '...', hasPassword: !!password })
     
-    // Buscar estudiante por código (solo campos que existen en students)
-    const { data: student, error: studentError } = await supabaseAdmin
-      .from('students')
-      .select('id, first_name, last_name')
-      .eq('student_code', normalizedCode)
-      .maybeSingle()
+    const hashedPassword = hashPassword(password)
+    const normalizedIdentifier = identifier.trim().toLowerCase()
+    console.log('🔵 Normalized identifier:', normalizedIdentifier)
+    
+    let systemUser: any
+    let student: any
+    
+    // Determinar si es email o código de estudiante
+    if (normalizedIdentifier.includes('@')) {
+      console.log('🔵 Treating as email')
+      // Es un email - buscar directamente en system_users
+      console.log('🔵 Searching for user with email:', normalizedIdentifier)
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('system_users')
+        .select('id, email, password_hash, user_type, student_id, email_verified')
+        .eq('email', normalizedIdentifier)
+        .eq('user_type', 'student')
+        .maybeSingle()
 
-    if (studentError || !student) {
-      return { success: false, error: 'Código de estudiante no válido' }
-    }
+      console.log('🔵 User query result:', { userData, userError })
 
-    // Buscar usuario del sistema asociado
-    const { data: systemUser, error: userError } = await supabaseAdmin
-      .from('system_users')
-      .select('id, email, password_hash, user_type, student_id')
-      .eq('student_id', student.id)
-      .eq('user_type', 'student')
-      .maybeSingle()
+      if (userError) {
+        console.log('❌ Database error:', userError)
+        return { success: false, error: 'Error de base de datos.' }
+      }
 
-    if (userError || !systemUser) {
-      return { success: false, error: 'Usuario no registrado. Por favor completa tu registro.' }
+      if (!userData) {
+        console.log('❌ User not found')
+        return { success: false, error: 'Código de estudiante o email no encontrado.' }
+      }
+
+      // Verificar si el email está verificado
+      if (!userData.email_verified) {
+        console.log('❌ Email not verified')
+        return { success: false, error: 'Email no verificado. Por favor, verifica tu correo o inicia sesión con tu código.' }
+      }
+
+      systemUser = userData
+
+      // Obtener datos del estudiante
+      const { data: studentData, error: studentError } = await supabaseAdmin
+        .from('students')
+        .select(`
+          id, 
+          first_name, 
+          last_name,
+          course_id,
+          courses!inner(name)
+        `)
+        .eq('id', systemUser.student_id)
+        .maybeSingle()
+
+      if (studentError || !studentData) {
+        return { success: false, error: 'Datos del estudiante no encontrados.' }
+      }
+
+      student = studentData
+    } else {
+      // Es un código de estudiante - usar lógica existente
+      const normalizedCode = normalizeStudentCode(identifier)
+      
+      // Buscar estudiante por código con información del curso
+      const { data: studentData, error: studentError } = await supabaseAdmin
+        .from('students')
+        .select(`
+          id, 
+          first_name, 
+          last_name,
+          course_id,
+          courses!inner(name)
+        `)
+        .eq('student_code', normalizedCode)
+        .maybeSingle()
+
+      if (studentError || !studentData) {
+        return { success: false, error: 'Código de estudiante o email no encontrado.' }
+      }
+
+      student = studentData
+
+      // Buscar usuario del sistema asociado
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('system_users')
+        .select('id, email, password_hash, user_type, student_id')
+        .eq('student_id', student.id)
+        .eq('user_type', 'student')
+        .maybeSingle()
+
+      if (userError || !userData) {
+        return { success: false, error: 'Usuario no registrado. Por favor completa tu registro.' }
+      }
+
+      systemUser = userData
     }
 
     // Verificar contraseña
     if (systemUser.password_hash !== hashedPassword) {
-      return { success: false, error: 'Contraseña incorrecta' }
+      return { success: false, error: 'Contraseña incorrecta.' }
     }
 
     // Crear sesión
@@ -180,7 +252,8 @@ export async function authenticateStudent(studentCode: string, password: string)
         email: systemUser.email,
         userType: 'student',
         studentId: student.id,
-        studentName: `${student.first_name} ${student.last_name}`
+        studentName: `${student.first_name} ${student.last_name}`,
+        courseName: student.courses?.name
       },
       token: sessionToken
     }
@@ -226,17 +299,23 @@ export async function validateSession(token: string): Promise<AuthResult> {
       return { success: false, error: 'Usuario no encontrado' }
     }
 
-    // Si es estudiante, obtener nombre del estudiante
+    // Si es estudiante, obtener nombre del estudiante y curso
     let studentName: string | undefined
+    let courseName: string | undefined
     if (user.user_type === 'student' && user.student_id) {
       const { data: student } = await supabaseAdmin
         .from('students')
-        .select('first_name, last_name')
+        .select(`
+          first_name, 
+          last_name,
+          courses!inner(name)
+        `)
         .eq('id', user.student_id)
         .single()
       
       if (student) {
         studentName = `${student.first_name} ${student.last_name}`
+        courseName = student.courses?.name
       }
     }
 
@@ -247,7 +326,8 @@ export async function validateSession(token: string): Promise<AuthResult> {
         email: user.email,
         userType: user.user_type as 'teacher' | 'student',
         studentId: user.student_id,
-        studentName
+        studentName,
+        courseName
       }
     }
   } catch (error) {

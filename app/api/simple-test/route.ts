@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase-server'
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
+    // Test simple: buscar estudiante por código
+    const { data: student, error } = await supabaseAdmin
+      .from('students')
+      .select('id, student_code, first_name, last_name')
+      .eq('student_code', '33392254129163196576')
+      .maybeSingle()
+
     return NextResponse.json({
       success: true,
-      message: 'Simple test working'
+      student,
+      error,
+      message: 'Test simple de búsqueda de estudiante'
     })
+
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json(
-      { error: 'Error in simple test' },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      success: false,
+      error: error.message
+    }, { status: 500 })
   }
 }
-

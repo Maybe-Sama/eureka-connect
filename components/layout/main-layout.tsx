@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Sidebar from './sidebar'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -27,8 +28,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
         </div>
       </div>
     )

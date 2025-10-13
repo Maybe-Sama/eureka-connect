@@ -16,6 +16,7 @@ import {
   EyeOff
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { TeacherProfile, NotificationSettings } from '@/types'
 import { toast } from 'sonner'
 
@@ -146,8 +147,10 @@ const SettingsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="text-center">
+          <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
+        </div>
       </div>
     )
   }
@@ -165,7 +168,11 @@ const SettingsPage = () => {
             <Settings size={32} className="mr-3 text-primary" />
             Configuración
           </h1>
-          <Button onClick={handleSave} disabled={isSaving} className="flex items-center">
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving} 
+            className="flex items-center bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+          >
             <Save size={20} className="mr-2" />
             {isSaving ? 'Guardando...' : 'Guardar Cambios'}
           </Button>

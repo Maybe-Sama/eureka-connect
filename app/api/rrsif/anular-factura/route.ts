@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     // Por ahora, simulamos la obtención
     const facturaOriginal = {
       id: facturaId,
-      numero: 'FAC-0001',
+      numero: 'ERK-0001',
       hash_registro: 'hash_original_simulado'
     }
 

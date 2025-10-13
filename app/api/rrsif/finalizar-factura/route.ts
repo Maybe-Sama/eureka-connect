@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generarTimestamp } from '@/lib/rrsif-utils'
 import { registrarGeneracionFactura } from '@/lib/event-logger'
 
@@ -20,15 +21,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // En un entorno real, aquí se obtendría la factura de la base de datos
-    // y se verificaría que esté en estado provisional
-    const factura = {
-      id: facturaId,
-      numero: 'FAC-0001',
-      estado_factura: 'provisional'
-    }
+    // Obtener la factura de la base de datos
+    const { data: factura, error: facturaError } = await supabase
+      .from('facturas_rrsif')
+      .select('*')
+      .eq('id', facturaId)
+      .single()
 
-    if (!factura) {
+    if (facturaError || !factura) {
+      console.error('Error obteniendo factura:', facturaError)
       return NextResponse.json(
         { success: false, error: 'Factura no encontrada' },
         { status: 404 }
@@ -42,11 +43,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Cambiar estado a final
+    // Cambiar estado a final en la base de datos
     const fechaFinalizacion = generarTimestamp()
     
-    // En un entorno real, aquí se actualizaría la factura en la base de datos
-    console.log(`Factura ${factura.numero} finalizada:`, {
+    const { error: updateError } = await supabase
+      .from('facturas_rrsif')
+      .update({
+        estado_factura: 'final',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', facturaId)
+
+    if (updateError) {
+      console.error('Error actualizando factura:', updateError)
+      return NextResponse.json(
+        { success: false, error: 'Error al finalizar la factura' },
+        { status: 500 }
+      )
+    }
+
+    console.log(`Factura ${factura.invoice_number} finalizada:`, {
       id: facturaId,
       fecha_finalizacion: fechaFinalizacion,
       estado_anterior: 'provisional',
@@ -55,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // Registrar evento de finalización
     await registrarGeneracionFactura(
-      factura.numero,
+      factura.invoice_number,
       'Factura finalizada (provisional → final)',
       'usuario'
     )
@@ -64,10 +80,11 @@ export async function POST(request: NextRequest) {
       success: true,
       factura: {
         id: facturaId,
-        numero: factura.numero,
+        numero: factura.invoice_number,
         estado_factura: 'final',
         fecha_finalizacion: fechaFinalizacion
-      }
+      },
+      message: 'Factura finalizada exitosamente'
     })
 
   } catch (error) {

@@ -1,4 +1,4 @@
-# 🎓 EurekaProfe CRM - Sistema de Gestión para Profesores Particulares
+# 🎓 Profesor Eureka CRM - Sistema de Gestión para Profesores Particulares
 
 Un CRM moderno, ultra-intuitivo y profesional diseñado específicamente para profesores particulares autónomos en España. Con estética 2025 en modo oscuro exclusivo, este sistema te permite gestionar alumnos, horarios, clases y facturación de manera eficiente y elegante.
 
@@ -160,7 +160,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui
 
 ### Variables Opcionales
 ```env
-NEXT_PUBLIC_APP_NAME=EurekaProfe
+NEXT_PUBLIC_APP_NAME=Profesor Eureka
 NEXT_PUBLIC_APP_VERSION=1.0.0
 ```
 
@@ -307,8 +307,8 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 - **Issues**: [GitHub Issues](https://github.com/tu-usuario/eureka-profe-crm/issues)
 
 ### Comunidad
-- **Discord**: [EurekaProfe Community](https://discord.gg/eurekaprofe)
-- **Twitter**: [@EurekaProfe](https://twitter.com/EurekaProfe)
+- **Discord**: [Profesor Eureka Community](https://discord.gg/eurekaprofe)
+- **Twitter**: [@Profesor Eureka](https://twitter.com/Profesor Eureka)
 - **Blog**: [blog.eurekaprofe.com](https://blog.eurekaprofe.com)
 
 ## 🙏 Agradecimientos
@@ -323,6 +323,6 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 **Desarrollado con ❤️ para profesores particulares autónomos**
 
-*EurekaProfe CRM - Transformando la gestión educativa privada*
+*Profesor Eureka CRM - Transformando la gestión educativa privada*
 
 

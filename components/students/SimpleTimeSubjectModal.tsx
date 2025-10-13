@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { X, Clock, BookOpen } from 'lucide-react'
-import { SubjectSelectorModal } from './SubjectSelectorModal-fixed'
 
 interface TimeSubjectModalProps {
   isOpen: boolean
@@ -52,11 +51,6 @@ export function SimpleTimeSubjectModal({
       return
     }
 
-    if (!subject) {
-      setError('Debes seleccionar una asignatura')
-      return
-    }
-
     if (duration <= 0) {
       setError('La duración debe ser mayor a 0')
       return
@@ -67,8 +61,8 @@ export function SimpleTimeSubjectModal({
     
     // Incluir día de la semana si está permitido
     const saveData = allowDaySelection 
-      ? { startTime, endTime, subject, dayOfWeek }
-      : { startTime, endTime, subject }
+      ? { startTime, endTime, subject: subject || '', dayOfWeek }
+      : { startTime, endTime, subject: subject || '' }
     
     onSave(saveData)
     onClose()
@@ -135,7 +129,7 @@ export function SimpleTimeSubjectModal({
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="bg-background-secondary rounded-2xl shadow-2xl w-full max-w-md border border-border"
+          className="bg-background rounded-2xl shadow-2xl w-full max-w-md border border-border"
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
@@ -260,17 +254,9 @@ export function SimpleTimeSubjectModal({
               </div>
             </div>
 
-            {/* Subject Selection */}
-            <div>
-              <SubjectSelectorModal
-                selectedSubject={subject}
-                onSubjectChange={setSubject}
-                placeholder="Selecciona una asignatura"
-              />
-            </div>
 
             {/* Preview */}
-            {(startTime || duration || subject) && (
+            {(startTime || duration) && (
               <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
                 <h4 className="text-sm font-medium text-foreground mb-2">Vista previa:</h4>
                 <div className="space-y-1 text-sm text-foreground-muted">
@@ -279,7 +265,6 @@ export function SimpleTimeSubjectModal({
                   )}
                   <p><span className="font-medium">Horario:</span> {startTime} - {endTime}</p>
                   <p><span className="font-medium">Duración:</span> {durationOptions.find(opt => opt.value === duration)?.label}</p>
-                  {subject && <p><span className="font-medium">Asignatura:</span> {subject}</p>}
                 </div>
               </div>
             )}
@@ -296,7 +281,7 @@ export function SimpleTimeSubjectModal({
             </Button>
             <Button
               onClick={handleSave}
-              className="px-6"
+              className="px-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
             >
               {initialData ? 'Actualizar' : 'Crear'} Clase
             </Button>

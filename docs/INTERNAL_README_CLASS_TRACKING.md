@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-This document serves as the **definitive internal guide** for the Class Tracking System in EurekaProfe CRM. It explains the complete flow from student creation to weekly maintenance, including all automated processes, diagnostic tools, and best practices.
+This document serves as the **definitive internal guide** for the Class Tracking System in Profesor Eureka CRM. It explains the complete flow from student creation to weekly maintenance, including all automated processes, diagnostic tools, and best practices.
 
 **⚠️ IMPORTANT**: Before implementing any new functionality related to class tracking, **MUST** check this guide to avoid duplications and ensure consistency.
 

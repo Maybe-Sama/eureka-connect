@@ -300,3 +300,12 @@ export interface EstadoReloj {
   hora_sistema: string
   ultima_verificacion: string
 }
+
+// ===== TIPOS PARA PREFERENCIAS DE ESTUDIANTE =====
+
+export interface StudentPreferences {
+  student_id: number
+  primary_color: string
+  accent_color: string
+  updated_at: string
+}

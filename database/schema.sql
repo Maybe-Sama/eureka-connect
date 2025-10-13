@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS classes (
     is_recurring BOOLEAN DEFAULT 0,
     status TEXT DEFAULT 'scheduled', -- scheduled, completed, cancelled
     price REAL NOT NULL,
+    status_invoice BOOLEAN DEFAULT 0, -- 0=no facturada, 1=ya facturada
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(id)
@@ -75,6 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_students_course_id ON students(course_id);
 CREATE INDEX IF NOT EXISTS idx_classes_student_id ON classes(student_id);
 CREATE INDEX IF NOT EXISTS idx_classes_date ON classes(date);
 CREATE INDEX IF NOT EXISTS idx_classes_day_of_week ON classes(day_of_week);
+CREATE INDEX IF NOT EXISTS idx_classes_status_invoice ON classes(status_invoice);
 CREATE INDEX IF NOT EXISTS idx_invoices_student_id ON invoices(student_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
 

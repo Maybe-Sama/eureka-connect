@@ -49,7 +49,8 @@ export function generarHashRegistro(registro: RegistroFacturacionAlta | Registro
  */
 export async function obtenerHashAnterior(): Promise<string | null> {
   try {
-    const response = await fetch('/api/rrsif/ultimo-hash')
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/rrsif/ultimo-hash`)
     if (response.ok) {
       const data = await response.json()
       return data.hash || null
@@ -297,7 +298,7 @@ export function formatearFechaFactura(fecha: string): string {
 export const RRSIF_CONSTANTS = {
   VERSION_SOFTWARE: '1.0.0',
   ID_SISTEMA: 'EURELA-CONNECT-RRSIF',
-  SERIE_DEFAULT: 'FAC',
+  SERIE_DEFAULT: 'ERK',
   TIPO_IVA_DEFAULT: 21,
   DESFASE_MAXIMO_SEGUNDOS: 60, // 1 minuto
   TAMANO_QR_MM: { min: 30, max: 40 },

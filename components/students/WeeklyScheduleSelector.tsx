@@ -308,38 +308,38 @@ const WeeklyScheduleSelector: React.FC<WeeklyScheduleSelectorProps> = ({
       {/* Add Schedule Modal */}
       {popoverOpen && newSlotInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Agregar Horario</h3>
+          <div className="bg-background rounded-lg p-6 w-96 max-w-[90vw] border border-border">
+            <h3 className="text-lg font-semibold mb-4 text-foreground">Agregar Horario</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Hora de inicio</label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Hora de inicio</label>
                 <input
                   type="time"
                   value={formState.startTime}
                   onChange={(e) => setFormState({...formState, startTime: e.target.value})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Hora de fin</label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Hora de fin</label>
                 <input
                   type="time"
                   value={formState.endTime}
                   onChange={(e) => setFormState({...formState, endTime: e.target.value})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Materia (opcional)</label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Materia (opcional)</label>
                 <input
                   type="text"
                   value={formState.subject}
                   onChange={(e) => setFormState({...formState, subject: e.target.value})}
                   placeholder="Ej: Matemáticas"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -376,33 +376,33 @@ const WeeklyScheduleSelector: React.FC<WeeklyScheduleSelectorProps> = ({
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Hora de inicio</label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Hora de inicio</label>
                 <input
                   type="time"
                   value={formState.startTime}
                   onChange={(e) => setFormState({...formState, startTime: e.target.value})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Hora de fin</label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Hora de fin</label>
                 <input
                   type="time"
                   value={formState.endTime}
                   onChange={(e) => setFormState({...formState, endTime: e.target.value})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Materia (opcional)</label>
+                <label className="block text-sm font-medium mb-2 text-foreground">Materia (opcional)</label>
                 <input
                   type="text"
                   value={formState.subject}
                   onChange={(e) => setFormState({...formState, subject: e.target.value})}
                   placeholder="Ej: Matemáticas"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
