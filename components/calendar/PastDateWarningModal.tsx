@@ -79,11 +79,11 @@ export const PastDateWarningModal = ({
               <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
               <div className="text-sm">
                 <p className="text-orange-800 dark:text-orange-200 font-medium mb-1">
-                  Consideraciones importantes:
+                  Información importante:
                 </p>
                 <ul className="text-orange-700 dark:text-orange-300 space-y-1 text-left">
-                  <li>• Esta clase aparecerá en el historial como ya realizada</li>
-                  <li>• Se generará automáticamente una factura si corresponde</li>
+                  <li>• Esta clase se creará con estado "programada"</li>
+                  <li>• Podrás modificar su estado posteriormente si es necesario</li>
                   <li>• Asegúrate de que la información sea correcta</li>
                 </ul>
               </div>

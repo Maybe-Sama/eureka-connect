@@ -1,0 +1,293 @@
+{
+    "Cinemática": {
+      "Movimiento Rectilíneo Uniforme (MRU)": {
+        "Velocidad": "v = x/t",
+        "Ecuación del movimiento": "x = x₀ + v·t",
+        "Gráfica posición-tiempo": "Línea recta con pendiente igual a v"
+      },
+      "Movimiento Rectilíneo Uniformemente Acelerado (MRUA)": {
+        "Aceleración": "a = (v - v₀)/t",
+        "Velocidad final": "v = v₀ + a·t",
+        "Posición": "x = x₀ + v₀·t + (1/2)·a·t²",
+        "Ecuación de la velocidad": "v² = v₀² + 2·a·(x - x₀)"
+      },
+      "Caída libre": {
+        "Aceleración": "a = g = 9.8 m/s²",
+        "Velocidad": "v = v₀ + g·t",
+        "Altura": "h = h₀ + v₀·t - (1/2)·g·t²",
+        "Tiempo de caída": "t = √(2h/g) (desde el reposo)",
+        "Velocidad de impacto": "v = √(2·g·h) (desde el reposo)"
+      },
+      "Movimiento circular uniforme (MCU)": {
+        "Velocidad angular": "ω = θ/t",
+        "Velocidad lineal": "v = ω·r",
+        "Aceleración centrípeta": "ac = v²/r = ω²·r",
+        "Periodo": "T = 2π/ω",
+        "Frecuencia": "f = 1/T = ω/(2π)"
+      },
+      "Movimiento circular uniformemente acelerado (MCUA)": {
+        "Aceleración angular": "α = (ω - ω₀)/t",
+        "Velocidad angular": "ω = ω₀ + α·t",
+        "Ángulo recorrido": "θ = θ₀ + ω₀·t + (1/2)·α·t²",
+        "Relación velocidad angular": "ω² = ω₀² + 2·α·(θ - θ₀)"
+      },
+      "Movimiento parabólico": {
+        "Alcance horizontal": "R = (v₀²·sin(2θ))/g",
+        "Altura máxima": "hmax = (v₀²·sin²(θ))/(2g)",
+        "Tiempo de vuelo": "t = (2·v₀·sin(θ))/g",
+        "Componentes de velocidad": "vx = v₀·cos(θ), vy = v₀·sin(θ) - g·t"
+      },
+      "Movimiento armónico simple (MAS)": {
+        "Ecuación del movimiento": "x = A·sin(ω·t + φ)",
+        "Velocidad": "v = A·ω·cos(ω·t + φ)",
+        "Aceleración": "a = -A·ω²·sin(ω·t + φ) = -ω²·x",
+        "Periodo": "T = 2π/ω = 2π·√(m/k) = 2π·√(L/g)",
+        "Energía total": "E = (1/2)·k·A² = (1/2)·m·ω²·A²"
+      }
+    },
+    
+    "Dinámica": {
+      "Leyes de Newton": {
+        "Primera ley (inercia)": "Un cuerpo permanece en reposo o MRU a menos que actúe una fuerza neta",
+        "Segunda ley": "F = m·a",
+        "Tercera ley (acción-reacción)": "Si A ejerce una fuerza sobre B, B ejerce una fuerza igual y opuesta sobre A"
+      },
+      "Tipos de fuerzas": {
+        "Peso": "P = m·g",
+        "Normal": "Fuerza perpendicular a la superficie de contacto",
+        "Rozamiento": "Fr = μ·N",
+        "Tensión": "Fuerza ejercida por una cuerda o cable",
+        "Fuerza elástica": "F = -k·x (Ley de Hooke)"
+      },
+      "Momento lineal y colisiones": {
+        "Momento lineal": "p = m·v",
+        "Conservación del momento": "m₁·v₁ + m₂·v₂ = m₁·v₁' + m₂·v₂'",
+        "Impulso": "I = F·Δt = Δp",
+        "Choque elástico": "e = 1, conservación de energía cinética",
+        "Choque inelástico": "e < 1, pérdida de energía cinética",
+        "Choque completamente inelástico": "e = 0, los cuerpos quedan unidos"
+      },
+      "Dinámica circular": {
+        "Fuerza centrípeta": "Fc = m·v²/r = m·ω²·r",
+        "Velocidad orbital": "v = √(G·M/r)"
+      },
+      "Gravitación": {
+        "Ley de gravitación universal": "F = G·(m₁·m₂)/r²",
+        "Campo gravitatorio": "g = G·M/r²",
+        "Energía potencial gravitatoria": "Ep = -G·(m·M)/r",
+        "Velocidad de escape": "ve = √(2·G·M/R)",
+        "Leyes de Kepler": {
+          "Primera ley": "Órbitas elípticas con el Sol en un foco",
+          "Segunda ley": "La línea Sol-planeta barre áreas iguales en tiempos iguales",
+          "Tercera ley": "T² ∝ a³ (T²/a³ = constante)"
+        }
+      }
+    },
+  
+    "Energía y Trabajo": {
+      "Trabajo mecánico": {
+        "Trabajo de una fuerza constante": "W = F·d·cos(θ)",
+        "Trabajo de una fuerza variable": "W = ∫F·dx",
+        "Trabajo nulo": "W = 0 cuando F perpendicular al desplazamiento"
+      },
+      "Energía": {
+        "Energía cinética": "Ec = (1/2)·m·v²",
+        "Energía potencial gravitatoria": "Epg = m·g·h",
+        "Energía potencial elástica": "Epe = (1/2)·k·x²",
+        "Energía cinética de rotación": "Ecr = (1/2)·I·ω²",
+        "Momento de inercia": "I = Σmi·ri²"
+      },
+      "Principio de conservación": {
+        "Energía mecánica": "Em = Ec + Ep = constante (sin rozamiento)",
+        "Teorema trabajo-energía": "W = ΔEc",
+        "Energía total": "Et = Ec + Ep + Q = constante"
+      },
+      "Potencia": {
+        "Potencia mecánica": "P = W/t",
+        "Potencia instantánea": "P = F·v"
+      },
+      "Rendimiento": {
+        "Rendimiento": "η = (Eútil/Etotal)·100%"
+      }
+    },
+  
+    "Electricidad y Magnetismo": {
+      "Electrostática": {
+        "Ley de Coulomb": "F = k·(q₁·q₂)/r²",
+        "Campo eléctrico": "E = F/q = k·Q/r²",
+        "Potencial eléctrico": "V = k·Q/r",
+        "Energía potencial eléctrica": "Ep = k·(q₁·q₂)/r",
+        "Superficies equipotenciales": "Perpendiculares a las líneas de campo"
+      },
+      "Corriente eléctrica": {
+        "Intensidad de corriente": "I = Q/t",
+        "Ley de Ohm": "V = I·R",
+        "Resistencia": "R = ρ·L/A",
+        "Resistividad": "Propiedad del material, aumenta con la temperatura (metales)",
+        "Potencia eléctrica": "P = V·I = I²·R = V²/R"
+      },
+      "Circuitos eléctricos": {
+        "Resistencias en serie": "Req = R₁ + R₂ + ... + Rₙ",
+        "Resistencias en paralelo": "1/Req = 1/R₁ + 1/R₂ + ... + 1/Rₙ",
+        "Condensadores en serie": "1/Ceq = 1/C₁ + 1/C₂ + ... + 1/Cₙ",
+        "Condensadores en paralelo": "Ceq = C₁ + C₂ + ... + Cₙ",
+        "Leyes de Kirchhoff": {
+          "Ley de nudos": "ΣI = 0 (la suma de corrientes en un nudo es cero)",
+          "Ley de mallas": "ΣV = 0 (la suma de voltajes en una malla cerrada es cero)"
+        },
+        "Energía almacenada en condensador": "E = (1/2)·C·V²"
+      },
+      "Magnetismo": {
+        "Campo magnético": "B (tesla)",
+        "Fuerza magnética sobre carga en movimiento": "F = q·v·B·sin(θ)",
+        "Fuerza magnética sobre un conductor": "F = I·L·B·sin(θ)",
+        "Fuerza entre conductores paralelos": "F/L = (μ₀·I₁·I₂)/(2π·r)",
+        "Campo magnético de un solenoide": "B = μ₀·n·I (n = N/L)"
+      },
+      "Inducción electromagnética": {
+        "Ley de Faraday-Lenz": "ε = -N·(ΔΦ/Δt)",
+        "Flujo magnético": "Φ = B·S·cos(θ)",
+        "Autoinducción": "ε = -L·(ΔI/Δt)",
+        "Energía magnética": "E = (1/2)·L·I²"
+      }
+    },
+  
+    "Ondas y Óptica": {
+      "Ondas mecánicas": {
+        "Ecuación de onda": "y(x,t) = A·sin(kx - ωt)",
+        "Velocidad de propagación": "v = λ·f = ω/k",
+        "Frecuencia": "f = 1/T = ω/(2π)",
+        "Longitud de onda": "λ = v/f",
+        "Ondas estacionarias": "y(x,t) = 2A·sin(kx)·cos(ωt)",
+        "Modos de vibración": "Cuerda: λn = 2L/n, Tubo abierto: λn = 2L/n, Tubo cerrado: λn = 4L/(2n-1)"
+      },
+      "Ondas sonoras": {
+        "Velocidad del sonido en aire": "v ≈ 340 m/s (a 20°C)",
+        "Nivel de intensidad sonora": "β = 10·log(I/I₀) dB",
+        "Intensidad sonora": "I = P/A = E/(A·t)"
+      },
+      "Efecto Doppler": {
+        "Frecuencia percibida (fuente acercándose)": "f' = f·(v/(v-vs))",
+        "Frecuencia percibida (fuente alejándose)": "f' = f·(v/(v+vs))",
+        "Frecuencia percibida (observador acercándose)": "f' = f·((v+vo)/v)",
+        "Frecuencia percibida (observador alejándose)": "f' = f·((v-vo)/v)"
+      },
+      "Óptica geométrica": {
+        "Ley de reflexión": "θi = θr",
+        "Ley de refracción (Snell)": "n₁·sin(θ₁) = n₂·sin(θ₂)",
+        "Índice de refracción": "n = c/v",
+        "Ángulo límite": "θL = arcsin(n₂/n₁) (para n₁ > n₂)",
+        "Ecuación del fabricante de lentes": "1/f = (n-1)·(1/R₁ - 1/R₂)"
+      },
+      "Espejos y lentes": {
+        "Ecuación de espejos": "1/s + 1/s' = 1/f",
+        "Ecuación de lentes": "1/s + 1/s' = 1/f",
+        "Aumento lateral": "M = -s'/s = h'/h",
+        "Potencia de una lente": "P = 1/f (en dioptrías)"
+      },
+      "Ondas electromagnéticas": {
+        "Velocidad de la luz": "c = 3 × 10⁸ m/s",
+        "Relación entre longitud de onda y frecuencia": "λ·f = c",
+        "Energía de un fotón": "E = h·f = h·c/λ",
+        "Espectro electromagnético": "Radio, microondas, IR, visible, UV, rayos X, rayos gamma"
+      },
+      "Interferencia y difracción": {
+        "Interferencia constructiva": "Δr = m·λ (m = 0, 1, 2, ...)",
+        "Interferencia destructiva": "Δr = (m+1/2)·λ (m = 0, 1, 2, ...)",
+        "Difracción por rendija única": "sin θ = m·λ/d",
+        "Difracción por doble rendija": "d·sin θ = m·λ"
+      }
+    },
+  
+    "Termodinámica": {
+      "Temperatura y calor": {
+        "Escala Celsius": "t(°C) = T(K) - 273.15",
+        "Dilatación térmica lineal": "ΔL = α·L₀·ΔT",
+        "Dilatación térmica volumétrica": "ΔV = β·V₀·ΔT",
+        "Calor": "Q = m·c·ΔT"
+      },
+      "Calor y cambios de estado": {
+        "Calor específico": "c = Q/(m·ΔT)",
+        "Calor latente de fusión": "Q = m·Lf",
+        "Calor latente de vaporización": "Q = m·Lv",
+        "Ecuación calorimetría": "Qcedido + Qabsorbido = 0"
+      },
+      "Leyes de los gases": {
+        "Ecuación de estado del gas ideal": "P·V = n·R·T",
+        "Primera ley de la termodinámica": "ΔU = Q - W",
+        "Trabajo en un proceso": "W = ∫ P·dV",
+        "Energía interna de gas ideal": "U = (3/2)·n·R·T (monoatómico), U = (5/2)·n·R·T (diatómico)"
+      },
+      "Procesos termodinámicos": {
+        "Proceso isotérmico": "P·V = constante, W = n·R·T·ln(V₂/V₁)",
+        "Proceso isobárico": "P = constante, W = P·(V₂-V₁)",
+        "Proceso isocórico": "V = constante, W = 0",
+        "Proceso adiabático": "Q = 0, P·Vᵞ = constante",
+        "Coeficiente adiabático": "γ = Cp/Cv",
+        "Relación temperatura-volumen en adiabático": "T·Vᵞ⁻¹ = constante"
+      },
+      "Segunda ley de la termodinámica": {
+        "Entropía": "ΔS = Q/T (proceso reversible)",
+        "Variación de entropía": "ΔS = n·Cv·ln(T₂/T₁) + n·R·ln(V₂/V₁)",
+        "Rendimiento máximo (Carnot)": "η = 1 - Tf/Tc",
+        "Ciclo de Carnot": "Compuesto por dos isotermas y dos adiabáticas"
+      }
+    },
+  
+    "Física Moderna": {
+      "Física relativista": {
+        "Dilatación del tiempo": "t = t₀/√(1 - v²/c²)",
+        "Contracción de longitudes": "L = L₀·√(1 - v²/c²)",
+        "Equivalencia masa-energía": "E = m·c²",
+        "Masa relativista": "m = m₀/√(1 - v²/c²)",
+        "Energía total": "E = m·c² = γ·m₀·c²",
+        "Factor de Lorentz": "γ = 1/√(1 - v²/c²)"
+      },
+      "Física cuántica": {
+        "Energía de un fotón": "E = h·f = h·c/λ",
+        "Longitud de onda de De Broglie": "λ = h/(m·v) = h/p",
+        "Principio de incertidumbre": "Δx·Δp ≥ h/(4π)",
+        "Ecuación de Schrödinger": "Hψ = Eψ",
+        "Efecto fotoeléctrico": "Ec = h·f - Φ",
+        "Función de onda": "|ψ|² representa la densidad de probabilidad"
+      },
+      "Física nuclear": {
+        "Defecto de masa": "Δm = [Z·m(p) + (A-Z)·m(n)] - m(núcleo)",
+        "Energía de enlace": "E = Δm·c²",
+        "Energía de enlace por nucleón": "Eenlace/A",
+        "Ley de desintegración radiactiva": "N = N₀·e^(-λ·t)",
+        "Vida media": "t₁/₂ = ln(2)/λ",
+        "Actividad": "A = λ·N",
+        "Reacciones nucleares": "X + a → Y + b + Q"
+      },
+      "Tipos de radiación": {
+        "Alfa": "Núcleos de helio (₂⁴He²⁺)",
+        "Beta": "Electrones (₋₁⁰e) o positrones (₊₁⁰e)",
+        "Gamma": "Fotones de alta energía",
+        "Neutrón": "Partículas neutras (₀¹n)"
+      },
+      "Física de partículas": {
+        "Modelo estándar": "Quarks, leptones y bosones de gauge",
+        "Fuerzas fundamentales": "Gravitatoria, electromagnética, nuclear fuerte y nuclear débil",
+        "Antipartículas": "Misma masa, carga opuesta",
+        "Conservación de carga": "La carga total se conserva en todas las interacciones"
+      }
+    },
+  
+    "Mecánica Fluidos": {
+      "Hidrostática": {
+        "Densidad": "ρ = m/V",
+        "Presión": "P = F/A",
+        "Presión hidrostática": "P = ρ·g·h",
+        "Principio de Pascal": "La presión aplicada se transmite íntegramente en todas direcciones",
+        "Principio de Arquímedes": "Empuje = Peso del fluido desplazado = ρfluido·Vsumergido·g"
+      },
+      "Hidrodinámica": {
+        "Ecuación de continuidad": "A₁·v₁ = A₂·v₂",
+        "Ecuación de Bernoulli": "P₁ + (1/2)·ρ·v₁² + ρ·g·h₁ = P₂ + (1/2)·ρ·v₂² + ρ·g·h₂",
+        "Teorema de Torricelli": "v = √(2·g·h)",
+        "Número de Reynolds": "Re = (ρ·v·L)/μ",
+        "Viscosidad": "F/A = μ·(Δv/Δy)"
+      }
+    }
+  }

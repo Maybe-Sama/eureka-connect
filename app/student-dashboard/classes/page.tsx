@@ -49,6 +49,7 @@ interface ClassData {
 }
 
 export default function StudentClassesPage() {
+  // Responsive page - Updated for mobile optimization
   const { user, loading, isStudent } = useAuth()
   const router = useRouter()
   const [classes, setClasses] = useState<ClassData[]>([])
@@ -77,7 +78,27 @@ export default function StudentClassesPage() {
         return
       }
 
-      const response = await fetch(`/api/class-tracking/classes?studentId=${user.studentId}&month=${selectedMonth}`)
+      // Validar que studentId sea un número válido
+      if (isNaN(Number(user.studentId))) {
+        console.error('Invalid studentId:', user.studentId)
+        toast.error('ID de estudiante inválido')
+        return
+      }
+
+      const url = `/api/class-tracking/classes?studentId=${user.studentId}&month=${selectedMonth}`
+      console.log('Fetching URL:', url)
+      
+      // Validar que la URL sea válida
+      try {
+        const fullUrl = new URL(url, window.location.origin)
+        console.log('Full URL:', fullUrl.toString())
+      } catch (urlError) {
+        console.error('Invalid URL:', url, urlError)
+        toast.error('Error en la URL de la solicitud')
+        return
+      }
+      
+      const response = await fetch(url)
       
       if (response.ok) {
         const data = await response.json()
@@ -146,7 +167,7 @@ export default function StudentClassesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] p-4">
+      <div className="flex items-center justify-center min-h-[50vh] sm:min-h-[60vh] p-3 sm:p-4">
         <div className="text-center">
           <DiagonalBoxLoader size="lg" color="hsl(var(--primary))" />
         </div>
@@ -155,36 +176,39 @@ export default function StudentClassesPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-foreground flex items-center">
-            <BookOpen size={32} className="mr-3 text-primary" />
-            Mis Clases
-          </h1>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
-            className="flex items-center"
-          >
-            <RefreshCw size={20} className="mr-2" />
-            Actualizar
-          </Button>
-        </div>
+    <div className="min-h-screen bg-background">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-3 sm:mb-4 md:mb-6"
+        >
+          <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-2 xs:gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
+            <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-foreground flex items-center">
+              <BookOpen size={18} className="mr-2 text-primary" />
+              <span className="hidden xs:inline">Mis Clases</span>
+              <span className="xs:hidden">Clases</span>
+            </h1>
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              className="w-full xs:w-auto h-9 xs:h-auto text-xs sm:text-sm"
+              size="sm"
+            >
+              <RefreshCw size={14} className="mr-1 xs:mr-2" />
+              <span>Actualizar</span>
+            </Button>
+          </div>
 
-        {/* Main Panel */}
-        <div className="glass-effect rounded-xl p-6 border border-border">
-          {/* Month Selector and Stats */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
-            <div className="flex items-center space-x-4">
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Mes:</label>
-                <div className="flex items-center space-x-2">
+          {/* Main Panel */}
+          <div className="bg-card/50 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 border border-border/50 shadow-lg">
+            {/* Month Selector and Stats Row */}
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
+              {/* Month Selector */}
+              <div className="flex-1 w-full min-w-0">
+                <label className="text-xs sm:text-sm font-medium text-foreground mb-1 sm:mb-2 block">Mes:</label>
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   <Button 
                     onClick={() => {
                       const [year, month] = selectedMonth.split('-').map(Number)
@@ -194,7 +218,7 @@ export default function StudentClassesPage() {
                     }}
                     variant="outline" 
                     size="sm"
-                    className="px-2"
+                    className="px-2 sm:px-3 h-8 sm:h-9 text-xs sm:text-sm flex-shrink-0"
                   >
                     ←
                   </Button>
@@ -202,7 +226,7 @@ export default function StudentClassesPage() {
                     type="month"
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 bg-background border border-border rounded-lg text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <Button 
                     onClick={() => {
@@ -217,93 +241,93 @@ export default function StudentClassesPage() {
                     }}
                     variant="outline" 
                     size="sm"
-                    className="px-2"
+                    className="px-2 sm:px-3 h-8 sm:h-9 text-xs sm:text-sm flex-shrink-0"
                     disabled={selectedMonth >= new Date().toISOString().slice(0, 7)}
                   >
                     →
                   </Button>
                 </div>
               </div>
+              
+              {/* Quick Stats - Optimized for mobile */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-3 w-full xl:w-auto">
+                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <p className="text-sm sm:text-lg md:text-xl font-bold text-foreground">{stats.total}</p>
+                  <p className="text-xs text-foreground-muted">Total</p>
+                </div>
+                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                  <p className="text-sm sm:text-lg md:text-xl font-bold text-green-500">{stats.completed}</p>
+                  <p className="text-xs text-foreground-muted">Completadas</p>
+                </div>
+                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <p className="text-xs sm:text-sm md:text-xl font-bold text-blue-500">€{stats.totalEarned.toFixed(0)}</p>
+                  <p className="text-xs text-foreground-muted">Total</p>
+                </div>
+                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                  <p className="text-xs sm:text-sm md:text-xl font-bold text-green-500">€{stats.totalPaid.toFixed(0)}</p>
+                  <p className="text-xs text-foreground-muted">Pagado</p>
+                </div>
+              </div>
             </div>
-            
-            {/* Quick Stats */}
-            <div className="flex space-x-6 text-sm">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                <p className="text-foreground-muted">Total Clases</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-500">{stats.completed}</p>
-                <p className="text-foreground-muted">Completadas</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">€{stats.totalEarned.toFixed(2)}</p>
-                <p className="text-foreground-muted">Total</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-500">€{stats.totalPaid.toFixed(2)}</p>
-                <p className="text-foreground-muted">Pagado</p>
-              </div>
-            </div>
-          </div>
 
-          {/* Search and Filters */}
-          <div className="mb-6 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-muted" size={20} />
-              <input
-                type="text"
-                placeholder="Buscar por asignatura, notas de pago o curso..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-lg"
-              />
-            </div>
-            
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center space-x-2">
-                <Filter size={16} className="text-foreground-muted" />
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value as 'all' | 'recurring' | 'eventual')}
-                  className="px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="all">Todas las clases</option>
-                  <option value="recurring">Recurrentes</option>
-                  <option value="eventual">Eventuales</option>
-                </select>
+            {/* Search and Filters */}
+            <div className="space-y-2 sm:space-y-3 md:space-y-4 mb-3 sm:mb-4 md:mb-6">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-foreground-muted" size={14} />
+                <input
+                  type="text"
+                  placeholder="Buscar por asignatura, notas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-7 sm:pl-8 md:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
               
-              <div className="flex items-center space-x-2">
-                <TrendingUp size={16} className="text-foreground-muted" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'date' | 'status' | 'payment')}
-                  className="px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="date">Ordenar por fecha</option>
-                  <option value="status">Ordenar por estado</option>
-                  <option value="payment">Ordenar por pago</option>
-                </select>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <div className="flex-1 min-w-0">
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as 'all' | 'recurring' | 'eventual')}
+                    className="w-full px-2 sm:px-3 py-2 bg-background border border-border rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="all">Todas las clases</option>
+                    <option value="recurring">Recurrentes</option>
+                    <option value="eventual">Eventuales</option>
+                  </select>
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'date' | 'status' | 'payment')}
+                    className="w-full px-2 sm:px-3 py-2 bg-background border border-border rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="date">Ordenar por fecha</option>
+                    <option value="status">Ordenar por estado</option>
+                    <option value="payment">Ordenar por pago</option>
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Classes List */}
-          <div className="space-y-4">
-            {sortedClasses.length > 0 ? (
-              sortedClasses.map((cls) => (
-                <StudentClassItem key={cls.id} classData={cls} />
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <AlertCircle className="w-12 h-12 text-foreground-muted mx-auto mb-4" />
-                <p className="text-foreground-muted">No se encontraron clases para el mes seleccionado</p>
-              </div>
-            )}
+            {/* Classes List */}
+            <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
+              {sortedClasses.length > 0 ? (
+                sortedClasses.map((cls) => (
+                  <StudentClassItem key={cls.id} classData={cls} />
+                ))
+              ) : (
+                <div className="text-center py-4 sm:py-6 md:py-8 lg:py-12">
+                  <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-foreground-muted mx-auto mb-2 sm:mb-3 lg:mb-4" />
+                  <p className="text-xs sm:text-sm md:text-base text-foreground-muted px-4">No se encontraron clases para el mes seleccionado</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   )
 }

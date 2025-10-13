@@ -65,34 +65,39 @@ export async function GET(request: NextRequest) {
     // Otherwise, show all classes from start_date to today
     let queryStartDate = startDate
     let queryEndDate = today
+    let monthStart = null
+    let monthEnd = null
 
     if (monthYear && monthYear.match(/^\d{4}-\d{2}$/)) {
       // Parse month year (YYYY-MM)
       const [year, month] = monthYear.split('-').map(Number)
       
       // First day of the month
-      const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
+      monthStart = `${year}-${String(month).padStart(2, '0')}-01`
       
       // Last day of the month (using UTC to avoid timezone issues)
       const nextMonth = month === 12 ? 1 : month + 1
       const nextYear = month === 12 ? year + 1 : year
       const lastDayOfMonth = new Date(Date.UTC(nextYear, nextMonth - 1, 0)).getUTCDate()
-      const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
+      monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
       
       // Use the later of: student's start_date OR first day of month
       queryStartDate = startDate > monthStart ? startDate : monthStart
+      queryEndDate = monthEnd
       
-      // Use the earlier of: today OR last day of month
-      queryEndDate = today < monthEnd ? today : monthEnd
+      console.log(`Using date range: ${queryStartDate} to ${queryEndDate} for student ${studentId} (start_date: ${startDate})`)
     }
 
     // Show classes within the calculated date range
+    console.log(`🔍 Querying classes for student ${studentId} from ${queryStartDate} to ${queryEndDate}`)
+    
+    // Query all classes in the month range first
     let query = supabase
       .from('classes')
       .select('*')
       .eq('student_id', studentId)
-      .gte('date', queryStartDate)
-      .lte('date', queryEndDate)
+      .gte('date', monthStart || queryStartDate)
+      .lte('date', monthEnd || queryEndDate)
       .order('date', { ascending: false })
       .order('start_time')
     
@@ -113,6 +118,25 @@ export async function GET(request: NextRequest) {
 
     console.log(`Found ${classes?.length || 0} classes for student ${studentId} from ${queryStartDate} to ${queryEndDate}`)
 
+    // Use only existing classes from database for this specific month
+    // Don't auto-generate classes for months before student's start date
+    let classesArray = classes || []
+    
+    // Filter classes to respect student's start date
+    // Allow eventual classes (is_recurring: false) in any date
+    // Only allow recurring classes (is_recurring: true) after student's start date
+    classesArray = classesArray.filter(cls => {
+      if (!cls.is_recurring) {
+        // Eventual classes can be in any date
+        return true
+      } else {
+        // Recurring classes must be after student's start date
+        return cls.date >= startDate
+      }
+    })
+    
+    console.log(`Filtered classes: ${classesArray.length} (${classesArray.filter(c => !c.is_recurring).length} eventual, ${classesArray.filter(c => c.is_recurring).length} recurring)`)
+
     // Get course info
     const { data: course, error: courseError } = await supabase
       .from('courses')
@@ -126,13 +150,13 @@ export async function GET(request: NextRequest) {
     }
 
     // If no classes found, return empty array (don't throw error)
-    if (!classes || classes.length === 0) {
+    if (!classesArray || classesArray.length === 0) {
       console.warn(`No classes found for student ${studentId}. This might indicate missing data.`)
       return NextResponse.json([])
     }
 
     // Add student and course info to each class
-    const classesWithInfo = classes.map(cls => ({
+    const classesWithInfo = classesArray.map(cls => ({
       ...cls,
       students: {
         first_name: student.first_name,

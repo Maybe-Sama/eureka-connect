@@ -1,0 +1,465 @@
+{
+  "Conceptos Básicos de Economía": {
+    "Escasez y Elección": {
+      "Escasez": "Recursos limitados frente a necesidades ilimitadas",
+      "Costo de oportunidad": "Valor de la mejor alternativa a la que se renuncia",
+      "Frontera de posibilidades de producción": "Curva que muestra las combinaciones máximas de bienes que puede producir una economía"
+    },
+    "Agentes Económicos": {
+      "Familias": "Unidades de consumo y propietarias de los factores productivos",
+      "Empresas": "Unidades de producción que combinan factores para crear bienes y servicios",
+      "Sector público": "Regula, produce bienes públicos y redistribuye la renta",
+      "Sector externo": "Agentes económicos del resto del mundo"
+    },
+    "Factores Productivos": {
+      "Tierra": "Recursos naturales y materias primas",
+      "Trabajo": "Esfuerzo humano físico e intelectual",
+      "Capital": "Bienes duraderos utilizados para producir otros bienes",
+      "Tecnología": "Conocimiento aplicado a la producción"
+    },
+    "Sistemas Económicos": {
+      "Economía de mercado": "Asignación de recursos mediante decisiones descentralizadas",
+      "Economía planificada": "Decisiones económicas centralizadas por el Estado",
+      "Economía mixta": "Combina mercado con intervención estatal"
+    }
+  },
+  
+  "Oferta y Demanda": {
+    "Demanda": {
+      "Función de demanda": "Qd = a - b·P (a = demanda máxima, b = sensibilidad al precio)",
+      "Factores determinantes": "Precio del bien, renta, precios de otros bienes, gustos, expectativas",
+      "Ley de demanda": "Relación inversa entre precio y cantidad demandada",
+      "Desplazamientos de la curva": "Cambios en cualquier factor excepto el precio del bien"
+    },
+    "Oferta": {
+      "Función de oferta": "Qs = c + d·P (c = oferta mínima, d = respuesta al precio)",
+      "Factores determinantes": "Precio del bien, costes de producción, tecnología, expectativas",
+      "Ley de oferta": "Relación directa entre precio y cantidad ofertada",
+      "Desplazamientos de la curva": "Cambios en cualquier factor excepto el precio del bien"
+    },
+    "Equilibrio de Mercado": {
+      "Precio de equilibrio": "P* donde Qd = Qs",
+      "Cantidad de equilibrio": "Q* = Qd = Qs al precio P*",
+      "Exceso de demanda": "Qd > Qs, genera presión al alza en los precios",
+      "Exceso de oferta": "Qs > Qd, genera presión a la baja en los precios"
+    },
+    "Excedentes": {
+      "Excedente del consumidor": "Área bajo la curva de demanda y por encima del precio",
+      "Excedente del productor": "Área sobre la curva de oferta y por debajo del precio",
+      "Excedente total": "Suma del excedente del consumidor y del productor"
+    }
+  },
+  
+  "Elasticidades": {
+    "Elasticidad precio de la demanda": {
+      "Fórmula": "Ep = (ΔQd/Qd)/(ΔP/P)",
+      "Elasticidad unitaria": "Ep = 1, el cambio porcentual en cantidad iguala al del precio",
+      "Demanda elástica": "Ep > 1, el cambio porcentual en cantidad supera al del precio",
+      "Demanda inelástica": "Ep < 1, el cambio porcentual en cantidad es menor al del precio",
+      "Ingreso total": "IT = P·Q"
+    },
+    "Elasticidad renta de la demanda": {
+      "Fórmula": "Er = (ΔQd/Qd)/(ΔR/R)",
+      "Bien normal": "Er > 0, la demanda aumenta con la renta",
+      "Bien inferior": "Er < 0, la demanda disminuye al aumentar la renta",
+      "Bien de primera necesidad": "0 < Er < 1",
+      "Bien de lujo": "Er > 1"
+    },
+    "Elasticidad cruzada de la demanda": {
+      "Fórmula": "Ec = (ΔQdA/QdA)/(ΔPB/PB)",
+      "Bienes complementarios": "Ec < 0, el aumento del precio de B reduce la demanda de A",
+      "Bienes sustitutivos": "Ec > 0, el aumento del precio de B incrementa la demanda de A",
+      "Bienes independientes": "Ec ≈ 0, el precio de B no afecta la demanda de A"
+    },
+    "Elasticidad precio de la oferta": {
+      "Fórmula": "Es = (ΔQs/Qs)/(ΔP/P)",
+      "Oferta elástica": "Es > 1, muy sensible a cambios en el precio",
+      "Oferta inelástica": "Es < 1, poco sensible a cambios en el precio"
+    }
+  },
+  
+  "Teoría del Consumidor": {
+    "Preferencias y Utilidad": {
+      "Utilidad total": "Satisfacción total derivada del consumo",
+      "Utilidad marginal": "ΔUT/ΔQ = incremento de utilidad al consumir una unidad adicional",
+      "Ley de utilidad marginal decreciente": "La UMg disminuye conforme aumenta el consumo"
+    },
+    "Restricción presupuestaria": {
+      "Ecuación": "P1·Q1 + P2·Q2 = R (R = renta disponible)",
+      "Pendiente": "-P1/P2 (ratio de precios entre bienes)"
+    },
+    "Equilibrio del consumidor": {
+      "Condición": "UMg1/P1 = UMg2/P2",
+      "Interpretación": "El consumidor iguala la utilidad marginal por euro gastado en cada bien"
+    },
+    "Efecto renta y sustitución": {
+      "Efecto sustitución": "Cambio en el consumo por variación del precio relativo",
+      "Efecto renta": "Cambio en el consumo por variación del poder adquisitivo",
+      "Efecto total": "Efecto sustitución + Efecto renta"
+    }
+  },
+  
+  "Teoría de la Producción y Costes": {
+    "Producción": {
+      "Función de producción": "Q = f(L,K) relaciona factores productivos y producción",
+      "Productividad media": "PMeL = Q/L, PMeK = Q/K",
+      "Productividad marginal": "PMgL = ΔQ/ΔL, PMgK = ΔQ/ΔK",
+      "Ley de rendimientos decrecientes": "La PMg disminuye al añadir unidades adicionales de un factor"
+    },
+    "Costes a corto plazo": {
+      "Coste fijo": "CF = costes independientes del nivel de producción",
+      "Coste variable": "CV = costes que varían con el nivel de producción",
+      "Coste total": "CT = CF + CV",
+      "Coste medio": "CMe = CT/Q = CFMe + CVMe",
+      "Coste marginal": "CMg = ΔCT/ΔQ = ΔCV/ΔQ"
+    },
+    "Costes a largo plazo": {
+      "Economías de escala": "CMe disminuye al aumentar Q",
+      "Deseconomías de escala": "CMe aumenta al aumentar Q",
+      "Rendimientos constantes a escala": "CMe constante al aumentar Q"
+    },
+    "Ingresos y beneficios": {
+      "Ingreso total": "IT = P·Q",
+      "Ingreso medio": "IMe = IT/Q",
+      "Ingreso marginal": "IMg = ΔIT/ΔQ",
+      "Beneficio": "B = IT - CT",
+      "Maximización del beneficio": "IMg = CMg"
+    }
+  },
+  
+  "Estructuras de Mercado": {
+    "Competencia perfecta": {
+      "Características": "Muchas empresas, producto homogéneo, libre entrada y salida, información perfecta",
+      "Precio": "P = IMg = IMe (empresa precio-aceptante)",
+      "Condición de equilibrio": "P = CMg",
+      "Beneficio económico a largo plazo": "Cero (P = CMe)"
+    },
+    "Monopolio": {
+      "Características": "Un solo vendedor, sin sustitutos cercanos, barreras de entrada",
+      "Ingreso marginal": "IMg = P·(1 - 1/|Ep|)",
+      "Condición de equilibrio": "IMg = CMg",
+      "Índice de Lerner": "(P-CMg)/P = 1/|Ep|"
+    },
+    "Oligopolio": {
+      "Características": "Pocas empresas, interdependencia estratégica",
+      "Modelo de Cournot": "Empresas compiten eligiendo cantidades",
+      "Modelo de Bertrand": "Empresas compiten eligiendo precios",
+      "Dilema del prisionero": "Modelo de teoría de juegos aplicado al oligopolio"
+    },
+    "Competencia monopolística": {
+      "Características": "Muchas empresas, producto diferenciado, libre entrada y salida",
+      "Equilibrio a corto plazo": "IMg = CMg",
+      "Equilibrio a largo plazo": "P = CMe (beneficio económico nulo)"
+    }
+  },
+  
+  "Fallos del Mercado": {
+    "Externalidades": {
+      "Negativa": "Coste social > Coste privado",
+      "Positiva": "Beneficio social > Beneficio privado",
+      "Impuesto pigouviano": "t = Coste marginal externo",
+      "Teorema de Coase": "Asignación eficiente con derechos de propiedad bien definidos y costes de transacción bajos"
+    },
+    "Bienes públicos": {
+      "Características": "No rivalidad y no exclusión",
+      "Problema del free-rider": "Incentivo a beneficiarse sin pagar"
+    },
+    "Información asimétrica": {
+      "Selección adversa": "Problema pre-contractual por información desigual",
+      "Riesgo moral": "Problema post-contractual por comportamiento oculto"
+    },
+    "Monopolios naturales": {
+      "Característica": "Economías de escala en todo el rango relevante de producción",
+      "Regulación": "Control de precios o producción pública"
+    }
+  },
+  
+  "Macroeconomía y Contabilidad Nacional": {
+    "Producto Interior Bruto (PIB)": {
+      "Enfoque del gasto": "PIB = C + I + G + (X - M)",
+      "Enfoque de la renta": "PIB = Salarios + Beneficios + Impuestos indirectos - Subvenciones",
+      "Enfoque de la producción": "PIB = Suma de valores añadidos",
+      "PIB real vs nominal": "PIB real = (PIB nominal/Deflactor)·100",
+      "Tasa de crecimiento": "g = ((PIBt - PIBt-1)/PIBt-1)·100"
+    },
+    "Otros indicadores macroeconómicos": {
+      "Renta Nacional (RN)": "PIB - Amortizaciones + Rentas netas del exterior",
+      "Renta Disponible": "RN - Impuestos directos + Transferencias",
+      "PIB per cápita": "PIB/Población"
+    },
+    "Índices de precios": {
+      "IPC": "Mide cómo evolucionan los precios de una cesta fija de bienes",
+      "Deflactor del PIB": "Mide cómo evolucionan los precios de todo lo producido",
+      "Inflación": "π = ((IPCt - IPCt-1)/IPCt-1)·100"
+    }
+  },
+  
+  "Mercado de Trabajo": {
+    "Oferta de trabajo": {
+      "Determinantes": "Salario real, población activa, preferencias ocio-trabajo",
+      "Salario de reserva": "Salario mínimo por el que un individuo está dispuesto a trabajar"
+    },
+    "Demanda de trabajo": {
+      "Determinantes": "Productividad marginal, precio del producto, tecnología",
+      "Condición de equilibrio": "Salario = Valor del Producto Marginal del trabajo (PMgL·P)"
+    },
+    "Desempleo": {
+      "Tasa de desempleo": "Desempleados/Población activa × 100",
+      "Desempleo friccional": "Debido a búsqueda de empleo y rotación normal",
+      "Desempleo estructural": "Por desajuste entre oferta y demanda de cualificaciones",
+      "Desempleo cíclico": "Relacionado con las recesiones económicas",
+      "Ley de Okun": "1% de aumento en desempleo ≈ 2% de caída en PIB"
+    }
+  },
+  
+  "Modelos Macroeconómicos": {
+    "Modelo renta-gasto": {
+      "Consumo": "C = C0 + c·Yd (c = propensión marginal al consumo)",
+      "Inversión": "I = I0 - b·i (b = sensibilidad al tipo de interés)",
+      "Condición de equilibrio": "Y = C + I + G + (X - M)",
+      "Multiplicador del gasto": "k = 1/(1 - c·(1-t))",
+      "Multiplicador fiscal": "ΔY/ΔG = 1/(1 - c·(1-t))"
+    },
+    "Modelo IS-LM": {
+      "IS (mercado de bienes)": "Y = C(Y-T) + I(r) + G",
+      "LM (mercado monetario)": "M/P = L(Y,r)",
+      "Equilibrio general": "Intersección de las curvas IS y LM"
+    },
+    "Modelo OA-DA": {
+      "Demanda agregada": "Relación inversa entre nivel de precios y producción",
+      "Oferta agregada": "Relación entre nivel de precios y producción ofrecida",
+      "Oferta a corto plazo": "Pendiente positiva (precios y salarios rígidos)",
+      "Oferta a largo plazo": "Vertical (precios y salarios flexibles)"
+    },
+    "Curva de Phillips": {
+      "Corto plazo": "π = πᵉ - β(U - U*)",
+      "NAIRU": "Tasa de desempleo no aceleradora de la inflación"
+    }
+  },
+  
+  "Política Monetaria y Fiscal": {
+    "Política monetaria": {
+      "Instrumentos": "Tipo de interés, operaciones de mercado abierto, coeficiente de caja",
+      "Efectos": "Influye en el consumo, inversión, tipo de cambio",
+      "Mecanismo de transmisión": "i↓ → I↑ → Y↑ (cadena causal)",
+      "Política expansiva": "Reducción de tipos e inyección de liquidez",
+      "Política restrictiva": "Aumento de tipos y reducción de liquidez"
+    },
+    "Política fiscal": {
+      "Instrumentos": "Gasto público e impuestos",
+      "Déficit público": "G > T (gastos superan ingresos)",
+      "Superávit público": "G < T (ingresos superan gastos)",
+      "Política expansiva": "G↑ o T↓, estimula la demanda",
+      "Política restrictiva": "G↓ o T↑, reduce la demanda"
+    },
+    "Dinero y sistema financiero": {
+      "Funciones del dinero": "Medio de pago, depósito de valor, unidad de cuenta",
+      "Oferta monetaria": "M = Efectivo + Depósitos",
+      "Multiplicador monetario": "m = 1/r (r = coeficiente de caja)",
+      "Creación de dinero bancario": "ΔM = m·ΔB (B = base monetaria)"
+    },
+    "Estabilizadores automáticos": {
+      "Definición": "Mecanismos que amortiguan ciclos sin decisiones discrecionales",
+      "Ejemplos": "Impuesto sobre la renta progresivo, prestaciones por desempleo"
+    }
+  },
+  
+  "Economía Internacional": {
+    "Comercio internacional": {
+      "Ventaja absoluta (Smith)": "País produce con menos recursos absolutos",
+      "Ventaja comparativa (Ricardo)": "País produce con menor coste de oportunidad",
+      "Modelo Heckscher-Ohlin": "Países exportan bienes intensivos en su factor abundante",
+      "Economías de escala": "Reducción de costes medios al aumentar producción"
+    },
+    "Proteccionismo": {
+      "Aranceles": "Impuestos sobre importaciones",
+      "Cuotas": "Restricciones cuantitativas a importaciones",
+      "Subsidios a exportación": "Ayudas a productores nacionales",
+      "Barreras no arancelarias": "Normas técnicas, sanitarias, ambientales"
+    },
+    "Balanza de pagos": {
+      "Cuenta corriente": "Exportaciones - Importaciones + Rentas + Transferencias",
+      "Cuenta de capital": "Transferencias de capital entre países",
+      "Cuenta financiera": "Inversiones y préstamos internacionales",
+      "Equilibrio global": "Saldo cuenta corriente + Saldo cuenta capital + Saldo cuenta financiera = 0"
+    },
+    "Tipos de cambio": {
+      "Tipo fijo": "Establecido y mantenido por autoridades monetarias",
+      "Tipo flexible": "Determinado libremente por el mercado",
+      "Devaluación": "Reducción del valor de una moneda en sistema de tipo fijo",
+      "Apreciación/Depreciación": "Aumento/disminución del valor en sistema flexible"
+    },
+    "Integración económica": {
+      "Área de libre comercio": "Eliminación de barreras comerciales entre miembros",
+      "Unión aduanera": "Libre comercio + arancel exterior común",
+      "Mercado común": "Libre movimiento de bienes, servicios y factores productivos",
+      "Unión económica": "Mercado común + políticas económicas coordinadas",
+      "Unión monetaria": "Moneda única y política monetaria común"
+    }
+  },
+  
+  "Desarrollo y Crecimiento Económico": {
+    "Factores de crecimiento": {
+      "Capital físico": "Maquinaria, infraestructuras, equipamientos",
+      "Capital humano": "Educación, formación, habilidades",
+      "Tecnología": "Conocimientos aplicados a la producción",
+      "Marco institucional": "Leyes, derechos de propiedad, estabilidad política"
+    },
+    "Modelos de crecimiento": {
+      "Modelo de Solow": "Y = A·f(K,L), donde A = productividad total de los factores",
+      "Estado estacionario": "Situación donde Y/L permanece constante",
+      "Regla de oro": "Tasa de ahorro que maximiza el consumo per cápita"
+    },
+    "Desarrollo sostenible": {
+      "Triple dimensión": "Económica, social y ambiental",
+      "Indicadores alternativos": "IDH, Índice de Desarrollo Humano = f(renta, educación, salud)"
+    },
+    "Desigualdad económica": {
+      "Índice de Gini": "Área entre curva Lorenz y diagonal / área bajo diagonal",
+      "Curva de Lorenz": "Representa distribución acumulada de la renta",
+      "Ratio quintiles": "Renta 20% más rico / Renta 20% más pobre"
+    }
+  },
+  
+  "Herramientas Cuantitativas en Economía": {
+    "Evaluación de proyectos": {
+      "Valor Actual Neto (VAN)": "VAN = -I₀ + Σ(Ft/(1+i)^t)",
+      "Tasa Interna de Retorno (TIR)": "i que hace VAN = 0",
+      "Periodo de recuperación": "Tiempo necesario para recuperar inversión inicial",
+      "Relación beneficio-coste": "VAN beneficios / VAN costes"
+    },
+    "Análisis estadístico": {
+      "Media": "x̄ = Σxi/n",
+      "Mediana": "Valor central de datos ordenados",
+      "Desviación típica": "σ = √(Σ(xi - x̄)²/n)",
+      "Coeficiente de variación": "CV = σ/x̄"
+    },
+    "Análisis financiero": {
+      "Interés simple": "I = C·r·t",
+      "Interés compuesto": "Cf = C·(1+r)^t",
+      "Anualidades": "A = C·r·(1+r)^n/((1+r)^n - 1)",
+      "Amortización": "C = A·((1+r)^n - 1)/(r·(1+r)^n)"
+    }
+  },
+  "Microeconomía": {
+    "Oferta y Demanda": {
+      "Función de demanda": "Q_d = f(P, Y, P_r, G, E)",
+      "Función de oferta": "Q_s = f(P, C, T, E, Z)",
+      "Equilibrio de mercado": "Q_d = Q_s",
+      "Elasticidad precio demanda": "E_d = (∆Q_d/Q_d)/(∆P/P) = (∆Q_d/∆P)·(P/Q_d)",
+      "Elasticidad precio oferta": "E_s = (∆Q_s/Q_s)/(∆P/P) = (∆Q_s/∆P)·(P/Q_s)",
+      "Elasticidad ingreso": "E_y = (∆Q_d/Q_d)/(∆Y/Y) = (∆Q_d/∆Y)·(Y/Q_d)",
+      "Elasticidad cruzada": "E_xy = (∆Q_x/Q_x)/(∆P_y/P_y)"
+    },
+    "Teoría del Consumidor": {
+      "Utilidad total": "U = f(x₁, x₂, ..., xₙ)",
+      "Utilidad marginal": "UM_x = ∆U/∆x",
+      "Restricción presupuestaria": "p₁x₁ + p₂x₂ + ... + pₙxₙ = M",
+      "Condición de equilibrio": "UM₁/p₁ = UM₂/p₂ = ... = UMₙ/pₙ"
+    },
+    "Teoría de la Producción": {
+      "Función de producción": "Q = f(K, L)",
+      "Producto marginal del trabajo": "PMg_L = ∆Q/∆L",
+      "Producto marginal del capital": "PMg_K = ∆Q/∆K",
+      "Isocuanta": "Q = f(K, L) = constante",
+      "Tasa marginal de sustitución técnica": "TMST = -(∆K/∆L) = PMg_L/PMg_K"
+    },
+    "Costos": {
+      "Costo total": "CT = CF + CV",
+      "Costo fijo": "CF = constante",
+      "Costo variable": "CV = f(Q)",
+      "Costo medio": "CMe = CT/Q",
+      "Costo marginal": "CMg = ∆CT/∆Q",
+      "Punto muerto": "Q* = CF/(p - CVMe)",
+      "Umbral de rentabilidad": "Q* = CF/(p - CVMe)"
+    },
+    "Estructuras de Mercado": {
+      "Beneficio económico": "π = IT - CT = P·Q - CT",
+      "Condición maximización beneficio": "IMg = CMg",
+      "Índice de Herfindahl-Hirschman": "HHI = Σ sᵢ²"
+    }
+  },
+  "Macroeconomía": {
+    "Cuentas Nacionales": {
+      "PIB enfoque producción": "PIB = VAB + impuestos - subvenciones",
+      "PIB enfoque renta": "PIB = RL + EBE + impuestos - subvenciones",
+      "PIB enfoque gasto": "PIB = C + I + G + (X - M)",
+      "PIB real vs nominal": "PIB real = PIB nominal / deflactor",
+      "Deflactor del PIB": "Deflactor = (PIB nominal / PIB real) · 100",
+      "Tasa de crecimiento": "g = [(PIB₁ - PIB₀) / PIB₀] · 100"
+    },
+    "Mercado de Trabajo": {
+      "Tasa de desempleo": "u = (Desempleados / Población activa) · 100",
+      "Tasa de actividad": "TA = (Población activa / Población en edad de trabajar) · 100",
+      "Ley de Okun": "∆u = -β·(g - g*)"
+    },
+    "Dinero e Inflación": {
+      "Ecuación cuantitativa": "M·V = P·Y",
+      "Tasa de inflación": "π = [(P₁ - P₀) / P₀] · 100",
+      "Tipo de interés real": "r = i - π",
+      "Regla de Taylor": "i = r* + π + a·(π - π*) + b·(y - y*)"
+    },
+    "Modelo IS-LM": {
+      "Curva IS": "Y = C(Y-T) + I(r) + G + NX(Y)",
+      "Curva LM": "M/P = L(r, Y)",
+      "Equilibrio macroeconómico": "Y = C + I + G + NX = IS = LM"
+    },
+    "Sector Exterior": {
+      "Balanza comercial": "BC = X - M",
+      "Balanza de pagos": "BP = CC + CK + CF",
+      "Tipo de cambio real": "TCR = (TC · P*) / P",
+      "Paridad de poder adquisitivo": "TC = P / P*"
+    }
+  },
+  "Finanzas": {
+    "Valoración de Activos": {
+      "Valor actual": "VA = FE / (1 + i)ⁿ",
+      "Valor actual neto": "VAN = -I₀ + Σ FEt / (1 + i)ᵗ",
+      "Tasa interna de retorno": "TIR → VAN = 0",
+      "Payback": "Periodo de recuperación de la inversión inicial"
+    },
+    "Riesgo y Rentabilidad": {
+      "Rentabilidad esperada": "E(r) = Σ pᵢ·rᵢ",
+      "Varianza": "σ² = Σ pᵢ·(rᵢ - E(r))²",
+      "Desviación estándar": "σ = √σ²",
+      "Beta de un activo": "β = Cov(r, rₘ) / σ²ₘ",
+      "CAPM": "E(r) = rᶠ + β·(E(rₘ) - rᶠ)"
+    },
+    "Valoración de Bonos y Acciones": {
+      "Precio de un bono": "P = Σ C/(1+r)ᵗ + VN/(1+r)ᴺ",
+      "Duración de Macaulay": "D = Σ t·FE·(1+r)^(-t)/P",
+      "Valor de una acción": "P₀ = Σ Dt/(1+k)ᵗ + VT/(1+k)ᴺ",
+      "Modelo de Gordon": "P₀ = D₁/(k-g)"
+    },
+    "Opciones y Derivados": {
+      "Black-Scholes (Call)": "C = S·N(d₁) - K·e^(-r·T)·N(d₂)",
+      "Black-Scholes (Put)": "P = K·e^(-r·T)·N(-d₂) - S·N(-d₁)",
+      "Paridad put-call": "C - P = S - K·e^(-r·T)"
+    },
+    "Matemáticas Financieras": {
+      "Interés simple": "I = P·r·t",
+      "Interés compuesto": "M = P·(1+r)ⁿ",
+      "Anualidad": "VA = PMT·[1-1/(1+r)ⁿ]/r",
+      "Amortización préstamo": "Cuota = P·r·(1+r)ⁿ/((1+r)ⁿ-1)"
+    }
+  },
+  "Contabilidad": {
+    "Análisis Financiero": {
+      "Ratio de liquidez": "RL = AC/PC",
+      "Ratio de solvencia": "RS = A/P",
+      "Ratio de endeudamiento": "RE = P/PN",
+      "ROA": "ROA = BAIT/AT = Margen · Rotación",
+      "ROE": "ROE = BN/PN = ROA · Apalancamiento · Efecto fiscal"
+    },
+    "Costes": {
+      "Punto muerto": "Q = CF/(p-CVu)",
+      "Margen de contribución": "MC = p-CVu",
+      "Apalancamiento operativo": "GAO = MC/BAIT"
+    },
+    "Amortización": {
+      "Amortización lineal": "Cuota = (VO-VR)/n",
+      "Amortización degresiva": "Cuota = VNC·t",
+      "Amortización progresiva": "Cuota creciente = (2·i·VA)/[n·(n+1)]"
+    }
+  }
+}

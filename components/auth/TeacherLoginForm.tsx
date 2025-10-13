@@ -173,9 +173,9 @@ export default function TeacherLoginForm() {
                   </>
                 ) : (
                   <>
-                    <LogIn className="w-5 h-5" />
+                    
                     <span>Iniciar Sesión</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <LogIn className="w-5 h-5" />
                   </>
                 )}
               </span>

@@ -137,10 +137,42 @@ export async function GET(request: NextRequest) {
       const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
       
       // Use the later of: student's start_date OR first day of month
-      const queryStartDate = student.start_date > monthStart ? student.start_date : monthStart
+      let queryStartDate = student.start_date > monthStart ? student.start_date : monthStart
       
-      // Use the earlier of: today OR last day of month
-      const queryEndDate = today < monthEnd ? today : monthEnd
+      // Include ALL classes in the selected month, including future classes
+      const queryEndDate = monthEnd
+      
+      // If student started after the month, check if they have any classes in that month
+      if (queryStartDate > queryEndDate) {
+        // Check if student has any classes (especially eventual ones) in the requested month
+        const { data: eventualClasses, error: eventualError } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('student_id', student.id)
+          .gte('date', monthStart)
+          .lte('date', monthEnd)
+        
+        if (eventualError) {
+          console.error(`Error checking eventual classes for student ${student.id}:`, eventualError)
+          continue
+        }
+        
+        // If no classes found in the month, skip this student
+        if (!eventualClasses || eventualClasses.length === 0) {
+          console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): started (${student.start_date}) after requested month (${monthEnd}) and has no classes in that month`)
+          skippedStudents.push({
+            id: student.id,
+            name: `${student.first_name} ${student.last_name}`,
+            course: (student.courses as any)?.name || 'Sin curso',
+            reason: `started after requested month: ${student.start_date} > ${monthEnd} and no classes in month`
+          })
+          continue
+        } else {
+          // Student has classes in the month, use the month range instead of student start date
+          console.log(`ℹ️ Student ${student.id} (${student.first_name} ${student.last_name}) has ${eventualClasses.length} classes in month ${monthYear}, including them`)
+          queryStartDate = monthStart
+        }
+      }
       
       // Query classes ONLY for the selected month
       const { data: classes, error: classesError } = await supabase
@@ -155,9 +187,69 @@ export async function GET(request: NextRequest) {
         continue
       }
 
-      // Use only existing classes from database
-      // DO NOT generate classes here - that should only happen when user clicks "Update Classes"
-      const classesArray = classes || []
+      // Get existing classes from database
+      let classesArray = classes || []
+      
+      // Filter classes to respect student's start date
+      // Allow eventual classes (is_recurring: false) in any date
+      // Only allow recurring classes (is_recurring: true) after student's start date
+      classesArray = classesArray.filter(cls => {
+        if (!cls.is_recurring) {
+          // Eventual classes can be in any date
+          return true
+        } else {
+          // Recurring classes must be after student's start date
+          return cls.date >= student.start_date
+        }
+      })
+      
+      // AUTO-GENERATE MISSING CLASSES: Generate classes that should exist but aren't in DB yet
+      // This ensures that scheduled classes appear in tracking even if not explicitly generated
+      try {
+        const generatedClasses = await generateClassesFromStartDate(
+          student.id,
+          student.course_id,
+          fixedSchedule,
+          queryStartDate,
+          queryEndDate
+        )
+
+        // Get existing classes to avoid duplicates
+        const existingClassKeys = new Set(
+          classesArray.map(cls => `${cls.date}-${cls.start_time}-${cls.end_time}`)
+        )
+
+        // Filter out classes that already exist
+        const newClasses = generatedClasses.filter(genClass => 
+          !existingClassKeys.has(`${genClass.date}-${genClass.start_time}-${genClass.end_time}`)
+        )
+
+        // Insert new classes in batch if any are missing
+        if (newClasses.length > 0) {
+          console.log(`🔄 Auto-generating ${newClasses.length} missing classes for ${student.first_name} ${student.last_name}`)
+          
+          const { error: insertError } = await supabase
+            .from('classes')
+            .insert(newClasses)
+
+          if (insertError) {
+            // If error is duplicate key, it's not a real error - just skip silently
+            if (insertError.code === '23505') {
+              console.log(`ℹ️ Some classes already existed for ${student.first_name} ${student.last_name} (this is normal)`)
+            } else {
+              console.error(`❌ Error auto-generating classes for student ${student.id}:`, insertError)
+              // Continue with existing classes only
+            }
+          } else {
+            // Successfully inserted new classes, add them to our array
+            classesArray = [...classesArray, ...newClasses]
+            console.log(`✅ Auto-generated ${newClasses.length} classes for ${student.first_name} ${student.last_name}`)
+          }
+        }
+      } catch (autoGenError) {
+        console.error(`Error auto-generating classes for student ${student.id}:`, autoGenError)
+        // Continue with existing classes only
+      }
       
       // Calculate statistics
       const stats = {
