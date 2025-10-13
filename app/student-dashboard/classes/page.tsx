@@ -103,6 +103,7 @@ export default function StudentClassesPage() {
     const matchesSearch = 
       cls.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cls.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cls.payment_notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cls.courses.name.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesType = filterType === 'all' || 
@@ -252,7 +253,7 @@ export default function StudentClassesPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-muted" size={20} />
               <input
                 type="text"
-                placeholder="Buscar por asignatura, notas o curso..."
+                placeholder="Buscar por asignatura, notas de pago o curso..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-lg"

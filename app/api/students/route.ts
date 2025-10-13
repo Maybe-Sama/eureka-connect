@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
       // Fiscal data fields
       dni, nif, address, postal_code, city, province, country,
       // Receptor data fields
-      receptor_nombre, receptor_apellidos, receptor_email
+      receptor_nombre, receptor_apellidos, receptor_email,
+      // Digital board link field
+      digital_board_link
     } = body
 
     // ========================================
@@ -200,7 +202,9 @@ export async function POST(request: NextRequest) {
       // Receptor data fields
       receptor_nombre,
       receptor_apellidos,
-      receptor_email
+      receptor_email,
+      // Digital board link field
+      digital_board_link
     })
     
     console.log('Student created with ID:', studentId)

@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
         estado_envio: factura.estado_envio,
         url_verificacion: factura.url_verificacion
       },
-      incluye_qr: factura.incluye_qr || (factura.hash_registro ? true : false)
+      incluye_qr: factura.incluye_qr
     })) || []
 
     return NextResponse.json(facturasFormateadas)

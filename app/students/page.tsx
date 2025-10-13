@@ -18,7 +18,9 @@ import {
   Loader2,
   Mail,
   Phone,
-  User
+  User,
+  Monitor,
+  ExternalLink
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
@@ -74,6 +76,8 @@ interface Student {
   receptor_nombre?: string
   receptor_apellidos?: string
   receptor_email?: string
+  // Campo para enlace a pizarra digital
+  digital_board_link?: string
   created_at: string
   updated_at: string
 }
@@ -156,7 +160,9 @@ const StudentsPage = () => {
         // Datos del receptor
         receptor_nombre: studentData.receptorNombre,
         receptor_apellidos: studentData.receptorApellidos,
-        receptor_email: studentData.receptorEmail
+        receptor_email: studentData.receptorEmail,
+        // Enlace a pizarra digital
+        digital_board_link: studentData.digital_board_link
       }
       
       console.log('Sending student data:', requestData)
@@ -466,7 +472,14 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
   return monthlyIncome
 }
 
-const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps) => (
+const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps) => {
+  const openDigitalBoard = () => {
+    if (student.digital_board_link) {
+      window.open(student.digital_board_link, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  return (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -495,6 +508,17 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
         <Button variant="ghost" size="sm" onClick={() => onView(student)} className="text-foreground-muted hover:text-primary">
           <Eye size={16} />
         </Button>
+        {student.digital_board_link && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={openDigitalBoard}
+            className="text-primary hover:text-primary/80"
+            title="Abrir pizarra digital"
+          >
+            <Monitor size={16} />
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={onDelete} className="text-destructive hover:text-destructive/80">
           <Trash2 size={16} />
         </Button>
@@ -604,7 +628,8 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
       </div>
     </div>
   </motion.div>
-)
+  )
+}
 
 interface AddStudentModalProps {
   isOpen: boolean
@@ -636,7 +661,9 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
     // Campos del receptor (padre/madre/tutor)
     receptorNombre: '',
     receptorApellidos: '',
-    receptorEmail: ''
+    receptorEmail: '',
+    // Campo para enlace a pizarra digital
+    digitalBoardLink: ''
   })
   const [selectedSchedule, setSelectedSchedule] = useState<TimeSlot[]>([])
   const [studentCode, setStudentCode] = useState('')
@@ -680,6 +707,12 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       city: formData.city || undefined,
       province: formData.province || undefined,
       country: formData.country || 'España',
+      // Campos del receptor
+      receptorNombre: formData.receptorNombre || undefined,
+      receptorApellidos: formData.receptorApellidos || undefined,
+      receptorEmail: formData.receptorEmail || undefined,
+      // Enlace a pizarra digital
+      digital_board_link: formData.digitalBoardLink || undefined,
       schedule: selectedSchedule
     }
     
@@ -710,7 +743,9 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       // Campos del receptor
       receptorNombre: '',
       receptorApellidos: '',
-      receptorEmail: ''
+      receptorEmail: '',
+      // Campo para enlace a pizarra digital
+      digitalBoardLink: ''
     })
     setSelectedSchedule([])
     setStudentCode('')
@@ -985,6 +1020,18 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">Enlace a Pizarra Digital</label>
+                    <input
+                      type="url"
+                      value={formData.digitalBoardLink}
+                      onChange={(e) => setFormData({ ...formData, digitalBoardLink: e.target.value })}
+                      placeholder="https://ejemplo.com/pizarra"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">URL de la pizarra digital para este estudiante</p>
+                  </div>
                 </div>
 
                 <div>
@@ -1101,6 +1148,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
     receptorNombre: student.receptor_nombre || '',
     receptorApellidos: student.receptor_apellidos || '',
     receptorEmail: student.receptor_email || '',
+    // Campo para enlace a pizarra digital
+    digitalBoardLink: student.digital_board_link || '',
     address: student.address || '',
     postalCode: student.postal_code || '',
     city: student.city || '',
@@ -1221,6 +1270,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       receptor_nombre: formData.receptorNombre || undefined,
       receptor_apellidos: formData.receptorApellidos || undefined,
       receptor_email: formData.receptorEmail || undefined,
+      // Enlace a pizarra digital
+      digital_board_link: formData.digitalBoardLink || undefined,
       schedule: selectedSchedule
     })
   }
@@ -1248,7 +1299,9 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       // Campos del receptor
       receptorNombre: student.receptorNombre || '',
       receptorApellidos: student.receptorApellidos || '',
-      receptorEmail: student.receptorEmail || ''
+      receptorEmail: student.receptorEmail || '',
+      // Campo para enlace a pizarra digital
+      digitalBoardLink: student.digital_board_link || ''
     })
     setSelectedSchedule([])
     onClose()
@@ -1520,6 +1573,18 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                       placeholder="email@ejemplo.com"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">Enlace a Pizarra Digital</label>
+                    <input
+                      type="url"
+                      value={formData.digitalBoardLink}
+                      onChange={(e) => setFormData({ ...formData, digitalBoardLink: e.target.value })}
+                      placeholder="https://ejemplo.com/pizarra"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">URL de la pizarra digital para este estudiante</p>
                   </div>
                 </div>
               </div>

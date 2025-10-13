@@ -161,8 +161,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Generar PDF usando el campo incluye_qr de la base de datos o hash_registro como fallback
-    const incluirQR = facturaData.incluye_qr || (facturaData.hash_registro ? true : false)
+    // Generar PDF usando el campo incluye_qr de la base de datos
+    const incluirQR = facturaData.incluye_qr === true
     const pdfDoc = await generarPDFFactura(factura as any, incluirQR)
     const pdfBuffer = pdfDoc.output('arraybuffer')
 

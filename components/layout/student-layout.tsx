@@ -74,9 +74,9 @@ function StudentLayoutContent({ children }: StudentLayoutProps) {
   const studentName = user?.studentName ?? 'Perfil'
   const studentNavigation = [
     { name: studentName, href: '/student-dashboard/profile', icon: User },
-    { name: 'Clases', href: '/student-dashboard/classes', icon: BookOpen },
     { name: 'Calendario', href: '/student-dashboard/calendar', icon: Calendar },
     { name: 'Documentos', href: '/student-dashboard/documentos', icon: FolderOpen },
+    { name: 'Clases', href: '/student-dashboard/classes', icon: BookOpen },
     { name: 'Facturas', href: '/student-dashboard/invoices', icon: FileText },
     { name: 'Configuración', href: '/student-dashboard/settings', icon: Settings },
   ]

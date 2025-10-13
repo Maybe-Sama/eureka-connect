@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { User, Mail, Phone, Calendar, Hash, MapPin, Settings } from 'lucide-react'
+import { User, Mail, Phone, Calendar, Hash, MapPin, Settings, ExternalLink, Monitor } from 'lucide-react'
 import { formatStudentCode } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,8 @@ interface StudentData {
   receptor_nombre?: string
   receptor_apellidos?: string
   receptor_email?: string
+  // Campo para enlace a pizarra digital
+  digital_board_link?: string
 }
 
 export default function InfoPersonal() {
@@ -67,6 +69,12 @@ export default function InfoPersonal() {
       console.error('Error loading data:', error)
     } finally {
       setLoadingData(false)
+    }
+  }
+
+  const openDigitalBoard = () => {
+    if (studentData?.digital_board_link) {
+      window.open(studentData.digital_board_link, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -217,6 +225,40 @@ export default function InfoPersonal() {
                 value={studentData.receptor_email}
               />
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Pizarra Digital */}
+      {studentData.digital_board_link && (
+        <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center">
+            <Monitor className="mr-2 text-primary" size={24} />
+            Pizarra Digital
+          </h2>
+          <div className="space-y-4">
+            <div className="p-4 bg-background-tertiary rounded-xl border border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  
+                  <div className="flex-1 min-w-0">
+                  
+                    <p className="text-sm text-foreground break-all">
+                      {studentData.digital_board_link}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={openDigitalBoard}
+                  className="ml-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  size="sm"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Abrir
+                </Button>
+              </div>
+            </div>
+            
           </div>
         </div>
       )}

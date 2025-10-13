@@ -273,3 +273,4 @@ console.log(getComputedStyle(document.documentElement).getPropertyValue('--color
 - El sistema es completamente responsivo y accesible
 
 
+

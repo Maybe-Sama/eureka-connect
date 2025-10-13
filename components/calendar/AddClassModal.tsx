@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { PastDateWarningModal } from './PastDateWarningModal'
 import { getTimeSlots, getDayName } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -32,6 +33,8 @@ export const AddClassModal = ({
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPastDateWarning, setShowPastDateWarning] = useState(false)
+  const [pendingClassData, setPendingClassData] = useState<any>(null)
 
   // Reset form when modal opens
   useEffect(() => {
@@ -59,6 +62,81 @@ export const AddClassModal = ({
     }
   }, [isOpen, selectedTimeSlot])
 
+  // Función para preparar los datos de la clase
+  const prepareClassData = (selectedStudent: any) => {
+    const startTime = formData.start_time
+    const [startHours, startMinutes] = startTime.split(':').map(Number)
+    const startTotalMinutes = startHours * 60 + startMinutes
+    const endTotalMinutes = startTotalMinutes + formData.duration
+    
+    // Asegurar que no exceda las 24 horas (1440 minutos)
+    const maxMinutes = 24 * 60
+    const finalEndMinutes = Math.min(endTotalMinutes, maxMinutes - 1) // Máximo 23:59
+    
+    const endHours = Math.floor(finalEndMinutes / 60)
+    const endMinutes = finalEndMinutes % 60
+    const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
+    
+    const targetDate = new Date(formData.date + 'T00:00:00')
+    
+    return {
+      student_id: Number(formData.student_id),
+      course_id: selectedStudent.course_id,
+      start_time: startTime,
+      end_time: endTime,
+      duration: formData.duration,
+      day_of_week: targetDate.getDay() === 0 ? 7 : targetDate.getDay(),
+      date: formData.date,
+      subject: null,
+      is_recurring: false,
+      price: 0,
+      notes: formData.notes || `Clase programada - ${selectedStudent.first_name} ${selectedStudent.last_name}`
+    }
+  }
+
+  // Función para crear la clase
+  const createClass = async () => {
+    const selectedStudent = students.find(s => s.id === Number(formData.student_id))
+    
+    if (!selectedStudent) {
+      toast.error('Debes seleccionar un alumno')
+      setIsSubmitting(false)
+      return
+    }
+    
+    const classData = prepareClassData(selectedStudent)
+    
+    if (typeof onSave !== 'function') {
+      toast.error('Error: función de guardado no disponible')
+      setIsSubmitting(false)
+      return
+    }
+    
+    await onSave(classData)
+  }
+
+  // Manejar confirmación del modal de advertencia
+  const handlePastDateConfirm = async () => {
+    setShowPastDateWarning(false)
+    setIsSubmitting(true)
+    
+    try {
+      await createClass()
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear la clase. Inténtalo de nuevo.'
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Manejar cancelación del modal de advertencia
+  const handlePastDateCancel = () => {
+    setShowPastDateWarning(false)
+    setPendingClassData(null)
+    setIsSubmitting(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,84 +167,35 @@ export const AddClassModal = ({
       return
     }
     
-    // Validación temporal para evitar crear muchas clases mientras debuggeamos
-    if (students.length > 0) {
-      const student = students.find(s => s.id === Number(formData.student_id))
-      if (student) {
-        // Verificar si ya hay clases para este estudiante en esta fecha
-        const existingClasses = JSON.parse(localStorage.getItem('debugClasses') || '[]')
-        const duplicateClass = existingClasses.find((cls: any) => 
-          cls.student_id === Number(formData.student_id) && 
-          cls.date === formData.date
-        )
-        
-        if (duplicateClass) {
-          toast.error('Ya hay una clase programada para este estudiante en esta fecha. Usa el botón "Debug Clases" para ver las clases existentes.')
-          return
-        }
+    // Verificar si la fecha es anterior a hoy
+    const selectedDate = new Date(formData.date + 'T00:00:00')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Resetear horas para comparar solo fechas
+    
+    if (selectedDate < today) {
+      // Mostrar modal de advertencia para fechas pasadas
+      const selectedStudent = students.find(s => s.id === Number(formData.student_id))
+      if (!selectedStudent) {
+        toast.error('Debes seleccionar un alumno')
+        return
       }
+      
+      // Preparar datos de la clase para el modal de advertencia
+      const classData = prepareClassData(selectedStudent)
+      setPendingClassData(classData)
+      setShowPastDateWarning(true)
+      return
     }
     
+    // Si la fecha es futura o hoy, proceder normalmente
     setIsSubmitting(true)
     
     try {
-      const selectedStudent = students.find(s => s.id === Number(formData.student_id))
-      
-      if (!selectedStudent) {
-        toast.error('Debes seleccionar un alumno')
-        setIsSubmitting(false)
-        return
-      }
-      
-      // Usar directamente la fecha seleccionada en el formulario
-      const targetDate = new Date(formData.date + 'T00:00:00') // Evitar problemas de zona horaria
-      
-      // Calcular hora de fin basada en la duración
-      const startTime = formData.start_time
-      const [startHours, startMinutes] = startTime.split(':').map(Number)
-      const startTotalMinutes = startHours * 60 + startMinutes
-      const endTotalMinutes = startTotalMinutes + formData.duration
-      
-      // Validar que la duración no sea excesiva
-      if (endTotalMinutes >= 24 * 60) {
-        toast.error('La clase no puede terminar después de las 23:59')
-        setIsSubmitting(false)
-        return
-      }
-      
-      // Asegurar que no exceda las 24 horas (1440 minutos)
-      const maxMinutes = 24 * 60
-      const finalEndMinutes = Math.min(endTotalMinutes, maxMinutes - 1) // Máximo 23:59
-      
-      const endHours = Math.floor(finalEndMinutes / 60)
-      const endMinutes = finalEndMinutes % 60
-      const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
-      
-      const classData = {
-        student_id: Number(formData.student_id),
-        course_id: selectedStudent.course_id, // Obtener del alumno
-        start_time: startTime,
-        end_time: endTime,
-        duration: formData.duration,
-        day_of_week: targetDate.getDay() === 0 ? 7 : targetDate.getDay(), // Usar el día de la semana de la fecha seleccionada
-        date: formData.date, // Usar directamente la fecha del formulario para evitar desfases
-        subject: null,
-        is_recurring: false, // Clase programada específica
-        price: 0, // Se calculará en el backend
-        notes: formData.notes || `Clase programada - ${selectedStudent.first_name} ${selectedStudent.last_name}`
-      }
-      
-      if (typeof onSave !== 'function') {
-        toast.error('Error: función de guardado no disponible')
-        setIsSubmitting(false)
-        return
-      }
-      
-      await onSave(classData)
+      await createClass()
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al crear la clase. Inténtalo de nuevo.'
       toast.error(errorMessage)
-      throw error // Re-lanzar el error para que el componente padre lo maneje
+      throw error
     } finally {
       setIsSubmitting(false)
     }
@@ -358,6 +387,16 @@ export const AddClassModal = ({
         </form>
         </motion.div>
       </div>
+      
+      {/* Modal de advertencia para fechas pasadas */}
+      <PastDateWarningModal
+        isOpen={showPastDateWarning}
+        onClose={handlePastDateCancel}
+        onConfirm={handlePastDateConfirm}
+        selectedDate={formData.date}
+        selectedTime={formData.start_time}
+        studentName={pendingClassData ? `${students.find(s => s.id === Number(formData.student_id))?.first_name} ${students.find(s => s.id === Number(formData.student_id))?.last_name}` : ''}
+      />
     </AnimatePresence>
   )
 }

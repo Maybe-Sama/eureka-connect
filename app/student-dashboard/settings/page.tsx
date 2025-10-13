@@ -79,7 +79,7 @@ export default function StudentSettingsPage() {
       const { data, error } = await supabase.storage
         .from('avatars')
         .list('defaults', {
-          limit: 6,
+          limit: 10,
           sortBy: { column: 'name', order: 'asc' }
         })
 
@@ -452,10 +452,8 @@ export default function StudentSettingsPage() {
             </div>
 
             <div className="text-center">
-              <p className="text-sm font-medium">Tu foto actual</p>
-              <p className="text-xs text-muted-foreground">
-                Haz clic en "Subir imagen" para cambiar
-              </p>
+              
+            <Label className="text-base font-medium">Sube tu propia imagen</Label>
             </div>
           </div>
 
@@ -484,13 +482,13 @@ export default function StudentSettingsPage() {
           {predefinedAvatars.length > 0 && (
             <div className="space-y-4">
               <div className="text-center">
-                <Label className="text-base font-medium">O elige un avatar predefinido</Label>
+                <Label className="text-base font-medium">O elige uno de nuestros avatares</Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Haz clic en cualquier imagen para usarla como tu foto de perfil
+                  ¡Haz clic en la que más te guste!
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+              <div className="grid grid-cols-5 gap-3 max-w-2xl mx-auto">
                 {predefinedAvatars.map((avatar, index) => (
                   <motion.button
                     key={index}

@@ -26,15 +26,23 @@ interface SeleccionClasesModalProps {
   onClose: () => void
   onConfirmar: (clasesSeleccionadas: string[]) => void
   onSeleccionarEstudiante?: (studentId: string) => void
+  classes?: any[] // Clases originales para verificar status_invoice
+  onUpdateClasses?: (updatedClasses: any[]) => void // Callback para actualizar clases
 }
 
-const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudiante }: SeleccionClasesModalProps) => {
+const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudiante, classes = [], onUpdateClasses }: SeleccionClasesModalProps) => {
   const [clasesSeleccionadas, setClasesSeleccionadas] = useState<string[]>(modal.clasesSeleccionadas)
   const [busqueda, setBusqueda] = useState('')
   const [filtroFecha, setFiltroFecha] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [fase, setFase] = useState<'estudiantes' | 'clases'>('estudiantes')
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<Student | null>(null)
+
+  // Función para verificar si una clase está facturada
+  const isClaseFacturada = (claseId: string) => {
+    const claseOriginal = classes.find(c => c.id.toString() === claseId)
+    return claseOriginal && claseOriginal.status_invoice === true
+  }
 
   // Obtener estudiantes únicos con clases pagadas
   const estudiantesConClases = modal.clasesPagadas.reduce((acc, clase) => {
@@ -85,7 +93,43 @@ const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudi
     setFiltroFecha('')
   }
 
-  const handleToggleClase = (claseId: string) => {
+  const handleToggleClase = async (claseId: string) => {
+    const estaFacturada = isClaseFacturada(claseId)
+    
+    // Si la clase está facturada y se está deseleccionando, actualizar la BD
+    if (estaFacturada && clasesSeleccionadas.includes(claseId)) {
+      try {
+        const response = await fetch('/api/classes/update-invoice-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            classId: parseInt(claseId),
+            statusInvoice: false
+          }),
+        })
+
+        if (response.ok) {
+          // Actualizar el estado local de las clases
+          const updatedClasses = classes.map(clase => 
+            clase.id.toString() === claseId 
+              ? { ...clase, status_invoice: false }
+              : clase
+          )
+          
+          // Notificar al componente padre para que actualice su estado
+          if (onUpdateClasses) {
+            onUpdateClasses(updatedClasses)
+          }
+        } else {
+          console.error('Error actualizando status_invoice')
+        }
+      } catch (error) {
+        console.error('Error actualizando clase:', error)
+      }
+    }
+    
     setClasesSeleccionadas(prev => 
       prev.includes(claseId) 
         ? prev.filter(id => id !== claseId)
@@ -302,29 +346,47 @@ const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudi
 
                 {clasesFiltradas.length > 0 ? (
                   <div className="space-y-3">
-                    {clasesFiltradas.map((clase) => (
-                      <motion.div
-                        key={clase.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                          clasesSeleccionadas.includes(clase.id)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/50'
-                        }`}
-                        onClick={() => handleToggleClase(clase.id)}
-                      >
+                    {clasesFiltradas.map((clase) => {
+                      const estaFacturada = isClaseFacturada(clase.id)
+                      return (
+                        <motion.div
+                          key={clase.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`p-4 rounded-lg border transition-all ${
+                            estaFacturada 
+                              ? 'border-border bg-muted/20 cursor-pointer hover:border-primary/50'
+                              : clasesSeleccionadas.includes(clase.id)
+                                ? 'border-primary bg-primary/5 cursor-pointer'
+                                : 'border-border hover:border-primary/50 cursor-pointer'
+                          }`}
+                          onClick={() => handleToggleClase(clase.id)}
+                        >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
-                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                              clasesSeleccionadas.includes(clase.id)
-                                ? 'border-primary bg-primary'
-                                : 'border-border'
-                            }`}>
-                              {clasesSeleccionadas.includes(clase.id) && (
-                                <Check size={14} className="text-white" />
-                              )}
-                            </div>
+                            {estaFacturada ? (
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                clasesSeleccionadas.includes(clase.id)
+                                  ? 'border-primary bg-primary'
+                                  : 'border-muted-foreground/30 bg-muted/30 hover:border-primary/50 hover:bg-primary/10'
+                              }`}>
+                                {clasesSeleccionadas.includes(clase.id) ? (
+                                  <Check size={14} className="text-white" />
+                                ) : (
+                                  <X size={14} className="text-muted-foreground hover:text-primary" />
+                                )}
+                              </div>
+                            ) : (
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                clasesSeleccionadas.includes(clase.id)
+                                  ? 'border-primary bg-primary'
+                                  : 'border-border'
+                              }`}>
+                                {clasesSeleccionadas.includes(clase.id) && (
+                                  <Check size={14} className="text-white" />
+                                )}
+                              </div>
+                            )}
                             <div className="flex-1">
                               <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-2 text-sm text-foreground-muted">
@@ -347,6 +409,21 @@ const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudi
                                     {clase.duracion} min
                                   </span>
                                 </div>
+                                {estaFacturada && (
+                                  <div className="flex items-center space-x-1 text-muted-foreground">
+                                    {clasesSeleccionadas.includes(clase.id) ? (
+                                      <>
+                                        <Check size={14} />
+                                        <span className="text-sm">Seleccionada</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <X size={14} />
+                                        <span className="text-sm">Ya facturada - Click en X para liberar</span>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -363,7 +440,8 @@ const SeleccionClasesModal = ({ modal, onClose, onConfirmar, onSeleccionarEstudi
                           </div>
                         </div>
                       </motion.div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="p-12 text-center text-foreground-muted">

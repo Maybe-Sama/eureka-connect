@@ -407,20 +407,26 @@ export const WeeklyCalendar = ({
                         <div className="absolute top-0 left-0 right-0 h-px bg-gray-200/30"></div>
                         
                         {item && isFirstSlot && (
-                          <div className="h-full p-1 flex flex-col justify-center overflow-hidden">
-                            <div className="text-[11px] font-semibold text-black leading-tight">
-                              {item.type === 'scheduled' ? '📅' : '🔄'}
+                          <div 
+                            className="absolute inset-0 p-2 flex flex-col justify-center overflow-hidden rounded-lg border-2 border-gray-300/60"
+                            style={{
+                              height: `${calculateTimeSlots(item.data.start_time, item.data.end_time) * 32}px`, // 32px por tramo de 15 min
+                              zIndex: 10
+                            }}
+                          >
+                            <div className="text-[11px] font-semibold text-black leading-tight flex items-center gap-1 mb-1">
+                              <span>{item.type === 'scheduled' ? '📅' : '🔄'}</span>
+                              <span className="truncate">
+                                {item.data.student_name || (item.data.students ? `${item.data.students.first_name || ''} ${item.data.students.last_name || ''}`.trim() : 'Sin nombre')}
+                              </span>
                             </div>
-                            <div className="text-[12px] font-medium text-black truncate">
-                              {item.data.student_name || (item.data.students ? `${item.data.students.first_name || ''} ${item.data.students.last_name || ''}`.trim() : 'Sin nombre')}
-                            </div>
-                            <div className="text-[10px] font-medium text-black truncate">
+                            <div className="text-[10px] font-medium text-black truncate mb-1">
                               {item.data.course_name || (item.data.courses ? item.data.courses.name : 'Sin curso')}
                             </div>
-                            <div className="text-[9px] text-black truncate">
+                            <div className="text-[9px] text-black truncate mb-1">
                               {item.data.subject || 'Sin asignatura'}
                             </div>
-                            <div className="text-[8px] text-black">
+                            <div className="text-[8px] text-black font-medium">
                               {item.data.start_time} - {item.data.end_time}
                             </div>
                           </div>

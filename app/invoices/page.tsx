@@ -58,6 +58,7 @@ import {
 import { toast } from 'sonner'
 import SeleccionClasesModal from '@/components/facturas/SeleccionClasesModal'
 import ConfiguracionFiscalModal from '@/components/facturas/ConfiguracionFiscalModal'
+import ClasesFacturadasModal from '@/components/facturas/ClasesFacturadasModal'
 
 const InvoicesPage = () => {
   const [invoices, setInvoices] = useState<FacturaRRSIF[]>([])
@@ -83,6 +84,13 @@ const InvoicesPage = () => {
     clasesSeleccionadas: []
   })
   const [modalConfiguracion, setModalConfiguracion] = useState(false)
+  const [modalClasesFacturadas, setModalClasesFacturadas] = useState<{
+    isOpen: boolean
+    clases: any[]
+  }>({
+    isOpen: false,
+    clases: []
+  })
 
   // Función auxiliar para mapear clases a ClasePagada
   const mapearClaseAPagada = (clase: any) => {
@@ -258,9 +266,13 @@ const InvoicesPage = () => {
       console.log('Status:', (classes[0] as any)?.status)
     }
     
-    // Obtener todas las clases pagadas
+    // Obtener todas las clases pagadas (mostrar todas, validar después)
     const todasLasClasesPagadas = classes
-      .filter((clase: any) => clase.payment_status === 'paid' || clase.status === 'completed')
+      .filter((clase: any) => {
+        const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+        console.log(`Clase ${clase.id}: paid=${isPaid}, status_invoice=${clase.status_invoice} (type: ${typeof clase.status_invoice})`)
+        return isPaid
+      })
       .map(mapearClaseAPagada)
     
     console.log('Clases pagadas encontradas:', todasLasClasesPagadas.length)
@@ -308,6 +320,22 @@ const InvoicesPage = () => {
       if (clasesSeleccionadasData.length === 0) {
         toast.error('No se seleccionaron clases')
         return
+      }
+
+      // Verificar si hay clases ya facturadas para mostrar advertencia
+      const clasesYaFacturadas = clasesSeleccionadasData.filter(clase => {
+        // Buscar la clase original en el estado de classes para verificar status_invoice
+        const claseOriginal = classes.find(c => c.id.toString() === clase.id)
+        return claseOriginal && claseOriginal.status_invoice === true
+      })
+
+      if (clasesYaFacturadas.length > 0) {
+        const nombresClases = clasesYaFacturadas.map(clase => 
+          `${clase.asignatura} (${clase.fecha})`
+        ).join(', ')
+        
+        // Mostrar advertencia pero permitir continuar
+        toast.warning(`Advertencia: Las siguientes clases ya han sido facturadas anteriormente: ${nombresClases}. Se crearán nuevas facturas para estas clases.`)
       }
 
       // Obtener datos del estudiante de la primera clase seleccionada
@@ -390,9 +418,39 @@ const InvoicesPage = () => {
         }
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Error al generar la factura')
-        if (error.detalles) {
-          console.error('Detalles del error:', error.detalles)
+        
+        // Mostrar mensaje de error específico para clases ya facturadas
+        if (error.tipo === 'clases_ya_facturadas') {
+          // Mostrar toast de error
+          toast.error(error.error || 'No se puede crear la factura', {
+            description: 'Algunas clases ya han sido utilizadas en otras facturas',
+            duration: 5000,
+            action: {
+              label: 'Ver detalles',
+              onClick: () => {
+                // Obtener información detallada de las clases facturadas
+                fetch(`/api/classes?ids=${error.clasesFacturadas.join(',')}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    setModalClasesFacturadas({
+                      isOpen: true,
+                      clases: data || []
+                    })
+                  })
+                  .catch(err => {
+                    console.error('Error obteniendo detalles de clases:', err)
+                    // Fallback: mostrar alert con detalles básicos
+                    alert(error.details)
+                  })
+              }
+            }
+          })
+        } else {
+          toast.error(error.error || 'Error al generar la factura')
+        }
+        
+        if (error.details) {
+          console.error('Detalles del error:', error.details)
         }
       }
     } catch (error) {
@@ -522,11 +580,19 @@ const InvoicesPage = () => {
 
       if (response.ok) {
         toast.success('Factura provisional eliminada exitosamente')
+        
         // Refresh invoices
         const invoicesResponse = await fetch('/api/rrsif/facturas')
         if (invoicesResponse.ok) {
           const invoicesData = await invoicesResponse.json()
           setInvoices(invoicesData)
+        }
+        
+        // Refresh classes para actualizar el status_invoice
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          setClasses(classesData)
         }
       } else {
         const error = await response.json()
@@ -555,11 +621,19 @@ const InvoicesPage = () => {
 
       if (response.ok) {
         toast.success('Factura anulada exitosamente')
+        
         // Refresh invoices
         const invoicesResponse = await fetch('/api/rrsif/facturas')
         if (invoicesResponse.ok) {
           const invoicesData = await invoicesResponse.json()
           setInvoices(invoicesData)
+        }
+        
+        // Refresh classes para actualizar el status_invoice
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          setClasses(classesData)
         }
       } else {
         toast.error('Error al anular la factura')
@@ -594,6 +668,96 @@ const InvoicesPage = () => {
       console.error('Error saving fiscal config:', error)
       toast.error('Error al guardar la configuración fiscal')
     }
+  }
+
+  const handleVerificarClases = async () => {
+    try {
+      setIsLoading(true)
+      
+      const response = await fetch('/api/rrsif/verificar-clases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        
+        if (result.clasesCorregidas > 0) {
+          toast.success(`${result.clasesCorregidas} clases recuperadas y disponibles para facturar`)
+          
+          // Refrescar las clases disponibles
+          const classesResponse = await fetch('/api/classes')
+          if (classesResponse.ok) {
+            const classesData = await classesResponse.json()
+            setClasses(classesData)
+          }
+        } else {
+          toast.info('Todas las clases están correctamente marcadas')
+        }
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Error verificando clases')
+      }
+    } catch (error) {
+      console.error('Error verificando clases:', error)
+      toast.error('Error verificando clases')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDebugClases = () => {
+    console.log('=== DEBUG CLASES ===')
+    console.log('Total clases cargadas:', classes.length)
+    
+    if (classes.length > 0) {
+      console.log('Primeras 5 clases:')
+      classes.slice(0, 5).forEach((clase, index) => {
+        console.log(`${index + 1}. ID: ${clase.id}`)
+        console.log(`   - Payment status: ${clase.payment_status}`)
+        console.log(`   - Status: ${clase.status}`)
+        console.log(`   - Status invoice: ${clase.status_invoice} (type: ${typeof clase.status_invoice})`)
+        console.log(`   - Price: €${clase.price}`)
+        console.log(`   - Date: ${clase.date}`)
+        console.log('---')
+      })
+    }
+    
+    // Filtrar clases como lo hace el sistema
+    const clasesFiltradas = classes.filter((clase: any) => {
+      const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+      const notInvoiced = clase.status_invoice !== true
+      return isPaid && notInvoiced
+    })
+    
+    console.log(`Clases que pasan el filtro: ${clasesFiltradas.length}`)
+    
+    if (clasesFiltradas.length > 0) {
+      console.log('Clases filtradas:')
+      clasesFiltradas.forEach((clase, index) => {
+        console.log(`${index + 1}. ID: ${clase.id} - ${clase.date} - €${clase.price}`)
+      })
+    }
+    
+    // Mostrar en un alert también
+    const debugInfo = `
+Total clases: ${classes.length}
+Clases filtradas: ${clasesFiltradas.length}
+
+Primeras 3 clases:
+${classes.slice(0, 3).map((c, i) => 
+  `${i+1}. ID ${c.id} - Payment: ${c.payment_status} - Status: ${c.status} - Invoice: ${c.status_invoice}`
+).join('\n')}
+
+Clases que pasan filtro:
+${clasesFiltradas.slice(0, 3).map((c, i) => 
+  `${i+1}. ID ${c.id} - ${c.date} - €${c.price}`
+).join('\n')}
+    `
+    
+    alert(debugInfo)
   }
 
   const getStatusColor = (status: string) => {
@@ -667,6 +831,24 @@ const InvoicesPage = () => {
             >
               <Settings size={16} className="mr-2" />
               Configuración
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleVerificarClases}
+              className="flex items-center"
+            >
+              <Shield size={16} className="mr-2" />
+              Verificar Clases
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleDebugClases}
+              className="flex items-center"
+            >
+              <Settings size={16} className="mr-2" />
+              Debug Clases
             </Button>
             
             {/* Toggle QR VeriFactu */}
@@ -934,6 +1116,8 @@ const InvoicesPage = () => {
         onClose={() => setModalSeleccion(prev => ({ ...prev, isOpen: false }))}
         onConfirmar={handleConfirmarSeleccion}
         onSeleccionarEstudiante={handleSeleccionarEstudiante}
+        classes={classes}
+        onUpdateClasses={(updatedClasses) => setClasses(updatedClasses)}
       />
 
       <ConfiguracionFiscalModal
@@ -942,6 +1126,16 @@ const InvoicesPage = () => {
         onSave={handleGuardarConfiguracion}
         datosFiscales={datosFiscales || undefined}
         datosReceptor={datosReceptor || undefined}
+      />
+
+      <ClasesFacturadasModal
+        isOpen={modalClasesFacturadas.isOpen}
+        onClose={() => setModalClasesFacturadas({ isOpen: false, clases: [] })}
+        clasesFacturadas={modalClasesFacturadas.clases}
+        onEliminarFactura={(claseId) => {
+          // Aquí podrías implementar navegación a la factura que contiene esta clase
+          console.log('Ver factura que contiene la clase:', claseId)
+        }}
       />
 
       {/* Modal de Confirmación para Finalizar Factura */}

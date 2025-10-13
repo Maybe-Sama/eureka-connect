@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener datos reales de las clases desde la base de datos
+    // Obtener todas las clases solicitadas que estén pagadas
     const { data: clasesReales, error: clasesError } = await supabase
       .from('classes')
       .select(`
@@ -34,7 +35,8 @@ export async function POST(request: NextRequest) {
         duration,
         subject,
         price,
-        student_id
+        student_id,
+        status_invoice
       `)
       .in('id', clasesIds)
       .eq('payment_status', 'paid')
@@ -49,7 +51,26 @@ export async function POST(request: NextRequest) {
 
     if (!clasesReales || clasesReales.length === 0) {
       return NextResponse.json(
-        { error: 'No se encontraron clases válidas' },
+        { 
+          error: 'No se encontraron clases válidas para facturar',
+          details: 'Las clases seleccionadas no están pagadas o no existen'
+        },
+        { status: 400 }
+      )
+    }
+
+    // Verificar que todas las clases solicitadas estén disponibles
+    if (clasesReales.length !== clasesIds.length) {
+      const clasesNoEncontradas = clasesIds.filter(id => 
+        !clasesReales.some(clase => clase.id === id)
+      )
+      
+      return NextResponse.json(
+        { 
+          error: 'Algunas clases no están disponibles',
+          details: `Las siguientes clases no se encontraron o no están pagadas: ${clasesNoEncontradas.join(', ')}`,
+          clasesNoEncontradas
+        },
         { status: 400 }
       )
     }
@@ -114,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     const facturaData = {
-      id: `factura-${Date.now()}`,
+      id: `factura-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       invoiceNumber: numeroFactura,
       student_id: studentId,
       student: {
@@ -219,8 +240,8 @@ export async function POST(request: NextRequest) {
           // Metadatos adicionales
           pdf_generado: false,
           pdf_path: null,
-          pdf_size: null
-          // incluye_qr: incluirQR // Temporalmente comentado hasta que se ejecute la migración
+          pdf_size: null,
+          incluye_qr: incluirQR
         })
         .select()
 
@@ -256,6 +277,20 @@ export async function POST(request: NextRequest) {
         if (clasesError) {
           console.error('Error guardando clases de factura:', clasesError)
           // No fallar la operación principal, solo loguear el error
+        }
+
+        // Marcar las clases como facturadas
+        const classIds = facturaData.classes.map((clase: any) => parseInt(clase.id))
+        const { error: markError } = await supabase
+          .from('classes')
+          .update({ status_invoice: true })
+          .in('id', classIds)
+
+        if (markError) {
+          console.error('Error marcando clases como facturadas:', markError)
+          // No fallar la operación principal, solo loguear el error
+        } else {
+          console.log(`Clases marcadas como facturadas: ${classIds.join(', ')}`)
         }
       }
 

@@ -59,7 +59,7 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
   const [editData, setEditData] = useState({
     status: classData.status,
     payment_status: classData.payment_status,
-    payment_notes: classData.payment_notes || '',
+    payment_notes: classData.payment_notes || classData.notes || '',
     subject: classData.subject || ''
   })
 
@@ -68,10 +68,10 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
     setEditData({
       status: classData.status,
       payment_status: classData.payment_status,
-      payment_notes: classData.payment_notes || '',
+      payment_notes: classData.payment_notes || classData.notes || '',
       subject: classData.subject || ''
     })
-  }, [classData.status, classData.payment_status, classData.payment_notes, classData.subject])
+  }, [classData.status, classData.payment_status, classData.payment_notes, classData.notes, classData.subject])
 
   const handleSave = async () => {
     try {
@@ -243,19 +243,12 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
           </div>
         </div>
 
-        {/* Subject and Notes */}
-        {(classData.subject || classData.notes) && (
+        {/* Subject */}
+        {classData.subject && (
           <div className="mb-3">
-            {classData.subject && (
-              <p className="text-sm text-foreground-muted mb-1">
-                <strong>Asignatura:</strong> {classData.subject}
-              </p>
-            )}
-            {classData.notes && (
-              <p className="text-sm text-foreground-muted">
-                <strong>Notas:</strong> {classData.notes}
-              </p>
-            )}
+            <p className="text-sm text-foreground-muted mb-1">
+              <strong>Asignatura:</strong> {classData.subject}
+            </p>
           </div>
         )}
 
@@ -308,14 +301,6 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
           </div>
         </div>
 
-        {/* Payment Notes */}
-        {classData.payment_notes && (
-          <div className="mb-3">
-            <p className="text-xs text-foreground-muted">
-              <strong>Notas de pago:</strong> {classData.payment_notes}
-            </p>
-          </div>
-        )}
 
         {/* Payment Date */}
         {classData.payment_date && (
@@ -342,7 +327,7 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
         {isEditing && (
           <div className="mb-3">
             <label className="block text-sm font-medium text-foreground mb-2">
-              Notas de pago:
+              Notas:
             </label>
             <input
               type="text"

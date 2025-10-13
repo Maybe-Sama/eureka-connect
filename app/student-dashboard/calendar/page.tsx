@@ -17,6 +17,9 @@ interface ClassData {
   status: string
   subject?: string
   day_of_week: number
+  is_recurring: boolean
+  course_name?: string
+  course_color?: string
 }
 
 interface FixedSchedule {
@@ -39,6 +42,7 @@ export default function StudentCalendarPage() {
   const { user, loading, isStudent } = useAuth()
   const router = useRouter()
   const [classes, setClasses] = useState<ClassData[]>([])
+  const [scheduledClasses, setScheduledClasses] = useState<ClassData[]>([])
   const [fixedSchedule, setFixedSchedule] = useState<FixedSchedule[]>([])
   const [exams, setExams] = useState<Exam[]>([])
   const [loadingData, setLoadingData] = useState(true)
@@ -46,8 +50,9 @@ export default function StudentCalendarPage() {
   const [showExamManager, setShowExamManager] = useState(false)
   const [showColorConfig, setShowColorConfig] = useState(false)
   const [customColors, setCustomColors] = useState({
-    exams: '#10b981',   // red-500
-    schedule: '#6366f1' // green-500
+    exams: '#10b981',   // green-500
+    schedule: '#6366f1', // indigo-500
+    scheduled: '#f59e0b' // amber-500
   })
 
   const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -76,23 +81,44 @@ export default function StudentCalendarPage() {
 
   const loadCalendarData = async () => {
     try {
-      // Cargar clases del mes actual
+      // Usar la misma API que el calendario del profesor
+      const classesResponse = await fetch('/api/classes')
+      
+      if (!classesResponse.ok) {
+        throw new Error('Error fetching classes from API')
+      }
+      
+      const classesData = await classesResponse.json()
+      
+      console.log('=== DEBUG API DATA (Student Calendar) ===')
+      console.log('Total classes from API:', classesData.length)
+      console.log('All classes data:', classesData)
+      
+      // Filtrar solo las clases del estudiante actual
+      const studentClasses = classesData.filter((cls: any) => cls.student_id === user?.studentId)
+      
+      console.log('Classes for student ID', user?.studentId, ':', studentClasses.length, studentClasses)
+      
+      // Filtrar por mes actual
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
       const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-
-      const { data: studentClasses, error: classesError } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('student_id', user?.studentId)
-        .gte('date', startOfMonth.toISOString().split('T')[0])
-        .lte('date', endOfMonth.toISOString().split('T')[0])
-        .order('date', { ascending: true })
-
-      if (classesError) {
-        console.error('Error loading classes:', classesError)
-      } else {
-        setClasses(studentClasses || [])
-      }
+      
+      const classesThisMonth = studentClasses.filter((cls: any) => {
+        const classDate = new Date(cls.date)
+        return classDate >= startOfMonth && classDate <= endOfMonth
+      })
+      
+      console.log('Classes this month:', classesThisMonth.length, classesThisMonth)
+      
+      // Separar clases fijas (is_recurring: true) de clases programadas (is_recurring: false)
+      const fixedClasses = classesThisMonth.filter((cls: any) => cls.is_recurring)
+      const scheduledClassesData = classesThisMonth.filter((cls: any) => !cls.is_recurring)
+      
+      console.log('Fixed classes (is_recurring: true):', fixedClasses.length, fixedClasses)
+      console.log('Scheduled classes (is_recurring: false):', scheduledClassesData.length, scheduledClassesData)
+      
+      setClasses(fixedClasses)
+      setScheduledClasses(scheduledClassesData)
 
       // Cargar horario fijo
       const { data: student, error: studentError } = await supabase
@@ -136,6 +162,26 @@ export default function StudentCalendarPage() {
     const day = String(date.getDate()).padStart(2, '0')
     const dateStr = `${year}-${month}-${day}`
     return classes.filter(cls => cls.date === dateStr)
+  }
+
+  const getScheduledClassesForDate = (date: Date) => {
+    // Usar fecha local en lugar de UTC para evitar problemas de zona horaria
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    
+    const filteredClasses = scheduledClasses.filter(cls => cls.date === dateStr)
+    
+    // Debug para fechas específicas
+    if (filteredClasses.length > 0) {
+      console.log(`=== DEBUG SCHEDULED CLASSES FOR ${dateStr} ===`)
+      console.log('Date string:', dateStr)
+      console.log('All scheduled classes:', scheduledClasses)
+      console.log('Filtered classes for date:', filteredClasses)
+    }
+    
+    return filteredClasses
   }
 
   const getExamsForDate = (date: Date) => {
@@ -283,10 +329,11 @@ export default function StudentCalendarPage() {
               }
               
               const classesForDay = getClassesForDate(day)
+              const scheduledClassesForDay = getScheduledClassesForDate(day)
               const examsForDay = getExamsForDate(day)
               const fixedScheduleForDay = getFixedScheduleForDate(day)
               const isToday = day.toDateString() === new Date().toDateString()
-              const hasAnyActivity = classesForDay.length > 0 || examsForDay.length > 0 || fixedScheduleForDay.length > 0
+              const hasAnyActivity = classesForDay.length > 0 || scheduledClassesForDay.length > 0 || examsForDay.length > 0 || fixedScheduleForDay.length > 0
               
               return (
                 <div
@@ -303,15 +350,49 @@ export default function StudentCalendarPage() {
                     {day.getDate()}
                   </div>
                   <div className="space-y-0.5 sm:space-y-1">
-                    {/* Mostrar clases - solo en desktop */}
+                    {/* Mostrar clases fijas - solo en desktop */}
                     {classesForDay.slice(0, 2).map((cls) => (
                       <div
                         key={`class-${cls.id}`}
                         className={`hidden sm:flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg sm:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 ${getStatusColor(cls.status)}`}
-                        title={`Clase: ${cls.start_time} - ${getStatusText(cls.status)}`}
+                        title={`Clase fija: ${cls.start_time} - ${getStatusText(cls.status)}`}
                       >
                         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-current opacity-60"></div>
                         <span className="text-xs font-medium truncate">{cls.start_time}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Mostrar clases programadas - versión móvil y desktop */}
+                    {scheduledClassesForDay.slice(0, 1).map((cls) => (
+                      <div key={`scheduled-container-${cls.id}`}>
+                        {/* Versión móvil - solo punto */}
+                        <div
+                          className="flex sm:hidden items-center justify-center"
+                          title={`Clase programada: ${cls.course_name || 'Sin curso'} - ${cls.start_time}`}
+                        >
+                          <div 
+                            className="w-2 h-2 rounded-full shadow-sm"
+                            style={{ backgroundColor: customColors.scheduled }}
+                          ></div>
+                        </div>
+                        {/* Versión desktop - cartel completo */}
+                        <div
+                          className="hidden sm:block px-1 sm:px-2 py-1 rounded-lg shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          style={{ 
+                            backgroundColor: customColors.scheduled,
+                            borderColor: customColors.scheduled
+                          }}
+                          title={`Clase programada: ${cls.course_name || 'Sin curso'} - ${cls.start_time}${cls.subject ? ` - ${cls.subject}` : ''}`}
+                        >
+                          <div className="text-xs font-bold truncate mb-0.5">
+                            {cls.course_name || 'Sin curso'}
+                          </div>
+                          {cls.subject && (
+                            <div className="text-xs text-white/80 truncate">
+                              {cls.subject}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                     
@@ -380,9 +461,9 @@ export default function StudentCalendarPage() {
                     ))}
                     
                     {/* Contador de actividades adicionales */}
-                    {hasAnyActivity && (classesForDay.length + examsForDay.length + fixedScheduleForDay.length) > 3 && (
+                    {hasAnyActivity && (classesForDay.length + scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) > 3 && (
                       <div className="flex items-center justify-center px-1 sm:px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
-                        +{(classesForDay.length + examsForDay.length + fixedScheduleForDay.length) - 3} más
+                        +{(classesForDay.length + scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) - 3} más
                       </div>
                     )}
                   </div>
@@ -421,12 +502,19 @@ export default function StudentCalendarPage() {
                 ></div>
                 <span className="text-foreground-secondary">Horario fijo</span>
               </div>
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="w-3 h-3 rounded-full shadow-sm"
+                  style={{ backgroundColor: customColors.scheduled }}
+                ></div>
+                <span className="text-foreground-secondary">Clases programadas</span>
+              </div>
             </div>
 
             {/* Panel de configuración de colores */}
             {showColorConfig && (
               <div className="mt-4 pt-4 border-t border-border">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="flex items-center space-x-3">
                     <span className="text-xs sm:text-sm text-foreground-secondary">Exámenes</span>
                     <input
@@ -445,30 +533,45 @@ export default function StudentCalendarPage() {
                       className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-xs sm:text-sm text-foreground-secondary">Clases programadas</span>
+                    <input
+                      type="color"
+                      value={customColors.scheduled}
+                      onChange={(e) => setCustomColors(prev => ({ ...prev, scheduled: e.target.value }))}
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Horario Fijo */}
-          {fixedSchedule.length > 0 && (
+          {/* Horario y Clases */}
+          {(fixedSchedule.length > 0 || scheduledClasses.length > 0) && (
             <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
               <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center">
                 <div className="p-2 bg-primary/10 rounded-lg mr-2 sm:mr-3">
                   <Book className="text-primary" size={20} />
                 </div>
-                Horario Fijo
+                Mis Clases
               </h2>
               <div className="space-y-3 sm:space-y-4">
+                {/* Horario Fijo */}
                 {fixedSchedule.map((schedule, index) => (
                   <div
-                    key={index}
+                    key={`fixed-${index}`}
                     className="group p-4 sm:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
-                      <span className="text-sm sm:text-base font-bold text-foreground">
-                        {daysOfWeek[schedule.day_of_week]}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm sm:text-base font-bold text-foreground">
+                          {daysOfWeek[schedule.day_of_week]}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full border border-blue-200">
+                          Fijo
+                        </span>
+                      </div>
                       <span className="text-xs sm:text-sm font-medium text-primary bg-primary/20 px-3 py-1.5 rounded-full border border-student-primary/30">
                         {schedule.subject}
                       </span>
@@ -481,6 +584,55 @@ export default function StudentCalendarPage() {
                     </div>
                   </div>
                 ))}
+                
+                {/* Clases Programadas/Eventuales */}
+                {scheduledClasses.slice(0, 5).map((cls) => (
+                  <div
+                    key={`scheduled-${cls.id}`}
+                    className="group p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-2xl border border-amber-200 dark:border-amber-700 hover:border-amber-300 dark:hover:border-amber-600 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm sm:text-base font-bold text-foreground">
+                          {new Date(cls.date).toLocaleDateString('es-ES', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'short'
+                          })}
+                        </span>
+                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full border border-amber-200">
+                          Programada
+                        </span>
+                      </div>
+                      <span className="text-xs sm:text-sm font-medium text-amber-800 dark:text-amber-200 bg-amber-200 dark:bg-amber-800 px-3 py-1.5 rounded-full border border-amber-300 dark:border-amber-600">
+                        {cls.course_name || 'Sin curso'}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm sm:text-base text-foreground-secondary">
+                      <div className="p-1.5 bg-amber-200 dark:bg-amber-800 rounded-lg mr-3">
+                        <Clock size={14} className="text-amber-700 dark:text-amber-300" />
+                      </div>
+                      <span className="font-semibold">{cls.start_time} - {cls.end_time}</span>
+                    </div>
+                    {cls.subject && (
+                      <div className="mt-2 text-xs text-foreground-secondary">
+                        <span className="font-medium">Materia:</span> {cls.subject}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Mensaje si no hay clases */}
+                {fixedSchedule.length === 0 && scheduledClasses.length === 0 && (
+                  <div className="text-center py-6 sm:py-8">
+                    <div className="p-3 sm:p-4 bg-primary/5 rounded-2xl inline-block mb-4">
+                      <Book size={32} className="text-primary/50" />
+                    </div>
+                    <p className="text-foreground-muted text-xs sm:text-sm">
+                      No tienes clases registradas
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -304,6 +304,84 @@ export const dbOperations = {
     }
   },
 
+  // Funciones para manejar status_invoice
+  async markClassesAsInvoiced(classIds: number[]) {
+    const { error } = await supabase
+      .from('classes')
+      .update({ status_invoice: true })
+      .in('id', classIds)
+
+    if (error) {
+      console.error('Error marking classes as invoiced:', error)
+      throw error
+    }
+  },
+
+  async unmarkClassesAsInvoiced(classIds: number[]) {
+    const { error } = await supabase
+      .from('classes')
+      .update({ status_invoice: false })
+      .in('id', classIds)
+
+    if (error) {
+      console.error('Error unmarking classes as invoiced:', error)
+      throw error
+    }
+  },
+
+  async getClassesForInvoice() {
+    const { data, error } = await supabase
+      .from('classes')
+      .select(`
+        *,
+        students!classes_student_id_fkey (
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          address,
+          city,
+          province,
+          postal_code,
+          country,
+          dni,
+          nif,
+          birth_date,
+          course_id,
+          student_code,
+          has_shared_pricing,
+          receptor_nombre,
+          receptor_apellidos,
+          receptor_email,
+          created_at,
+          updated_at
+        ),
+        courses:course_id (
+          id,
+          name,
+          description,
+          price,
+          shared_class_price,
+          duration,
+          color,
+          is_active,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('status_invoice', false)
+      .in('payment_status', ['paid'])
+      .order('date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching classes for invoice:', error)
+      throw error
+    }
+
+    return data || []
+  },
+
   // Invoices
   async getAllInvoices() {
     const { data, error } = await supabase

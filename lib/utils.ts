@@ -21,7 +21,12 @@ export function generateStudentCode(): string {
  */
 export function formatStudentCode(code: string | null | undefined): string {
   if (!code) return 'Sin código'
-  return code.replace(/-/g, ' - ')
+  
+  // Remove any existing hyphens and spaces
+  const cleanCode = code.replace(/[-\s]/g, '')
+  
+  // Add hyphens every 4 digits
+  return cleanCode.replace(/(.{4})/g, '$1-').replace(/-$/, '')
 }
 
 /**

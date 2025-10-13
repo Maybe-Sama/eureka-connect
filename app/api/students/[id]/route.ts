@@ -24,14 +24,20 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
+    console.log('🔍 API UPDATE - Body recibido:', JSON.stringify(body, null, 2))
+    
     const { 
       first_name, last_name, email, birth_date, phone, parent_phone, parent_contact_type, 
       course_id, schedule, fixed_schedule, start_date, has_shared_pricing,
       // Fiscal data fields
       dni, nif, address, postal_code, city, province, country,
       // Receptor data fields
-      receptor_nombre, receptor_apellidos, receptor_email
+      receptor_nombre, receptor_apellidos, receptor_email,
+      // Digital board link field
+      digital_board_link
     } = body
+    
+    console.log('🔍 API UPDATE - digital_board_link extraído:', digital_board_link)
 
     // Si solo se está actualizando el fixed_schedule, no validar campos obligatorios
     if (fixed_schedule && !first_name && !last_name && !email && !birth_date && !phone && !course_id) {
@@ -161,7 +167,7 @@ export async function PUT(
     }
 
     // Update student information
-    const result = await dbOperations.updateStudent(Number(params.id), {
+    const updateData = {
       first_name,
       last_name,
       email,
@@ -184,8 +190,14 @@ export async function PUT(
       // Receptor data fields
       receptor_nombre,
       receptor_apellidos,
-      receptor_email
-    })
+      receptor_email,
+      // Digital board link field
+      digital_board_link
+    }
+    
+    console.log('🔍 API UPDATE - Datos a actualizar:', JSON.stringify(updateData, null, 2))
+    
+    const result = await dbOperations.updateStudent(Number(params.id), updateData)
 
     // ========================================
     // AUTOMATIC CLASS GENERATION (UPDATE)

@@ -188,17 +188,17 @@ export const StudentClassItem = ({ classData }: StudentClassItemProps) => {
           )}
         </div>
 
-        {/* Subject and Notes */}
-        {(classData.subject || classData.notes) && (
+        {/* Subject and Payment Notes */}
+        {(classData.subject || classData.payment_notes) && (
           <div className="mb-4 p-3 bg-muted/30 rounded-lg">
             {classData.subject && (
               <p className="text-sm text-foreground-muted mb-2">
                 <strong className="text-foreground">Asignatura:</strong> {classData.subject}
               </p>
             )}
-            {classData.notes && (
+            {classData.payment_notes && (
               <p className="text-sm text-foreground-muted">
-                <strong className="text-foreground">Notas:</strong> {classData.notes}
+                <strong className="text-foreground">Notas:</strong> {classData.payment_notes}
               </p>
             )}
           </div>

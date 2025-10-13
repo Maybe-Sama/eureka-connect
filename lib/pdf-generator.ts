@@ -57,7 +57,7 @@ const PDF_CONFIG = {
  */
 async function cargarLogo(): Promise<string> {
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'logo1.png')
+    const logoPath = path.join(process.cwd(), 'public', 'logo.png')
     const logoBuffer = fs.readFileSync(logoPath)
     const base64 = logoBuffer.toString('base64')
     return `data:image/png;base64,${base64}`
@@ -271,7 +271,7 @@ function generarDatosFiscales(
 }
 
 /**
- * Genera tabla de conceptos (servicios facturados) - Estilo profesional
+ * Genera tabla de conceptos (servicios facturados) - Estilo profesional con desglose detallado
  */
 function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number {
   // Comenzar después de Proveedor/Cliente (startY 75 + nombre 5 + dirección ~10 + email/nif ~8 = ~105mm)
@@ -283,14 +283,14 @@ function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number
   doc.setFillColor(243, 244, 246) // Gris muy claro
   doc.rect(PDF_CONFIG.MARGIN_LEFT, currentY, PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_LEFT - PDF_CONFIG.MARGIN_RIGHT, headerHeight, 'F')
   
-  // Encabezados de columna (sin columna de descuento)
+  // Encabezados de columna actualizados para desglose detallado
   const colX = {
     num: PDF_CONFIG.MARGIN_LEFT + 2,
     descripcion: PDF_CONFIG.MARGIN_LEFT + 8,
-    cant: PDF_CONFIG.MARGIN_LEFT + 80,
-    unidad: PDF_CONFIG.MARGIN_LEFT + 95,
-    precio: PDF_CONFIG.MARGIN_LEFT + 110,
-    modalidad: PDF_CONFIG.MARGIN_LEFT + 130,
+    fecha: PDF_CONFIG.MARGIN_LEFT + 50,
+    hora: PDF_CONFIG.MARGIN_LEFT + 75,
+    duracion: PDF_CONFIG.MARGIN_LEFT + 105,
+    precioHora: PDF_CONFIG.MARGIN_LEFT + 125,
     total: PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 2
   }
   
@@ -301,10 +301,10 @@ function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number
   
   doc.text('#', colX.num, currentY)
   doc.text('Descripción', colX.descripcion, currentY)
-  doc.text('Cant.', colX.cant, currentY)
-  doc.text('Unidad', colX.unidad, currentY)
-  doc.text('Precio', colX.precio, currentY)
-  doc.text('Modalidad', colX.modalidad, currentY)
+  doc.text('Fecha', colX.fecha, currentY)
+  doc.text('Hora', colX.hora, currentY)
+  doc.text('Duración', colX.duracion, currentY)
+  doc.text('Precio/h', colX.precioHora, currentY)
   doc.text('Total', colX.total, currentY, { align: 'right' })
   
   currentY += 4
@@ -316,54 +316,87 @@ function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number
   
   currentY += 5
   
-  // Calcular datos de las clases
-  const totalClases = clases.length
-  const totalHoras = clases.reduce((sum, c) => sum + (c.duracion / 60), 0)
-  const precioTotal = clases.reduce((sum, c) => sum + c.precio, 0)
-  const precioUnitario = totalClases > 0 ? precioTotal / totalClases : 0
-  
-  // Debug: Log de los datos calculados
-  console.log('Datos de clases:', {
-    totalClases,
-    totalHoras,
-    precioTotal,
-    precioUnitario,
-    clases: clases.map(c => ({ 
-      duracion: c.duracion, 
-      precio: c.precio,
-      hora_inicio: c.hora_inicio,
-      hora_fin: c.hora_fin,
-      fecha: c.fecha
-    }))
-  })
-  
-  // Fila de datos (sin columna de descuento)
+  // Mostrar cada clase individualmente
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(PDF_CONFIG.COLORS.SECONDARY)
+  doc.setFontSize(PDF_CONFIG.FONT_SIZE.SMALL)
   
-  doc.text('1', colX.num, currentY)
-  doc.text('Clases particulares', colX.descripcion, currentY)
+  let numeroFila = 1
+  let precioTotal = 0
   
-  // Asegurar que los valores se muestren correctamente
-  const horasTexto = totalHoras > 0 ? totalHoras.toFixed(1) : '0.0'
-  const precioTexto = precioUnitario > 0 ? `€${formatearImporte(precioUnitario)}` : '€0.00'
-  const totalTexto = precioTotal > 0 ? `€${formatearImporte(precioTotal)}` : '€0.00'
+  clases.forEach((clase, index) => {
+    // Calcular precio por hora
+    const duracionHoras = clase.duracion / 60
+    const precioPorHora = duracionHoras > 0 ? clase.precio / duracionHoras : 0
+    precioTotal += clase.precio
+    
+    // Formatear fecha
+    const fechaFormateada = formatearFechaFactura(clase.fecha)
+    
+    // Formatear duración (solo en horas)
+    const duracionTexto = `${duracionHoras.toFixed(1)}h`
+    
+    // Formatear precios
+    const precioHoraTexto = `€${formatearImporte(precioPorHora)}`
+    const totalTexto = `€${formatearImporte(clase.precio)}`
+    
+    // Descripción de la clase (solo asignatura)
+    const descripcion = clase.asignatura || 'Clase particular'
+    
+    // Hora separada (sin segundos)
+    const formatearHora = (hora: string) => {
+      // Si la hora incluye segundos (formato HH:MM:SS), quitar los segundos
+      if (hora && hora.includes(':') && hora.split(':').length === 3) {
+        return hora.substring(0, 5) // Tomar solo HH:MM
+      }
+      return hora
+    }
+    
+    const horaTexto = `${formatearHora(clase.hora_inicio)}-${formatearHora(clase.hora_fin)}`
+    
+    // Verificar si hay espacio suficiente en la página
+    if (currentY > 250) {
+      // Agregar nueva página si es necesario
+      doc.addPage()
+      currentY = 20
+    }
+    
+    // Fila de datos
+    doc.text(numeroFila.toString(), colX.num, currentY)
+    doc.text(descripcion, colX.descripcion, currentY)
+    doc.text(fechaFormateada, colX.fecha, currentY)
+    doc.text(horaTexto, colX.hora, currentY)
+    doc.text(duracionTexto, colX.duracion, currentY)
+    doc.text(precioHoraTexto, colX.precioHora, currentY)
+    doc.text(totalTexto, colX.total, currentY, { align: 'right' })
+    
+    currentY += 6
+    numeroFila++
+  })
   
-  // Determinar modalidad basada en si es clase individual o compartida
-  let modalidadTexto = 'Individual' // Por defecto
+  // Línea separadora antes del total
+  currentY += 3
+  doc.setDrawColor(PDF_CONFIG.COLORS.BORDER)
+  doc.setLineWidth(0.3)
+  doc.line(PDF_CONFIG.MARGIN_LEFT, currentY, PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT, currentY)
   
-  // Verificar si el estudiante tiene modalidad compartida
-  if (factura?.student?.has_shared_pricing === true) {
-    modalidadTexto = 'Compartida'
-  }
+  currentY += 5
   
-  doc.text(horasTexto, colX.cant, currentY)
-  doc.text('h', colX.unidad, currentY)
-  doc.text(precioTexto, colX.precio, currentY)
-  doc.text(modalidadTexto, colX.modalidad, currentY)
-  doc.text(totalTexto, colX.total, currentY, { align: 'right' })
+  // Fila de total
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(PDF_CONFIG.COLORS.PRIMARY)
+  doc.setFontSize(PDF_CONFIG.FONT_SIZE.SMALL)
   
-  currentY += 6
+  doc.text('TOTAL', colX.num, currentY)
+  doc.text(`${clases.length} clase${clases.length !== 1 ? 's' : ''}`, colX.fecha, currentY)
+  
+  // Calcular total de horas
+  const totalHoras = clases.reduce((sum, c) => sum + (c.duracion / 60), 0)
+  doc.text(`${totalHoras.toFixed(1)}h`, colX.duracion, currentY)
+  
+  doc.text(`€${formatearImporte(precioTotal)}`, colX.total, currentY, { align: 'right' })
+  
+  currentY += 8
   
   return currentY
 }
@@ -378,12 +411,7 @@ function generarTotales(doc: jsPDF, factura: FacturaRRSIF, tableEndY: number): v
   const sumaX = PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 45
   const valorX = PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 2
   
-  // Total a pagar
-  doc.setFontSize(PDF_CONFIG.FONT_SIZE.SUBTITLE)
-  doc.setTextColor(PDF_CONFIG.COLORS.PRIMARY)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Total a pagar', sumaX, currentY)
-  doc.text(`${formatearImporte(factura.registro_facturacion.importe_total)}€`, valorX, currentY, { align: 'right' })
+  
 }
 
 /**
@@ -422,7 +450,7 @@ function generarPiePagina(doc: jsPDF, factura: FacturaRRSIF): void {
   // Logo pequeño a la izquierda
   const logoSize = 8
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'logo1.png')
+    const logoPath = path.join(process.cwd(), 'public', 'logo.png')
     const logoBuffer = fs.readFileSync(logoPath)
     const base64 = logoBuffer.toString('base64')
     const logoDataURL = `data:image/png;base64,${base64}`
