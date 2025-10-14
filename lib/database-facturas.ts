@@ -24,9 +24,9 @@ export class FacturasDatabase {
         emisor_nif, emisor_nombre, emisor_direccion, emisor_codigo_postal,
         emisor_municipio, emisor_provincia, emisor_pais, emisor_telefono, emisor_email,
         receptor_nif, receptor_nombre, receptor_direccion, receptor_codigo_postal,
-        receptor_municipio, receptor_provincia, receptor_pais, receptor_telefono, receptor_email,
+        receptor_municipio, receptor_provincia, receptor_pais, receptor_telefono, receptor_email, receptor_tipo_identificacion,
         serie, numero, fecha_expedicion, hash_registro, timestamp, estado_envio, url_verificacion
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
     const params = [
@@ -58,6 +58,7 @@ export class FacturasDatabase {
       factura.datos_receptor.pais,
       factura.datos_receptor.telefono,
       factura.datos_receptor.email,
+      factura.datos_receptor.tipoIdentificacion || 'DNI',
       factura.registro_facturacion.serie,
       factura.registro_facturacion.numero,
       factura.registro_facturacion.fecha_expedicion,
@@ -282,7 +283,8 @@ export class FacturasDatabase {
         provincia: row.receptor_provincia,
         pais: row.receptor_pais,
         telefono: row.receptor_telefono,
-        email: row.receptor_email
+        email: row.receptor_email,
+        tipoIdentificacion: row.receptor_tipo_identificacion || 'DNI'
       },
       classes: [], // Se cargará por separado
       total: row.total,

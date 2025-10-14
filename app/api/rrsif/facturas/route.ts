@@ -207,6 +207,7 @@ export async function POST(request: NextRequest) {
         receptor_pais: factura.datos_receptor?.pais || 'España',
         receptor_telefono: factura.datos_receptor?.telefono || '',
         receptor_email: factura.datos_receptor?.email || '',
+        receptor_tipo_identificacion: factura.datos_receptor?.tipoIdentificacion || 'DNI',
         
         // Registro de facturación RRSIF
         serie: factura.registro_facturacion?.serie || 'ERK',

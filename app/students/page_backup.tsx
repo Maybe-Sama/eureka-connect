@@ -158,9 +158,9 @@ const StudentsPage = () => {
         province: studentData.province,
         country: studentData.country,
         // Datos del receptor
-        receptor_nombre: studentData.receptor_nombre,
-        receptor_apellidos: studentData.receptor_apellidos,
-        receptor_email: studentData.receptor_email,
+        receptor_nombre: studentData.receptorNombre,
+        receptor_apellidos: studentData.receptorApellidos,
+        receptor_email: studentData.receptorEmail,
         // Enlace a pizarra digital
         digital_board_link: studentData.digital_board_link
       }
@@ -713,9 +713,9 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       province: formData.province || undefined,
       country: formData.country || 'España',
       // Campos del receptor
-      receptor_nombre: formData.receptorNombre || undefined,
-      receptor_apellidos: formData.receptorApellidos || undefined,
-      receptor_email: formData.receptorEmail || undefined,
+      receptorNombre: formData.receptorNombre || undefined,
+      receptorApellidos: formData.receptorApellidos || undefined,
+      receptorEmail: formData.receptorEmail || undefined,
       // Enlace a pizarra digital
       digital_board_link: formData.digitalBoardLink || undefined,
       schedule: selectedSchedule
@@ -929,55 +929,15 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  {/* Sección de Tipo de Documento */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Tipo de Documento del Padre/Madre/Tutor
-                    </label>
-                    <div className="flex space-x-4">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="documentType"
-                          value="dni"
-                          checked={documentType === 'dni'}
-                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
-                          className="w-4 h-4 text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm text-foreground">DNI (Persona física)</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="documentType"
-                          value="nif"
-                          checked={documentType === 'nif'}
-                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
-                          className="w-4 h-4 text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm text-foreground">NIF (Empresa)</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Campo de Número de Documento */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Número de {documentType === 'dni' ? 'DNI' : 'NIF'}
-                    </label>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
                     <input
                       type="text"
-                      value={documentNumber}
-                      onChange={(e) => setDocumentNumber(e.target.value)}
-                      placeholder={documentType === 'dni' ? '12345678A' : 'B13998539'}
+                      value={formData.dni}
+                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                      placeholder="12345678A"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    <p className="text-xs text-foreground-muted mt-1">
-                      {documentType === 'dni' 
-                        ? 'Formato: 8 dígitos + 1 letra (ej: 12345678A)'
-                        : 'Formato: Letra + 8 dígitos (ej: B13998539)'
-                      }
-                    </p>
                   </div>
 
                   <div className="mt-4">
@@ -1204,21 +1164,6 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
     country: student.country || 'España'
   })
   const [selectedSchedule, setSelectedSchedule] = useState<TimeSlot[]>([])
-  
-  // Estados para el tipo de documento
-  const [documentType, setDocumentType] = useState<'dni' | 'nif'>('dni')
-  const [documentNumber, setDocumentNumber] = useState('')
-
-  // Cargar datos del documento existente
-  useEffect(() => {
-    if (student.dni) {
-      setDocumentType('dni')
-      setDocumentNumber(student.dni)
-    } else if (student.nif) {
-      setDocumentType('nif')
-      setDocumentNumber(student.nif)
-    }
-  }, [student])
 
   // Cargar el horario actual del estudiante
   useEffect(() => {
@@ -1321,9 +1266,8 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       student_code: student.student_code,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-      // Campos fiscales - usar el tipo de documento seleccionado
-      dni: documentType === 'dni' ? (documentNumber || undefined) : undefined,
-      nif: documentType === 'nif' ? (documentNumber || undefined) : undefined,
+        // Campos fiscales
+        dni: formData.dni || undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
@@ -1360,24 +1304,13 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       province: student.province || '',
       country: student.country || 'España',
       // Campos del receptor
-      receptorNombre: student.receptor_nombre || '',
-      receptorApellidos: student.receptor_apellidos || '',
-      receptorEmail: student.receptor_email || '',
+      receptorNombre: student.receptorNombre || '',
+      receptorApellidos: student.receptorApellidos || '',
+      receptorEmail: student.receptorEmail || '',
       // Campo para enlace a pizarra digital
       digitalBoardLink: student.digital_board_link || ''
     })
     setSelectedSchedule([])
-    // Resetear campos de documento
-    if (student.dni) {
-      setDocumentType('dni')
-      setDocumentNumber(student.dni)
-    } else if (student.nif) {
-      setDocumentType('nif')
-      setDocumentNumber(student.nif)
-    } else {
-      setDocumentType('dni')
-      setDocumentNumber('')
-    }
     onClose()
   }
 
@@ -1550,55 +1483,15 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  {/* Sección de Tipo de Documento */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Tipo de Documento del Padre/Madre/Tutor
-                    </label>
-                    <div className="flex space-x-4">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="documentType"
-                          value="dni"
-                          checked={documentType === 'dni'}
-                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
-                          className="w-4 h-4 text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm text-foreground">DNI (Persona física)</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="documentType"
-                          value="nif"
-                          checked={documentType === 'nif'}
-                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
-                          className="w-4 h-4 text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm text-foreground">NIF (Empresa)</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Campo de Número de Documento */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Número de {documentType === 'dni' ? 'DNI' : 'NIF'}
-                    </label>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
                     <input
                       type="text"
-                      value={documentNumber}
-                      onChange={(e) => setDocumentNumber(e.target.value)}
-                      placeholder={documentType === 'dni' ? '12345678A' : 'B13998539'}
+                      value={formData.dni}
+                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                      placeholder="12345678A"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    <p className="text-xs text-foreground-muted mt-1">
-                      {documentType === 'dni' 
-                        ? 'Formato: 8 dígitos + 1 letra (ej: 12345678A)'
-                        : 'Formato: Letra + 8 dígitos (ej: B13998539)'
-                      }
-                    </p>
                   </div>
 
                   <div className="mt-4">

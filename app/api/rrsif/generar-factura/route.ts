@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     console.log('ClasesIds:', clasesIds)
     console.log('DatosFiscales recibidos:', JSON.stringify(datosFiscales, null, 2))
     console.log('DatosReceptor:', JSON.stringify(datosReceptor, null, 2))
+    console.log('DatosReceptor.tipoIdentificacion:', datosReceptor?.tipoIdentificacion)
     console.log('Descripción:', descripcion)
     console.log('Incluir QR:', incluirQR)
 
@@ -217,16 +218,17 @@ export async function POST(request: NextRequest) {
           emisor_telefono: facturaData.datos_fiscales_emisor?.telefono || '',
           emisor_email: facturaData.datos_fiscales_emisor?.email || '',
           
-          // Datos del receptor
-          receptor_nif: facturaData.datos_receptor?.nif || '',
-          receptor_nombre: facturaData.datos_receptor?.nombre || '',
-          receptor_direccion: facturaData.datos_receptor?.direccion || '',
-          receptor_codigo_postal: facturaData.datos_receptor?.codigoPostal || '',
-          receptor_municipio: facturaData.datos_receptor?.municipio || '',
-          receptor_provincia: facturaData.datos_receptor?.provincia || '',
-          receptor_pais: facturaData.datos_receptor?.pais || 'España',
-          receptor_telefono: facturaData.datos_receptor?.telefono || '',
-          receptor_email: facturaData.datos_receptor?.email || '',
+           // Datos del receptor
+           receptor_nif: facturaData.datos_receptor?.nif || '',
+           receptor_nombre: facturaData.datos_receptor?.nombre || '',
+           receptor_direccion: facturaData.datos_receptor?.direccion || '',
+           receptor_codigo_postal: facturaData.datos_receptor?.codigoPostal || '',
+           receptor_municipio: facturaData.datos_receptor?.municipio || '',
+           receptor_provincia: facturaData.datos_receptor?.provincia || '',
+           receptor_pais: facturaData.datos_receptor?.pais || 'España',
+           receptor_telefono: facturaData.datos_receptor?.telefono || '',
+           receptor_email: facturaData.datos_receptor?.email || '',
+           receptor_tipo_identificacion: facturaData.datos_receptor?.tipoIdentificacion || 'DNI',
           
           // Registro de facturación RRSIF
           serie: facturaData.registro_facturacion?.serie || 'ERK',

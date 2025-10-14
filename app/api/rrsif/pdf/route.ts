@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
+
     // Obtener clases de la factura
     const { data: clasesData, error: clasesError } = await supabase
       .from('factura_clases')
@@ -102,7 +103,8 @@ export async function GET(request: NextRequest) {
         provincia: facturaData.receptor_provincia,
         pais: facturaData.receptor_pais,
         telefono: facturaData.receptor_telefono,
-        email: facturaData.receptor_email
+        email: facturaData.receptor_email,
+        tipoIdentificacion: facturaData.receptor_tipo_identificacion || 'DNI'
       },
       classes: clasesData?.map(clase => ({
         id: clase.id,
@@ -138,7 +140,8 @@ export async function GET(request: NextRequest) {
         provincia: facturaData.receptor_provincia,
         pais: facturaData.receptor_pais,
         telefono: facturaData.receptor_telefono,
-        email: facturaData.receptor_email
+        email: facturaData.receptor_email,
+        tipoIdentificacion: facturaData.receptor_tipo_identificacion || 'DNI'
       },
       created_at: facturaData.created_at,
       updated_at: facturaData.updated_at,
@@ -160,6 +163,7 @@ export async function GET(request: NextRequest) {
         }]
       }
     }
+
 
     // Generar PDF usando el campo incluye_qr de la base de datos
     const incluirQR = facturaData.incluye_qr === true
