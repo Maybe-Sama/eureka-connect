@@ -154,6 +154,7 @@ export interface ReceptorData {
   pais: string
   telefono?: string
   email?: string
+  tipoIdentificacion?: string // DNI o NIF
 }
 
 // Desglose de IVA

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateTeacher } from '@/lib/auth-complex'
+import { checkRateLimit, resetRateLimit, getClientIP } from '@/lib/rate-limiter'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verificar rate limiting
+    const clientIP = getClientIP(request)
+    const rateLimitKey = `teacher-login:${clientIP}`
+    const rateLimit = checkRateLimit(rateLimitKey)
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error },
+        { status: 429 } // Too Many Requests
+      )
+    }
+
     const result = await authenticateTeacher(email, password)
+
+    // Si el login es exitoso, resetear el contador
+    if (result.success) {
+      resetRateLimit(rateLimitKey)
+    }
 
     return NextResponse.json(result)
   } catch (error) {

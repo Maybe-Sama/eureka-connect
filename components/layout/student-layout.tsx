@@ -15,7 +15,8 @@ import {
   X,
   LogOut,
   Settings,
-  BookOpen
+  BookOpen,
+  Calculator
 } from 'lucide-react'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { cn } from '@/lib/utils'
@@ -77,6 +78,7 @@ function StudentLayoutContent({ children }: StudentLayoutProps) {
     { name: 'Calendario', href: '/student-dashboard/calendar', icon: Calendar },
     { name: 'Documentos', href: '/student-dashboard/documentos', icon: FolderOpen },
     { name: 'Clases', href: '/student-dashboard/classes', icon: BookOpen },
+    { name: 'Herramientas', href: '/student-dashboard/herramientas', icon: Calculator },
     { name: 'Facturas', href: '/student-dashboard/invoices', icon: FileText },
     { name: 'Configuración', href: '/student-dashboard/settings', icon: Settings },
   ]

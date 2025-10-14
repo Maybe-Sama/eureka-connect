@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import crypto from 'crypto'
+import bcrypt from 'bcrypt'
 
 export interface User {
   id: string
@@ -21,9 +22,27 @@ export function generateSessionToken(): string {
   return crypto.randomBytes(32).toString('hex')
 }
 
-// Crear hash de contraseña (simple para desarrollo)
-export function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex')
+// Crear hash de contraseña con bcrypt (seguro para producción)
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
+}
+
+// Verificar contraseña con soporte para hashes antiguos (SHA-256) y nuevos (bcrypt)
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  // Si el hash tiene 64 caracteres, es SHA-256 (legacy)
+  if (hash.length === 64 && /^[a-f0-9]+$/.test(hash)) {
+    const sha256Hash = crypto.createHash('sha256').update(password).digest('hex')
+    return sha256Hash === hash
+  }
+  
+  // Si no, es bcrypt (nuevo sistema)
+  try {
+    return await bcrypt.compare(password, hash)
+  } catch (error) {
+    console.error('Error verifying password:', error)
+    return false
+  }
 }
 
 // Autenticar profesor (versión simple)
@@ -38,7 +57,7 @@ export async function authenticateTeacher(email: string, password: string): Prom
     }
 
     // Crear usuario profesor si no existe
-    const hashedPassword = hashPassword(password)
+    const hashedPassword = await hashPassword(password)
     
     // Intentar insertar usuario (ignorar si ya existe)
     const { error: insertError } = await supabase

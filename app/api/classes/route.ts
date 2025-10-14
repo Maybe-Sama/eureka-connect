@@ -51,6 +51,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    
+    
     const { student_id, course_id, start_time, end_time, duration, date, price, notes, subject } = body
 
     if (!student_id || !course_id || !start_time || !end_time || !duration || !date) {
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const classId = await dbOperations.createClass({
+    const classDataToSave = {
       student_id: Number(student_id),
       course_id: Number(course_id),
       start_time,
@@ -90,7 +92,10 @@ export async function POST(request: NextRequest) {
       is_recurring: body.is_recurring || false, // Default to false for scheduled classes
       price: calculatedPrice,
       notes
-    })
+    }
+    
+    
+    const classId = await dbOperations.createClass(classDataToSave)
 
     return NextResponse.json({ id: classId, message: 'Clase creada exitosamente' })
   } catch (error: any) {

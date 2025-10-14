@@ -1,0 +1,293 @@
+{
+    "Cinemática": {
+      "Movimiento Rectilíneo Uniforme (MRU)": {
+        "Velocidad": "v = \\frac{x}{t}",
+        "Ecuación del movimiento": "x = x_0 + v \\cdot t",
+        "Gráfica posición-tiempo": "Línea recta con pendiente igual a v"
+      },
+      "Movimiento Rectilíneo Uniformemente Acelerado (MRUA)": {
+        "Aceleración": "a = \\frac{v - v_0}{t}",
+        "Velocidad final": "v = v_0 + a \\cdot t",
+        "Posición": "x = x_0 + v_0 \\cdot t + \\frac{1}{2} \\cdot a \\cdot t^2",
+        "Ecuación de la velocidad": "v^2 = v_0^2 + 2 \\cdot a \\cdot (x - x_0)"
+      },
+      "Caída libre": {
+        "Aceleración": "a = g = 9.8 \\text{ m/s}^2",
+        "Velocidad": "v = v_0 + g \\cdot t",
+        "Altura": "h = h_0 + v_0 \\cdot t - \\frac{1}{2} \\cdot g \\cdot t^2",
+        "Tiempo de caída": "t = \\sqrt{\\frac{2h}{g}} \\text{ (desde el reposo)}",
+        "Velocidad de impacto": "v = \\sqrt{2 \\cdot g \\cdot h} \\text{ (desde el reposo)}"
+      },
+      "Movimiento circular uniforme (MCU)": {
+        "Velocidad angular": "\\omega = \\frac{\\theta}{t}",
+        "Velocidad lineal": "v = \\omega \\cdot r",
+        "Aceleración centrípeta": "a_c = \\frac{v^2}{r} = \\omega^2 \\cdot r",
+        "Periodo": "T = \\frac{2\\pi}{\\omega}",
+        "Frecuencia": "f = \\frac{1}{T} = \\frac{\\omega}{2\\pi}"
+      },
+      "Movimiento circular uniformemente acelerado (MCUA)": {
+        "Aceleración angular": "\\alpha = \\frac{\\omega - \\omega_0}{t}",
+        "Velocidad angular": "\\omega = \\omega_0 + \\alpha \\cdot t",
+        "Ángulo recorrido": "\\theta = \\theta_0 + \\omega_0 \\cdot t + \\frac{1}{2} \\cdot \\alpha \\cdot t^2",
+        "Relación velocidad angular": "\\omega^2 = \\omega_0^2 + 2 \\cdot \\alpha \\cdot (\\theta - \\theta_0)"
+      },
+      "Movimiento parabólico": {
+        "Alcance horizontal": "R = \\frac{v_0^2 \\cdot \\sin(2\\theta)}{g}",
+        "Altura máxima": "h_{max} = \\frac{v_0^2 \\cdot \\sin^2(\\theta)}{2g}",
+        "Tiempo de vuelo": "t = \\frac{2 \\cdot v_0 \\cdot \\sin(\\theta)}{g}",
+        "Componentes de velocidad": "v_x = v_0 \\cdot \\cos(\\theta), v_y = v_0 \\cdot \\sin(\\theta) - g \\cdot t"
+      },
+      "Movimiento armónico simple (MAS)": {
+        "Ecuación del movimiento": "x = A \\cdot \\sin(\\omega \\cdot t + \\phi)",
+        "Velocidad": "v = A \\cdot \\omega \\cdot \\cos(\\omega \\cdot t + \\phi)",
+        "Aceleración": "a = -A \\cdot \\omega^2 \\cdot \\sin(\\omega \\cdot t + \\phi) = -\\omega^2 \\cdot x",
+        "Periodo": "T = \\frac{2\\pi}{\\omega} = 2\\pi \\cdot \\sqrt{\\frac{m}{k}} = 2\\pi \\cdot \\sqrt{\\frac{L}{g}}",
+        "Energía total": "E = \\frac{1}{2} \\cdot k \\cdot A^2 = \\frac{1}{2} \\cdot m \\cdot \\omega^2 \\cdot A^2"
+      }
+    },
+    
+    "Dinámica": {
+      "Leyes de Newton": {
+        "Primera ley (inercia)": "Un cuerpo permanece en reposo o MRU a menos que actúe una fuerza neta",
+        "Segunda ley": "F = m \\cdot a",
+        "Tercera ley (acción-reacción)": "Si A ejerce una fuerza sobre B, B ejerce una fuerza igual y opuesta sobre A"
+      },
+      "Tipos de fuerzas": {
+        "Peso": "P = m \\cdot g",
+        "Normal": "Fuerza perpendicular a la superficie de contacto",
+        "Rozamiento": "F_r = \\mu \\cdot N",
+        "Tensión": "Fuerza ejercida por una cuerda o cable",
+        "Fuerza elástica": "F = -k \\cdot x \\text{ (Ley de Hooke)}"
+      },
+      "Momento lineal y colisiones": {
+        "Momento lineal": "p = m \\cdot v",
+        "Conservación del momento": "m_1 \\cdot v_1 + m_2 \\cdot v_2 = m_1 \\cdot v_1' + m_2 \\cdot v_2'",
+        "Impulso": "I = F \\cdot \\Delta t = \\Delta p",
+        "Choque elástico": "e = 1, \\text{conservación de energía cinética}",
+        "Choque inelástico": "e < 1, \\text{pérdida de energía cinética}",
+        "Choque completamente inelástico": "e = 0, \\text{los cuerpos quedan unidos}"
+      },
+      "Dinámica circular": {
+        "Fuerza centrípeta": "F_c = \\frac{m \\cdot v^2}{r} = m \\cdot \\omega^2 \\cdot r",
+        "Velocidad orbital": "v = \\sqrt{\\frac{G \\cdot M}{r}}"
+      },
+      "Gravitación": {
+        "Ley de gravitación universal": "F = \\frac{G \\cdot m_1 \\cdot m_2}{r^2}",
+        "Campo gravitatorio": "g = \\frac{G \\cdot M}{r^2}",
+        "Energía potencial gravitatoria": "E_p = -\\frac{G \\cdot m \\cdot M}{r}",
+        "Velocidad de escape": "v_e = \\sqrt{\\frac{2 \\cdot G \\cdot M}{R}}",
+        "Leyes de Kepler": {
+          "Primera ley": "Órbitas elípticas con el Sol en un foco",
+          "Segunda ley": "La línea Sol-planeta barre áreas iguales en tiempos iguales",
+          "Tercera ley": "T^2 \\propto a^3 \\text{ (T}^2/a^3 = \\text{constante)}"
+        }
+      }
+    },
+  
+    "Energía y Trabajo": {
+      "Trabajo mecánico": {
+        "Trabajo de una fuerza constante": "W = F \\cdot d \\cdot \\cos(\\theta)",
+        "Trabajo de una fuerza variable": "W = \\int F \\cdot dx",
+        "Trabajo nulo": "W = 0 \\text{ cuando } F \\text{ perpendicular al desplazamiento}"
+      },
+      "Energía": {
+        "Energía cinética": "E_c = \\frac{1}{2} \\cdot m \\cdot v^2",
+        "Energía potencial gravitatoria": "E_{pg} = m \\cdot g \\cdot h",
+        "Energía potencial elástica": "E_{pe} = \\frac{1}{2} \\cdot k \\cdot x^2",
+        "Energía cinética de rotación": "E_{cr} = \\frac{1}{2} \\cdot I \\cdot \\omega^2",
+        "Momento de inercia": "I = \\sum m_i \\cdot r_i^2"
+      },
+      "Principio de conservación": {
+        "Energía mecánica": "E_m = E_c + E_p = \\text{constante (sin rozamiento)}",
+        "Teorema trabajo-energía": "W = \\Delta E_c",
+        "Energía total": "E_t = E_c + E_p + Q = \\text{constante}"
+      },
+      "Potencia": {
+        "Potencia mecánica": "P = \\frac{W}{t}",
+        "Potencia instantánea": "P = F \\cdot v"
+      },
+      "Rendimiento": {
+        "Rendimiento": "\\eta = \\frac{E_{\\text{útil}}}{E_{\\text{total}}} \\cdot 100\\%"
+      }
+    },
+  
+    "Electricidad y Magnetismo": {
+      "Electrostática": {
+        "Ley de Coulomb": "F = \\frac{k \\cdot q_1 \\cdot q_2}{r^2}",
+        "Campo eléctrico": "E = \\frac{F}{q} = \\frac{k \\cdot Q}{r^2}",
+        "Potencial eléctrico": "V = \\frac{k \\cdot Q}{r}",
+        "Energía potencial eléctrica": "E_p = \\frac{k \\cdot q_1 \\cdot q_2}{r}",
+        "Superficies equipotenciales": "\\text{Perpendiculares a las líneas de campo}"
+      },
+      "Corriente eléctrica": {
+        "Intensidad de corriente": "I = \\frac{Q}{t}",
+        "Ley de Ohm": "V = I \\cdot R",
+        "Resistencia": "R = \\frac{\\rho \\cdot L}{A}",
+        "Resistividad": "\\text{Propiedad del material, aumenta con la temperatura (metales)}",
+        "Potencia eléctrica": "P = V \\cdot I = I^2 \\cdot R = \\frac{V^2}{R}"
+      },
+      "Circuitos eléctricos": {
+        "Resistencias en serie": "R_{eq} = R_1 + R_2 + \\ldots + R_n",
+        "Resistencias en paralelo": "\\frac{1}{R_{eq}} = \\frac{1}{R_1} + \\frac{1}{R_2} + \\ldots + \\frac{1}{R_n}",
+        "Condensadores en serie": "\\frac{1}{C_{eq}} = \\frac{1}{C_1} + \\frac{1}{C_2} + \\ldots + \\frac{1}{C_n}",
+        "Condensadores en paralelo": "C_{eq} = C_1 + C_2 + \\ldots + C_n",
+        "Leyes de Kirchhoff": {
+          "Ley de nudos": "\\sum I = 0 \\text{ (la suma de corrientes en un nudo es cero)}",
+          "Ley de mallas": "\\sum V = 0 \\text{ (la suma de voltajes en una malla cerrada es cero)}"
+        },
+        "Energía almacenada en condensador": "E = \\frac{1}{2} \\cdot C \\cdot V^2"
+      },
+      "Magnetismo": {
+        "Campo magnético": "B \\text{ (tesla)}",
+        "Fuerza magnética sobre carga en movimiento": "F = q \\cdot v \\cdot B \\cdot \\sin(\\theta)",
+        "Fuerza magnética sobre un conductor": "F = I \\cdot L \\cdot B \\cdot \\sin(\\theta)",
+        "Fuerza entre conductores paralelos": "\\frac{F}{L} = \\frac{\\mu_0 \\cdot I_1 \\cdot I_2}{2\\pi \\cdot r}",
+        "Campo magnético de un solenoide": "B = \\mu_0 \\cdot n \\cdot I \\text{ (n = N/L)}"
+      },
+      "Inducción electromagnética": {
+        "Ley de Faraday-Lenz": "\\varepsilon = -N \\cdot \\frac{\\Delta \\Phi}{\\Delta t}",
+        "Flujo magnético": "\\Phi = B \\cdot S \\cdot \\cos(\\theta)",
+        "Autoinducción": "\\varepsilon = -L \\cdot \\frac{\\Delta I}{\\Delta t}",
+        "Energía magnética": "E = \\frac{1}{2} \\cdot L \\cdot I^2"
+      }
+    },
+  
+    "Ondas y Óptica": {
+      "Ondas mecánicas": {
+        "Ecuación de onda": "y(x,t) = A \\cdot \\sin(kx - \\omega t)",
+        "Velocidad de propagación": "v = \\lambda \\cdot f = \\frac{\\omega}{k}",
+        "Frecuencia": "f = \\frac{1}{T} = \\frac{\\omega}{2\\pi}",
+        "Longitud de onda": "\\lambda = \\frac{v}{f}",
+        "Ondas estacionarias": "y(x,t) = 2A \\cdot \\sin(kx) \\cdot \\cos(\\omega t)",
+        "Modos de vibración": "\\text{Cuerda: } \\lambda_n = \\frac{2L}{n}, \\text{ Tubo abierto: } \\lambda_n = \\frac{2L}{n}, \\text{ Tubo cerrado: } \\lambda_n = \\frac{4L}{2n-1}"
+      },
+      "Ondas sonoras": {
+        "Velocidad del sonido en aire": "v \\approx 340 \\text{ m/s (a 20°C)}",
+        "Nivel de intensidad sonora": "\\beta = 10 \\cdot \\log\\left(\\frac{I}{I_0}\\right) \\text{ dB}",
+        "Intensidad sonora": "I = \\frac{P}{A} = \\frac{E}{A \\cdot t}"
+      },
+      "Efecto Doppler": {
+        "Frecuencia percibida (fuente acercándose)": "f' = f \\cdot \\frac{v}{v-v_s}",
+        "Frecuencia percibida (fuente alejándose)": "f' = f \\cdot \\frac{v}{v+v_s}",
+        "Frecuencia percibida (observador acercándose)": "f' = f \\cdot \\frac{v+v_o}{v}",
+        "Frecuencia percibida (observador alejándose)": "f' = f \\cdot \\frac{v-v_o}{v}"
+      },
+      "Óptica geométrica": {
+        "Ley de reflexión": "\\theta_i = \\theta_r",
+        "Ley de refracción (Snell)": "n_1 \\cdot \\sin(\\theta_1) = n_2 \\cdot \\sin(\\theta_2)",
+        "Índice de refracción": "n = \\frac{c}{v}",
+        "Ángulo límite": "\\theta_L = \\arcsin\\left(\\frac{n_2}{n_1}\\right) \\text{ (para } n_1 > n_2\\text{)}",
+        "Ecuación del fabricante de lentes": "\\frac{1}{f} = (n-1) \\cdot \\left(\\frac{1}{R_1} - \\frac{1}{R_2}\\right)"
+      },
+      "Espejos y lentes": {
+        "Ecuación de espejos": "\\frac{1}{s} + \\frac{1}{s'} = \\frac{1}{f}",
+        "Ecuación de lentes": "\\frac{1}{s} + \\frac{1}{s'} = \\frac{1}{f}",
+        "Aumento lateral": "M = -\\frac{s'}{s} = \\frac{h'}{h}",
+        "Potencia de una lente": "P = \\frac{1}{f} \\text{ (en dioptrías)}"
+      },
+      "Ondas electromagnéticas": {
+        "Velocidad de la luz": "c = 3 \\times 10^8 \\text{ m/s}",
+        "Relación entre longitud de onda y frecuencia": "\\lambda \\cdot f = c",
+        "Energía de un fotón": "E = h \\cdot f = \\frac{h \\cdot c}{\\lambda}",
+        "Espectro electromagnético": "\\text{Radio, microondas, IR, visible, UV, rayos X, rayos gamma}"
+      },
+      "Interferencia y difracción": {
+        "Interferencia constructiva": "\\Delta r = m \\cdot \\lambda \\text{ (m = 0, 1, 2, ...)}",
+        "Interferencia destructiva": "\\Delta r = \\left(m+\\frac{1}{2}\\right) \\cdot \\lambda \\text{ (m = 0, 1, 2, ...)}",
+        "Difracción por rendija única": "\\sin \\theta = \\frac{m \\cdot \\lambda}{d}",
+        "Difracción por doble rendija": "d \\cdot \\sin \\theta = m \\cdot \\lambda"
+      }
+    },
+  
+    "Termodinámica": {
+      "Temperatura y calor": {
+        "Escala Celsius": "t(°C) = T(K) - 273.15",
+        "Dilatación térmica lineal": "\\Delta L = \\alpha \\cdot L_0 \\cdot \\Delta T",
+        "Dilatación térmica volumétrica": "\\Delta V = \\beta \\cdot V_0 \\cdot \\Delta T",
+        "Calor": "Q = m \\cdot c \\cdot \\Delta T"
+      },
+      "Calor y cambios de estado": {
+        "Calor específico": "c = \\frac{Q}{m \\cdot \\Delta T}",
+        "Calor latente de fusión": "Q = m \\cdot L_f",
+        "Calor latente de vaporización": "Q = m \\cdot L_v",
+        "Ecuación calorimetría": "Q_{\\text{cedido}} + Q_{\\text{absorbido}} = 0"
+      },
+      "Leyes de los gases": {
+        "Ecuación de estado del gas ideal": "P \\cdot V = n \\cdot R \\cdot T",
+        "Primera ley de la termodinámica": "\\Delta U = Q - W",
+        "Trabajo en un proceso": "W = \\int P \\cdot dV",
+        "Energía interna de gas ideal": "U = \\frac{3}{2} \\cdot n \\cdot R \\cdot T \\text{ (monoatómico)}, U = \\frac{5}{2} \\cdot n \\cdot R \\cdot T \\text{ (diatómico)}"
+      },
+      "Procesos termodinámicos": {
+        "Proceso isotérmico": "P \\cdot V = \\text{constante}, W = n \\cdot R \\cdot T \\cdot \\ln\\left(\\frac{V_2}{V_1}\\right)",
+        "Proceso isobárico": "P = \\text{constante}, W = P \\cdot (V_2-V_1)",
+        "Proceso isocórico": "V = \\text{constante}, W = 0",
+        "Proceso adiabático": "Q = 0, P \\cdot V^{\\gamma} = \\text{constante}",
+        "Coeficiente adiabático": "\\gamma = \\frac{C_p}{C_v}",
+        "Relación temperatura-volumen en adiabático": "T \\cdot V^{\\gamma-1} = \\text{constante}"
+      },
+      "Segunda ley de la termodinámica": {
+        "Entropía": "\\Delta S = \\frac{Q}{T} \\text{ (proceso reversible)}",
+        "Variación de entropía": "\\Delta S = n \\cdot C_v \\cdot \\ln\\left(\\frac{T_2}{T_1}\\right) + n \\cdot R \\cdot \\ln\\left(\\frac{V_2}{V_1}\\right)",
+        "Rendimiento máximo (Carnot)": "\\eta = 1 - \\frac{T_f}{T_c}",
+        "Ciclo de Carnot": "\\text{Compuesto por dos isotermas y dos adiabáticas}"
+      }
+    },
+  
+    "Física Moderna": {
+      "Física relativista": {
+        "Dilatación del tiempo": "t = \\frac{t_0}{\\sqrt{1 - \\frac{v^2}{c^2}}}",
+        "Contracción de longitudes": "L = L_0 \\cdot \\sqrt{1 - \\frac{v^2}{c^2}}",
+        "Equivalencia masa-energía": "E = m \\cdot c^2",
+        "Masa relativista": "m = \\frac{m_0}{\\sqrt{1 - \\frac{v^2}{c^2}}}",
+        "Energía total": "E = m \\cdot c^2 = \\gamma \\cdot m_0 \\cdot c^2",
+        "Factor de Lorentz": "\\gamma = \\frac{1}{\\sqrt{1 - \\frac{v^2}{c^2}}}"
+      },
+      "Física cuántica": {
+        "Energía de un fotón": "E = h \\cdot f = \\frac{h \\cdot c}{\\lambda}",
+        "Longitud de onda de De Broglie": "\\lambda = \\frac{h}{m \\cdot v} = \\frac{h}{p}",
+        "Principio de incertidumbre": "\\Delta x \\cdot \\Delta p \\geq \\frac{h}{4\\pi}",
+        "Ecuación de Schrödinger": "H\\psi = E\\psi",
+        "Efecto fotoeléctrico": "E_c = h \\cdot f - \\Phi",
+        "Función de onda": "|\\psi|^2 \\text{ representa la densidad de probabilidad}"
+      },
+      "Física nuclear": {
+        "Defecto de masa": "\\Delta m = [Z \\cdot m(p) + (A-Z) \\cdot m(n)] - m(\\text{núcleo})",
+        "Energía de enlace": "E = \\Delta m \\cdot c^2",
+        "Energía de enlace por nucleón": "\\frac{E_{\\text{enlace}}}{A}",
+        "Ley de desintegración radiactiva": "N = N_0 \\cdot e^{-\\lambda \\cdot t}",
+        "Vida media": "t_{1/2} = \\frac{\\ln(2)}{\\lambda}",
+        "Actividad": "A = \\lambda \\cdot N",
+        "Reacciones nucleares": "X + a \\rightarrow Y + b + Q"
+      },
+      "Tipos de radiación": {
+        "Alfa": "\\text{Núcleos de helio (}_2^4\\text{He}^{2+}\\text{)}",
+        "Beta": "\\text{Electrones (}_{-1}^0\\text{e) o positrones (}_{+1}^0\\text{e)}",
+        "Gamma": "\\text{Fotones de alta energía}",
+        "Neutrón": "\\text{Partículas neutras (}_0^1\\text{n)}"
+      },
+      "Física de partículas": {
+        "Modelo estándar": "\\text{Quarks, leptones y bosones de gauge}",
+        "Fuerzas fundamentales": "\\text{Gravitatoria, electromagnética, nuclear fuerte y nuclear débil}",
+        "Antipartículas": "\\text{Misma masa, carga opuesta}",
+        "Conservación de carga": "\\text{La carga total se conserva en todas las interacciones}"
+      }
+    },
+  
+    "Mecánica Fluidos": {
+      "Hidrostática": {
+        "Densidad": "\\rho = \\frac{m}{V}",
+        "Presión": "P = \\frac{F}{A}",
+        "Presión hidrostática": "P = \\rho \\cdot g \\cdot h",
+        "Principio de Pascal": "\\text{La presión aplicada se transmite íntegramente en todas direcciones}",
+        "Principio de Arquímedes": "\\text{Empuje = Peso del fluido desplazado = } \\rho_{\\text{fluido}} \\cdot V_{\\text{sumergido}} \\cdot g"
+      },
+      "Hidrodinámica": {
+        "Ecuación de continuidad": "A_1 \\cdot v_1 = A_2 \\cdot v_2",
+        "Ecuación de Bernoulli": "P_1 + \\frac{1}{2} \\cdot \\rho \\cdot v_1^2 + \\rho \\cdot g \\cdot h_1 = P_2 + \\frac{1}{2} \\cdot \\rho \\cdot v_2^2 + \\rho \\cdot g \\cdot h_2",
+        "Teorema de Torricelli": "v = \\sqrt{2 \\cdot g \\cdot h}",
+        "Número de Reynolds": "Re = \\frac{\\rho \\cdot v \\cdot L}{\\mu}",
+        "Viscosidad": "\\frac{F}{A} = \\mu \\cdot \\frac{\\Delta v}{\\Delta y}"
+      }
+    }
+  }

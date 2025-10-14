@@ -28,7 +28,7 @@ export default function TeacherDashboard() {
     if (!loading && !isTeacher) {
       router.push('/login')
     }
-  }, [loading, isTeacher, router])
+  }, [loading, isTeacher])
 
   if (loading) {
     return (

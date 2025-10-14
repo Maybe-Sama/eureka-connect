@@ -34,7 +34,7 @@ export default function StudentInvoicesPage() {
     if (!loading && !isStudent) {
       router.push('/login')
     }
-  }, [loading, isStudent, router])
+  }, [loading, isStudent])
 
   useEffect(() => {
     if (isStudent && user?.studentId) {

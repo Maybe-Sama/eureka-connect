@@ -90,8 +90,14 @@ export const WeeklyCalendar = ({
   // Función para calcular el número de franjas que ocupa una clase (ahora 15 minutos por franja)
   const calculateTimeSlots = (startTime: string, endTime: string) => {
     const timeToMinutes = (timeStr: string) => {
-      const cleanTime = timeStr.split(':').slice(0, 2).join(':')
-      const [hours, minutes] = cleanTime.split(':').map(Number)
+      if (!timeStr) return 0
+      
+      // Limpiar el tiempo y extraer solo horas y minutos
+      // Manejar formatos como "11:30:00" o "11:30"
+      const timeParts = timeStr.split(':')
+      const hours = parseInt(timeParts[0]) || 0
+      const minutes = parseInt(timeParts[1]) || 0
+      
       return hours * 60 + minutes
     }
     
@@ -99,8 +105,29 @@ export const WeeklyCalendar = ({
     const endMinutes = timeToMinutes(endTime)
     const durationMinutes = endMinutes - startMinutes
     
+    // Validar que la duración sea positiva y razonable
+    if (durationMinutes <= 0) {
+      console.warn('Duración inválida:', { startTime, endTime, durationMinutes })
+      return 1 // Mínimo 1 tramo
+    }
+    
+    // Validar que la duración no sea excesiva (más de 8 horas)
+    if (durationMinutes > 480) {
+      console.warn('Duración excesiva:', { startTime, endTime, durationMinutes })
+      // En lugar de limitar, mostrar un error más claro
+      console.error('Clase con duración excesiva detectada. Verificar datos en la base de datos.')
+      return 32 // Máximo 8 horas para evitar clases infinitas en la UI
+    }
+    
     // Cada franja es de 15 minutos
-    return Math.ceil(durationMinutes / 15)
+    const slots = Math.ceil(durationMinutes / 15)
+    
+    // Limitar el número máximo de tramos para evitar clases infinitas
+    const maxSlots = 32 // Máximo 8 horas (32 * 15 min = 480 min = 8 horas)
+    const finalSlots = Math.min(slots, maxSlots)
+    
+    
+    return finalSlots
   }
 
   // Función para obtener el índice de la franja de tiempo
@@ -112,39 +139,38 @@ export const WeeklyCalendar = ({
   const isFirstTimeSlot = (day: number, time: string, item: any) => {
     if (!item) return false
     
-    const timeSlotIndex = getTimeSlotIndex(time)
-    if (timeSlotIndex === 0) return true
+    // Convertir tiempo a minutos para comparación
+    const timeToMinutes = (timeStr: string) => {
+      const cleanTime = timeStr.split(':').slice(0, 2).join(':')
+      const [hours, minutes] = cleanTime.split(':').map(Number)
+      return hours * 60 + minutes
+    }
     
-    // Verificar si la franja anterior tiene el mismo item
-    const previousTime = timeSlots[timeSlotIndex - 1]
-    const previousItem = getItemAtTime(day, previousTime, weekDates)
+    const currentTimeMinutes = timeToMinutes(time)
+    const startMinutes = timeToMinutes(item.data.start_time)
     
-    if (!previousItem) return true
-    
-    // Comparar por student_id y tipo
-    return !(
-      previousItem.data.student_id === item.data.student_id &&
-      previousItem.type === item.type
-    )
+    // Es la primera franja si el tiempo actual coincide exactamente con el tiempo de inicio
+    return currentTimeMinutes === startMinutes
   }
 
   // Función para verificar si una franja es la última de un bloque
   const isLastTimeSlot = (day: number, time: string, item: any) => {
     if (!item) return false
     
-    const timeSlotIndex = getTimeSlotIndex(time)
-    const nextTime = timeSlots[timeSlotIndex + 1]
+    // Convertir tiempo a minutos para comparación
+    const timeToMinutes = (timeStr: string) => {
+      const cleanTime = timeStr.split(':').slice(0, 2).join(':')
+      const [hours, minutes] = cleanTime.split(':').map(Number)
+      return hours * 60 + minutes
+    }
     
-    if (!nextTime) return true
+    const currentTimeMinutes = timeToMinutes(time)
+    const endMinutes = timeToMinutes(item.data.end_time)
     
-    const nextItem = getItemAtTime(day, nextTime, weekDates)
-    if (!nextItem) return true
-    
-    // Comparar por student_id y tipo
-    return !(
-      nextItem.data.student_id === item.data.student_id &&
-      nextItem.type === item.type
-    )
+    // Es la última franja si el tiempo actual es el último slot antes del tiempo de fin
+    // Redondear hacia abajo para encontrar el último slot de 15 minutos
+    const lastSlotMinutes = Math.floor((endMinutes - 1) / 15) * 15 + 15
+    return currentTimeMinutes === lastSlotMinutes
   }
 
   // Función para verificar si una franja es parte del medio de un bloque
@@ -222,41 +248,14 @@ export const WeeklyCalendar = ({
       const classDate = new Date(cls.date).toISOString().split('T')[0]
       if (classDate !== targetDateString) return false
       
-      // Debug para verificar fechas
-      if (scheduledClasses.length > 0 && day === 7) {
-        console.log('Date comparison:')
-        console.log('  Class date:', cls.date, '-> normalized:', classDate)
-        console.log('  Target date:', targetDateString)
-        console.log('  Dates match:', classDate === targetDateString)
-      }
       
       const startMinutes = timeToMinutes(cls.start_time)
       const endMinutes = timeToMinutes(cls.end_time)
       
       // La clase programada debe estar activa en este slot de tiempo
-      // Incluir el slot de tiempo donde termina la clase (<= en lugar de <)
+      // Solo considerar el slot de tiempo donde comienza la clase
       const isInTimeRange = currentTimeMinutes >= startMinutes && currentTimeMinutes < endMinutes
       
-      // Debug temporal para clases programadas
-      if (scheduledClasses.length > 0 && day === 7) { // Solo para domingo (día 7)
-        console.log('=== DEBUG SCHEDULED CLASS SEARCH ===')
-        console.log('Searching for day:', day, 'time:', time, 'target date:', targetDateString)
-        console.log('Class being checked:', {
-          id: cls.id,
-          student_name: cls.student_name,
-          day_of_week: cls.day_of_week,
-          date: cls.date,
-          classDate: classDate,
-          start_time: cls.start_time,
-          end_time: cls.end_time,
-          isInTimeRange: isInTimeRange
-        })
-        console.log('Time comparison:')
-        console.log('  Current time:', time, '-> minutes:', currentTimeMinutes)
-        console.log('  Class start:', cls.start_time, '-> minutes:', startMinutes)
-        console.log('  Class end:', cls.end_time, '-> minutes:', endMinutes)
-        console.log('  Is in range:', currentTimeMinutes >= startMinutes && currentTimeMinutes < endMinutes)
-      }
       
       return isInTimeRange
     })
@@ -408,7 +407,7 @@ export const WeeklyCalendar = ({
                         
                         {item && isFirstSlot && (
                           <div 
-                            className="absolute inset-0 p-2 flex flex-col justify-center overflow-hidden rounded-lg border-2 border-gray-300/60"
+                            className="absolute top-0 left-0 right-0 p-2 flex flex-col justify-center overflow-hidden rounded-lg border-2 border-gray-300/60"
                             style={{
                               height: `${calculateTimeSlots(item.data.start_time, item.data.end_time) * 32}px`, // 32px por tramo de 15 min
                               zIndex: 10

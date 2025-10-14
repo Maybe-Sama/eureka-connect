@@ -13,7 +13,7 @@ interface AddClassModalProps {
   onClose: () => void
   onSave: (classData: any) => Promise<void>
   students: any[]
-  selectedTimeSlot?: { day: number; time: string }
+  selectedTimeSlot?: { day: number; time: string; date?: string }
 }
 
 export const AddClassModal = ({ 
@@ -36,25 +36,66 @@ export const AddClassModal = ({
   const [showPastDateWarning, setShowPastDateWarning] = useState(false)
   const [pendingClassData, setPendingClassData] = useState<any>(null)
 
+  // Función para calcular la hora de fin basada en la hora de inicio y duración
+  const calculateEndTime = (startTime: string, duration: number) => {
+    console.log('=== DEBUG calculateEndTime ===')
+    console.log('startTime:', startTime)
+    console.log('duration:', duration)
+    
+    const [startHours, startMinutes] = startTime.split(':').map(Number)
+    const startTotalMinutes = startHours * 60 + startMinutes
+    const endTotalMinutes = startTotalMinutes + duration
+    
+    console.log('startHours:', startHours)
+    console.log('startMinutes:', startMinutes)
+    console.log('startTotalMinutes:', startTotalMinutes)
+    console.log('endTotalMinutes:', endTotalMinutes)
+    console.log('24 * 60 =', 24 * 60)
+    
+    // Validar que la duración no exceda las 24 horas (1440 minutos)
+    if (endTotalMinutes >= 24 * 60) {
+      console.warn('Duración excesiva: la clase no puede terminar después de las 23:59')
+      console.warn('endTotalMinutes:', endTotalMinutes, '>=', 24 * 60)
+      // En lugar de limitar a 23:59, lanzar un error
+      throw new Error('La duración de la clase excede las 24 horas')
+    }
+    
+    const endHours = Math.floor(endTotalMinutes / 60)
+    const endMinutes = endTotalMinutes % 60
+    
+    const result = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
+    console.log('Calculated end time:', result)
+    
+    return result
+  }
+
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
+      const startTime = selectedTimeSlot?.time || '16:00'
+      const duration = 60
+      const endTime = calculateEndTime(startTime, duration)
+      
       setFormData({
         student_id: '',
-        start_time: selectedTimeSlot?.time || '16:00',
-        end_time: '17:00',
-        duration: 60,
-        date: new Date().toISOString().split('T')[0],
+        start_time: startTime,
+        end_time: endTime,
+        duration: duration,
+        date: selectedTimeSlot?.date || new Date().toISOString().split('T')[0],
         notes: ''
       })
       setIsSubmitting(false)
     } else {
       // Limpiar formulario cuando se cierra el modal
+      const startTime = '16:00'
+      const duration = 60
+      const endTime = calculateEndTime(startTime, duration)
+      
       setFormData({
         student_id: '',
-        start_time: '16:00',
-        end_time: '17:00',
-        duration: 60,
+        start_time: startTime,
+        end_time: endTime,
+        duration: duration,
         date: new Date().toISOString().split('T')[0],
         notes: ''
       })
@@ -64,19 +105,14 @@ export const AddClassModal = ({
 
   // Función para preparar los datos de la clase
   const prepareClassData = (selectedStudent: any) => {
+    console.log('=== DEBUG prepareClassData ===')
+    console.log('formData:', formData)
+    console.log('formData.duration type:', typeof formData.duration)
+    console.log('formData.duration value:', formData.duration)
+    
     const startTime = formData.start_time
-    const [startHours, startMinutes] = startTime.split(':').map(Number)
-    const startTotalMinutes = startHours * 60 + startMinutes
-    const endTotalMinutes = startTotalMinutes + formData.duration
-    
-    // Asegurar que no exceda las 24 horas (1440 minutos)
-    const maxMinutes = 24 * 60
-    const finalEndMinutes = Math.min(endTotalMinutes, maxMinutes - 1) // Máximo 23:59
-    
-    const endHours = Math.floor(finalEndMinutes / 60)
-    const endMinutes = finalEndMinutes % 60
-    const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
-    
+    const duration = Number(formData.duration) // Asegurar que sea número
+    const endTime = calculateEndTime(startTime, duration)
     const targetDate = new Date(formData.date + 'T00:00:00')
     
     return {
@@ -84,7 +120,7 @@ export const AddClassModal = ({
       course_id: selectedStudent.course_id,
       start_time: startTime,
       end_time: endTime,
-      duration: formData.duration,
+      duration: duration,
       day_of_week: targetDate.getDay() === 0 ? 7 : targetDate.getDay(),
       date: formData.date,
       subject: null,
@@ -105,6 +141,7 @@ export const AddClassModal = ({
     }
     
     const classData = prepareClassData(selectedStudent)
+    
     
     if (typeof onSave !== 'function') {
       toast.error('Error: función de guardado no disponible')
@@ -211,20 +248,14 @@ export const AddClassModal = ({
       
       // Si cambia la duración, recalcular la hora de fin
       if (name === 'duration') {
-        const startTime = newData.start_time
-        const [startHours, startMinutes] = startTime.split(':').map(Number)
-        const startTotalMinutes = startHours * 60 + startMinutes
-        const endTotalMinutes = startTotalMinutes + Number(value)
-        
-        // Asegurar que no exceda las 24 horas (1440 minutos)
-        const maxMinutes = 24 * 60
-        const finalEndMinutes = Math.min(endTotalMinutes, maxMinutes - 1) // Máximo 23:59
-        
-        const endHours = Math.floor(finalEndMinutes / 60)
-        const endMinutes = finalEndMinutes % 60
-        const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
-        
-        newData.end_time = endTime
+        try {
+          const startTime = newData.start_time
+          const endTime = calculateEndTime(startTime, Number(value))
+          newData.end_time = endTime
+        } catch (error) {
+          // Si hay error en el cálculo, mantener la hora de fin actual
+          console.warn('Error calculando hora de fin:', error)
+        }
       }
       
       return newData
@@ -236,14 +267,17 @@ export const AddClassModal = ({
   }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          className="bg-background p-8 rounded-lg shadow-xl w-full max-w-md border border-border"
-        >
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            key="add-class-modal"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-background p-8 rounded-lg shadow-xl w-full max-w-md border border-border"
+          >
         <h2 className="text-2xl font-bold text-foreground mb-6">Nueva Clase</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -366,7 +400,7 @@ export const AddClassModal = ({
                   start_time: selectedTimeSlot?.time || '16:00',
                   end_time: '17:00',
                   duration: 60,
-                  date: new Date().toISOString().split('T')[0],
+                  date: selectedTimeSlot?.date || new Date().toISOString().split('T')[0],
                   notes: ''
                 })
                 setIsSubmitting(false)
@@ -386,7 +420,9 @@ export const AddClassModal = ({
           </div>
         </form>
         </motion.div>
-      </div>
+        </div>
+        )}
+      </AnimatePresence>
       
       {/* Modal de advertencia para fechas pasadas */}
       <PastDateWarningModal
@@ -397,6 +433,6 @@ export const AddClassModal = ({
         selectedTime={formData.start_time}
         studentName={pendingClassData ? `${students.find(s => s.id === Number(formData.student_id))?.first_name} ${students.find(s => s.id === Number(formData.student_id))?.last_name}` : ''}
       />
-    </AnimatePresence>
+    </>
   )
 }

@@ -1,0 +1,426 @@
+{
+  "Aritmetica y Numeros": {
+    "Operaciones Basicas": {
+      "Conmutativa": "a + b = b + a, a * b = b * a",
+      "Asociativa": "(a + b) + c = a + (b + c), (a * b) * c = a * (b * c)",
+      "Distributiva": "a * (b + c) = a * b + a * c",
+      "Identidad Aditiva": "a + 0 = a",
+      "Identidad Multiplicativa": "a * 1 = a"
+    },
+    "MCM y MCD": {
+      "MCM": "mcm(a, b) es el menor múltiplo común de a y b",
+      "MCD": "mcd(a, b) es el mayor divisor común de a y b",
+      "Propiedad de MCM y MCD": "mcm(a, b) * mcd(a, b) = a * b"
+    },
+    "Potencias y Raices": {
+      "Multiplicacion de potencias": "a^m \\cdot a^n = a^{m+n}",
+      "Division de potencias": "\\frac{a^m}{a^n} = a^{m-n}",
+      "Raíz n-ésima": "\\sqrt[n]{a} = a^{1/n}",
+      "Potencia de una potencia": "(a^m)^n = a^{m \\cdot n}",
+      "Raíz de una raíz": "\\sqrt[m]{\\sqrt[n]{a}} = \\sqrt[m \\cdot n]{a}",
+      "Potencia del producto": "(a \\cdot b)^n = a^n \\cdot b^n",
+      "Potencia del cociente": "\\left(\\frac{a}{b}\\right)^n = \\frac{a^n}{b^n}",
+      "Potencia negativa": "a^{-n} = \\frac{1}{a^n}",
+      "Potencia de 1": "1^n = 1",
+      "Potencia de 0": "0^n = 0 (para n>0)",
+      "Potencia base cero": "a^0 = 1 (para a≠0)",
+      "Potencia fraccionaria": "a^{m/n} = \\sqrt[n]{a^m}"
+    },
+    "Propiedades de Raíces": {
+      "Raíz de un producto": "\\sqrt[n]{a \\cdot b} = \\sqrt[n]{a} \\cdot \\sqrt[n]{b}",
+      "Raíz de un cociente": "\\sqrt[n]{\\frac{a}{b}} = \\frac{\\sqrt[n]{a}}{\\sqrt[n]{b}}",
+      "Raíz de una potencia": "\\sqrt[n]{a^m} = a^{m/n}",
+      "Potencia de una raíz": "(\\sqrt[n]{a})^m = a^{m/n}",
+      "Racionalización denominador": "\\frac{a}{\\sqrt{b}} = \\frac{a \\cdot \\sqrt{b}}{b}"
+    },
+    "Logaritmos": {
+      "Logaritmo de un producto": "log_a(x*y) = log_a(x) + log_a(y)",
+      "Logaritmo de un cociente": "log_a(x/y) = log_a(x) - log_a(y)",
+      "Logaritmo de una potencia": "log_a(x^n) = n*log_a(x)",
+      "Cambio de base": "log_a(x) = log_b(x)/log_b(a)",
+      "Logaritmo de 1": "log_a(1) = 0",
+      "Logaritmo de la base": "log_a(a) = 1",
+      "Logaritmo exponencial": "log_a(a^x) = x",
+      "Logaritmo neperiano": "ln(x) = log_e(x)"
+    },
+    "Porcentajes": {
+      "Porcentaje": "p% de a = (p/100) * a",
+      "Incremento porcentual": "a aumentado en p% = a * (1 + p/100)",
+      "Decremento porcentual": "a disminuido en p% = a * (1 - p/100)"
+    },
+    "Fracciones": {
+      "Suma de fracciones": "\\frac{a}{b} + \\frac{c}{d} = \\frac{a \\cdot d + b \\cdot c}{b \\cdot d}",
+      "Resta de fracciones": "\\frac{a}{b} - \\frac{c}{d} = \\frac{a \\cdot d - b \\cdot c}{b \\cdot d}",
+      "Multiplicacion de fracciones": "\\frac{a}{b} \\cdot \\frac{c}{d} = \\frac{a \\cdot c}{b \\cdot d}",
+      "Division de fracciones": "\\frac{a}{b} \\div \\frac{c}{d} = \\frac{a \\cdot d}{b \\cdot c}"
+    },
+    "Cálculo Aproximado y Estimación": {
+      "Aproximación": "≈",
+      "Redondeo": "Reglas de redondeo según cifras decimales"
+    },
+    "Repartos Proporcionales": {
+      "Reparto directo": "Si a₁:a₂:...aₙ = b₁:b₂:...bₙ, entonces b₁ = (a₁/Σaᵢ) * B",
+      "Reparto inverso": "Si a₁:a₂:...aₙ = 1/b₁:1/b₂:...1/bₙ, entonces b₁ = (1/a₁)/(Σ(1/aᵢ)) * B",
+      "Reparto mixto": "Combinación ponderada de repartos directos e inversos"
+    },
+    "Interés y Finanzas": {
+      "Interés simple": "I = P * r * t",
+      "Capital final con interés simple": "CF = P * (1 + r * t)",
+      "Interés compuesto": "CF = P * (1 + r)^t",
+      "Tasa de interés efectiva": "rₑ = (1 + r/m)^m - 1",
+      "Anualidades": "A = P * r * (1+r)^n/((1+r)^n - 1)",
+      "Amortización": "Cuota = P * r * (1+r)^n/((1+r)^n - 1)"
+    }
+  },
+  "Algebra": {
+    "Ecuaciones": {
+      "Primer grado": "ax + b = 0 => x = -b/a",
+      "Segundo grado": "ax^2 + bx + c = 0 => x = (-b ± sqrt(b^2 - 4ac))/(2a)",
+      "Sistema de ecuaciones lineales": "a1x + b1y = c1, a2x + b2y = c2",
+      "Ecuación bicuadrada": "ax⁴ + bx² + c = 0 => sustituir y=x², resolver ay² + by + c = 0",
+      "Ecuaciones con radicales": "√(f(x)) = g(x) => f(x) = [g(x)]² y comprobar soluciones"
+    },
+    "Identidades notables": {
+      "Cuadrado de un binomio": "(a+b)^2 = a^2 + 2ab + b^2",
+      "Diferencia de cuadrados": "a^2 - b^2 = (a-b)(a+b)",
+      "Cubo de un binomio": "(a+b)^3 = a^3 + 3a^2b + 3ab^2 + b^3",
+      "Suma y Resta de Cubos": "a^3 + b^3 = (a+b)(a^2 - ab + b^2), a^3 - b^3 = (a-b)(a^2 + ab + b^2)"
+    },
+    "Progresiones": {
+      "Progresion aritmetica": "a_n = a_1 + (n-1)d",
+      "Suma de progresion aritmetica": "S_n = (n/2)(a_1 + a_n)",
+      "Progresion geometrica": "a_n = a_1 * r^(n-1)",
+      "Suma de progresion geometrica": "S_n = a_1(1-r^n)/(1-r)",
+      "Suma de progresión geométrica infinita": "S_∞ = a_1/(1-r) para |r| < 1"
+    },
+    "Ecuaciones con valor absoluto": {
+      "Ecuación básica": "|x| = a => x = a o x = -a",
+      "Ecuación general": "|f(x)| = g(x) => f(x) = g(x) o f(x) = -g(x)"
+    },
+    "Matrices": {
+      "Suma de matrices": "[A+B]ᵢⱼ = Aᵢⱼ + Bᵢⱼ",
+      "Multiplicación escalar": "[k·A]ᵢⱼ = k·Aᵢⱼ",
+      "Multiplicación de matrices": "[A·B]ᵢⱼ = Σₖ Aᵢₖ·Bₖⱼ",
+      "Determinante 2x2": "det(A) = |A| = a₁₁a₂₂ - a₁₂a₂₁",
+      "Determinante 3x3": "det(A) = a₁₁(a₂₂a₃₃-a₂₃a₃₂) - a₁₂(a₂₁a₃₃-a₂₃a₃₁) + a₁₃(a₂₁a₃₂-a₂₂a₃₁)",
+      "Traza": "tr(A) = Σᵢ aᵢᵢ",
+      "Matriz inversa": "A·A⁻¹ = A⁻¹·A = I",
+      "Rango de una matriz": "Número máximo de filas o columnas linealmente independientes",
+      "Matriz transpuesta": "Aᵀ, donde [Aᵀ]ᵢⱼ = Aⱼᵢ"
+    },
+    "Determinantes y Sistemas": {
+      "Regla de Cramer": "x₁ = |A₁|/|A|, x₂ = |A₂|/|A|, ...",
+      "Teorema de Rouché-Frobenius": "Un sistema tiene solución si y solo si rg(A) = rg(A|b)"
+    },
+    "Lógica Matemática": {
+      "Leyes de De Morgan": "¬(P ∧ Q) = (¬P) ∨ (¬Q), ¬(P ∨ Q) = (¬P) ∧ (¬Q)",
+      "Modus ponens": "P → Q, P ⊢ Q",
+      "Modus tollens": "P → Q, ¬Q ⊢ ¬P",
+      "Disyunción": "P ⊢ P ∨ Q",
+      "Conjunción": "P, Q ⊢ P ∧ Q"
+    }
+  },
+  "Geometria": {
+    "Areas y Perimetros": {
+      "Cuadrado": { "Area": "A = l^2", "Perimetro": "P = 4l" },
+      "Circulo": { "Area": "A = \\pi \\cdot r^2", "Perimetro": "P = 2 \\cdot \\pi \\cdot r" },
+      "Triangulo": { "Area": "A = \\frac{b \\cdot h}{2}", "Perimetro": "P = a + b + c" },
+      "Rectangulo": { "Area": "A = l \\cdot w", "Perimetro": "P = 2l + 2w" },
+      "Trapecio": { "Area": "A = \\frac{(b_1 + b_2) \\cdot h}{2}", "Perimetro": "P = a + b_1 + b_2 + c" },
+      "Polígono regular": { "Area": "A = \\frac{P \\cdot a}{2}", "Perímetro": "P = n \\cdot l" }
+    },
+    "Volumenes": {
+      "Cubo": "V = l^3",
+      "Esfera": "V = \\frac{4}{3} \\cdot \\pi \\cdot r^3",
+      "Cilindro": "V = \\pi \\cdot r^2 \\cdot h",
+      "Cono": "V = \\frac{1}{3} \\cdot \\pi \\cdot r^2 \\cdot h",
+      "Prisma": "V = B \\cdot h",
+      "Pirámide": "V = \\frac{1}{3} \\cdot B \\cdot h",
+      "Tronco de cono": "V = \\frac{1}{3} \\cdot \\pi \\cdot h \\cdot (R^2 + R \\cdot r + r^2)"
+    },
+    "Teorema de Pitagoras": {
+      "Formula": "a^2 + b^2 = c^2",
+      "Inversa": "Si a² + b² = c², entonces el triángulo es rectángulo"
+    },
+    "Propiedades de los Ángulos": {
+      "Suma de angulos internos de un triángulo": "180°",
+      "Suma de ángulos internos de un polígono": "(n-2) * 180°",
+      "Ángulos opuestos por el vértice": "Son iguales",
+      "Ángulos complementarios": "Suman 90°",
+      "Ángulos suplementarios": "Suman 180°"
+    },
+    "Círculo y Circunferencia": {
+      "Longitud de arco": "L = r * θ (en radianes)",
+      "Área de sector": "A = (1/2) * r^2 * θ (en radianes)"
+    },
+    "Transformaciones Geométricas": {
+      "Traslación": "Movimiento de una figura en una dirección sin rotarla",
+      "Rotación": "Giro de una figura alrededor de un punto",
+      "Reflexión": "Espejado de una figura respecto a una línea",
+      "Dilatación": "Cambio de tamaño de una figura, manteniendo su forma"
+    },
+    "Homotecia y Escalado": {
+      "Homotecia": "Transformación que amplía o reduce una figura manteniendo su forma",
+      "Escalado": "Multiplicación de las dimensiones de una figura por un factor"
+    },
+    "Geometría Analítica": {
+      "Distancia entre dos puntos": "d = √[(x₂-x₁)² + (y₂-y₁)²]",
+      "Punto medio": "M = ((x₁+x₂)/2, (y₁+y₂)/2)",
+      "Ecuación general de la recta": "Ax + By + C = 0",
+      "Ecuación punto-pendiente": "y - y₁ = m(x - x₁)",
+      "Distancia de un punto a una recta": "d = |Ax₀+By₀+C|/√(A²+B²)"
+    },
+    "Cónicas": {
+      "Circunferencia": "(x-h)² + (y-k)² = r²",
+      "Elipse": "(x-h)²/a² + (y-k)²/b² = 1",
+      "Hipérbola": "(x-h)²/a² - (y-k)²/b² = 1",
+      "Parábola": "y = a(x-h)² + k"
+    }
+  },
+  "Trigonometria": {
+    "Funciones Basicas": {
+      "Seno": "\\sin(x) = \\frac{\\text{opuesto}}{\\text{hipotenusa}}",
+      "Coseno": "\\cos(x) = \\frac{\\text{adyacente}}{\\text{hipotenusa}}",
+      "Tangente": "\\tan(x) = \\frac{\\sin(x)}{\\cos(x)} = \\frac{\\text{opuesto}}{\\text{adyacente}}",
+      "Cotangente": "\\cot(x) = \\frac{1}{\\tan(x)} = \\frac{\\cos(x)}{\\sin(x)} = \\frac{\\text{adyacente}}{\\text{opuesto}}",
+      "Secante": "\\sec(x) = \\frac{1}{\\cos(x)} = \\frac{\\text{hipotenusa}}{\\text{adyacente}}",
+      "Cosecante": "\\csc(x) = \\frac{1}{\\sin(x)} = \\frac{\\text{hipotenusa}}{\\text{opuesto}}"
+    },
+    "Relaciones Fundamentales": {
+      "Identidad pitagórica": "\\sin^2(x) + \\cos^2(x) = 1",
+      "Relaciones recíprocas": "\\tan(x) = \\frac{1}{\\cot(x)}, \\sec(x) = \\frac{1}{\\cos(x)}, \\csc(x) = \\frac{1}{\\sin(x)}",
+      "Relaciones de cociente": "\\tan(x) = \\frac{\\sin(x)}{\\cos(x)}, \\cot(x) = \\frac{\\cos(x)}{\\sin(x)}"
+    },
+    "Ángulos Especiales": {
+      "0°": "\\sin(0°) = 0, \\cos(0°) = 1, \\tan(0°) = 0",
+      "30°": "\\sin(30°) = \\frac{1}{2}, \\cos(30°) = \\frac{\\sqrt{3}}{2}, \\tan(30°) = \\frac{1}{\\sqrt{3}}",
+      "45°": "\\sin(45°) = \\cos(45°) = \\frac{1}{\\sqrt{2}}, \\tan(45°) = 1",
+      "60°": "\\sin(60°) = \\frac{\\sqrt{3}}{2}, \\cos(60°) = \\frac{1}{2}, \\tan(60°) = \\sqrt{3}",
+      "90°": "\\sin(90°) = 1, \\cos(90°) = 0, \\tan(90°) \\text{ no está definido}"
+    },
+    "Ángulos Complementarios y Suplementarios": {
+      "Complementario": "sin(90°-x) = cos(x), cos(90°-x) = sin(x), tan(90°-x) = cot(x)",
+      "Suplementario": "sin(180°-x) = sin(x), cos(180°-x) = -cos(x), tan(180°-x) = -tan(x)"
+    },
+    "Ángulos Opuestos y Periodos": {
+      "Opuestos": "sin(-x) = -sin(x), cos(-x) = cos(x), tan(-x) = -tan(x)",
+      "Periodo seno y coseno": "sin(x+360°) = sin(x), cos(x+360°) = cos(x)",
+      "Periodo tangente": "tan(x+180°) = tan(x)"
+    },
+    "Ley del seno": "\\frac{a}{\\sin(A)} = \\frac{b}{\\sin(B)} = \\frac{c}{\\sin(C)}",
+    "Ley del coseno": "c^2 = a^2 + b^2 - 2ab \\cdot \\cos(C)",
+    "Área del triángulo": {
+      "Con seno": "A = \\frac{1}{2} \\cdot ab \\cdot \\sin(C)",
+      "Con semiperímetro": "A = \\sqrt{s(s-a)(s-b)(s-c)}, \\text{ donde } s = \\frac{a+b+c}{2}"
+    },
+    "Suma y Diferencia de Ángulos": {
+      "Seno de suma": "\\sin(a+b) = \\sin(a) \\cdot \\cos(b) + \\cos(a) \\cdot \\sin(b)",
+      "Seno de diferencia": "\\sin(a-b) = \\sin(a) \\cdot \\cos(b) - \\cos(a) \\cdot \\sin(b)",
+      "Coseno de suma": "\\cos(a+b) = \\cos(a) \\cdot \\cos(b) - \\sin(a) \\cdot \\sin(b)",
+      "Coseno de diferencia": "\\cos(a-b) = \\cos(a) \\cdot \\cos(b) + \\sin(a) \\cdot \\sin(b)",
+      "Tangente de suma": "\\tan(a+b) = \\frac{\\tan(a) + \\tan(b)}{1 - \\tan(a) \\cdot \\tan(b)}",
+      "Tangente de diferencia": "\\tan(a-b) = \\frac{\\tan(a) - \\tan(b)}{1 + \\tan(a) \\cdot \\tan(b)}"
+    },
+    "Ángulo Doble": {
+      "Seno doble": "\\sin(2x) = 2 \\cdot \\sin(x) \\cdot \\cos(x)",
+      "Coseno doble": "\\cos(2x) = \\cos^2(x) - \\sin^2(x) = 2\\cos^2(x) - 1 = 1 - 2\\sin^2(x)",
+      "Tangente doble": "\\tan(2x) = \\frac{2\\tan(x)}{1 - \\tan^2(x)}"
+    },
+    "Ángulo Triple": {
+      "Seno triple": "\\sin(3x) = 3\\sin(x) - 4\\sin^3(x)",
+      "Coseno triple": "\\cos(3x) = 4\\cos^3(x) - 3\\cos(x)"
+    },
+    "Ángulo Mitad": {
+      "Seno mitad": "\\sin\\left(\\frac{x}{2}\\right) = \\pm\\sqrt{\\frac{1-\\cos(x)}{2}}",
+      "Coseno mitad": "\\cos\\left(\\frac{x}{2}\\right) = \\pm\\sqrt{\\frac{1+\\cos(x)}{2}}",
+      "Tangente mitad": "\\tan\\left(\\frac{x}{2}\\right) = \\frac{1-\\cos(x)}{\\sin(x)} = \\frac{\\sin(x)}{1+\\cos(x)}"
+    },
+    "Productos a Sumas": {
+      "Producto seno-seno": "\\sin(a) \\cdot \\sin(b) = \\frac{\\cos(a-b) - \\cos(a+b)}{2}",
+      "Producto coseno-coseno": "\\cos(a) \\cdot \\cos(b) = \\frac{\\cos(a-b) + \\cos(a+b)}{2}",
+      "Producto seno-coseno": "\\sin(a) \\cdot \\cos(b) = \\frac{\\sin(a+b) + \\sin(a-b)}{2}"
+    },
+    "Sumas a Productos": {
+      "Suma de senos": "\\sin(a) + \\sin(b) = 2\\sin\\left(\\frac{a+b}{2}\\right)\\cos\\left(\\frac{a-b}{2}\\right)",
+      "Diferencia de senos": "\\sin(a) - \\sin(b) = 2\\cos\\left(\\frac{a+b}{2}\\right)\\sin\\left(\\frac{a-b}{2}\\right)",
+      "Suma de cosenos": "\\cos(a) + \\cos(b) = 2\\cos\\left(\\frac{a+b}{2}\\right)\\cos\\left(\\frac{a-b}{2}\\right)",
+      "Diferencia de cosenos": "\\cos(a) - \\cos(b) = -2\\sin\\left(\\frac{a+b}{2}\\right)\\sin\\left(\\frac{a-b}{2}\\right)"
+    },
+    "Potencias de Funciones Trigonométricas": {
+      "Cuadrado de seno": "\\sin^2(x) = \\frac{1 - \\cos(2x)}{2}",
+      "Cuadrado de coseno": "\\cos^2(x) = \\frac{1 + \\cos(2x)}{2}",
+      "Cubo de seno": "\\sin^3(x) = \\frac{3\\sin(x) - \\sin(3x)}{4}",
+      "Cubo de coseno": "\\cos^3(x) = \\frac{3\\cos(x) + \\cos(3x)}{4}"
+    },
+    "Funciones hiperbólicas": {
+      "Seno hiperbólico": "\\sinh(x) = \\frac{e^x - e^{-x}}{2}",
+      "Coseno hiperbólico": "\\cosh(x) = \\frac{e^x + e^{-x}}{2}",
+      "Tangente hiperbólica": "\\tanh(x) = \\frac{\\sinh(x)}{\\cosh(x)} = \\frac{e^x - e^{-x}}{e^x + e^{-x}}",
+      "Identidad fundamental": "\\cosh^2(x) - \\sinh^2(x) = 1"
+    }
+  },
+  "Analisis Matematico": {
+    "Derivadas": {
+      "Potencia": "\\frac{d(x^n)}{dx} = n \\cdot x^{n-1}",
+      "Exponencial": "\\frac{d(e^x)}{dx} = e^x",
+      "Logaritmica": "\\frac{d(\\ln(x))}{dx} = \\frac{1}{x}",
+      "Suma": "\\frac{d(u + v)}{dx} = \\frac{du}{dx} + \\frac{dv}{dx}",
+      "Producto": "\\frac{d(u \\cdot v)}{dx} = u \\cdot \\frac{dv}{dx} + v \\cdot \\frac{du}{dx}",
+      "Cociente": "\\frac{d(u/v)}{dx} = \\frac{v \\cdot \\frac{du}{dx} - u \\cdot \\frac{dv}{dx}}{v^2}",
+      "Cadena": "\\frac{d(f(g(x)))}{dx} = f'(g(x)) \\cdot g'(x)",
+      "Funciones trigonométricas": {
+        "Seno": "\\frac{d(\\sin(x))}{dx} = \\cos(x)",
+        "Coseno": "\\frac{d(\\cos(x))}{dx} = -\\sin(x)",
+        "Tangente": "\\frac{d(\\tan(x))}{dx} = \\sec^2(x) = \\frac{1}{\\cos^2(x)}",
+        "Cotangente": "\\frac{d(\\cot(x))}{dx} = -\\csc^2(x) = -\\frac{1}{\\sin^2(x)}",
+        "Secante": "\\frac{d(\\sec(x))}{dx} = \\sec(x) \\cdot \\tan(x)",
+        "Cosecante": "\\frac{d(\\csc(x))}{dx} = -\\csc(x) \\cdot \\cot(x)"
+      },
+      "Funciones trigonométricas inversas": {
+        "Arcoseno": "\\frac{d(\\arcsin(x))}{dx} = \\frac{1}{\\sqrt{1-x^2}}",
+        "Arcocoseno": "\\frac{d(\\arccos(x))}{dx} = -\\frac{1}{\\sqrt{1-x^2}}",
+        "Arcotangente": "\\frac{d(\\arctan(x))}{dx} = \\frac{1}{1+x^2}",
+        "Arcocotangente": "\\frac{d(\\arccot(x))}{dx} = -\\frac{1}{1+x^2}",
+        "Arcosecante": "\\frac{d(\\arcsec(x))}{dx} = \\frac{1}{|x|\\sqrt{x^2-1}}",
+        "Arcocosecante": "\\frac{d(\\arccsc(x))}{dx} = -\\frac{1}{|x|\\sqrt{x^2-1}}"
+      },
+      "Funciones hiperbólicas": {
+        "Seno hiperbólico": "\\frac{d(\\sinh(x))}{dx} = \\cosh(x)",
+        "Coseno hiperbólico": "\\frac{d(\\cosh(x))}{dx} = \\sinh(x)",
+        "Tangente hiperbólica": "\\frac{d(\\tanh(x))}{dx} = \\text{sech}^2(x) = \\frac{1}{\\cosh^2(x)}",
+        "Cotangente hiperbólica": "\\frac{d(\\coth(x))}{dx} = -\\text{csch}^2(x) = -\\frac{1}{\\sinh^2(x)}",
+        "Secante hiperbólica": "\\frac{d(\\text{sech}(x))}{dx} = -\\text{sech}(x) \\cdot \\tanh(x)",
+        "Cosecante hiperbólica": "\\frac{d(\\text{csch}(x))}{dx} = -\\text{csch}(x) \\cdot \\coth(x)"
+      },
+      "Funciones hiperbólicas inversas": {
+        "Arcoseno hiperbólico": "\\frac{d(\\text{arcsinh}(x))}{dx} = \\frac{1}{\\sqrt{x^2+1}}",
+        "Arcocoseno hiperbólico": "\\frac{d(\\text{arccosh}(x))}{dx} = \\frac{1}{\\sqrt{x^2-1}} \\text{ para } x>1",
+        "Arcotangente hiperbólica": "\\frac{d(\\text{arctanh}(x))}{dx} = \\frac{1}{1-x^2} \\text{ para } |x|<1"
+      }
+    
+  
+    },
+    "Integrales": {
+      "Polinomio": "\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C, \\text{ } n \\neq -1",
+      "Exponencial": "\\int e^x \\, dx = e^x + C",
+      "Logaritmica": "\\int \\frac{1}{x} \\, dx = \\ln|x| + C",
+      "Suma": "\\int (u + v) \\, dx = \\int u \\, dx + \\int v \\, dx",
+      "Por partes": "\\int u \\, dv = u \\cdot v - \\int v \\, du",
+      "Sustitución": "\\int f(g(x)) \\cdot g'(x) \\, dx = \\int f(u) \\, du \\text{ con } u=g(x)",
+      "Funciones trigonométricas": {
+        "Seno": "\\int \\sin(x) \\, dx = -\\cos(x) + C",
+        "Coseno": "\\int \\cos(x) \\, dx = \\sin(x) + C",
+        "Tangente": "\\int \\tan(x) \\, dx = -\\ln|\\cos(x)| + C = \\ln|\\sec(x)| + C",
+        "Cotangente": "\\int \\cot(x) \\, dx = \\ln|\\sin(x)| + C",
+        "Secante": "\\int \\sec(x) \\, dx = \\ln|\\sec(x) + \\tan(x)| + C",
+        "Cosecante": "\\int \\csc(x) \\, dx = \\ln|\\csc(x) - \\cot(x)| + C",
+        "Secante al cuadrado": "\\int \\sec^2(x) \\, dx = \\tan(x) + C",
+        "Cosecante al cuadrado": "\\int \\csc^2(x) \\, dx = -\\cot(x) + C",
+        "Secante·tangente": "\\int \\sec(x) \\cdot \\tan(x) \\, dx = \\sec(x) + C",
+        "Cosecante·cotangente": "\\int \\csc(x) \\cdot \\cot(x) \\, dx = -\\csc(x) + C"
+      },
+      "Funciones racionales": {
+        "Fracciones simples": "\\int \\frac{1}{x-a} \\, dx = \\ln|x-a| + C",
+        "Formas cuadráticas": "\\int \\frac{1}{x^2+a^2} \\, dx = \\frac{1}{a} \\cdot \\arctan\\left(\\frac{x}{a}\\right) + C",
+        "Diferencia de cuadrados": "\\int \\frac{1}{x^2-a^2} \\, dx = \\frac{1}{2a} \\cdot \\ln\\left|\\frac{x-a}{x+a}\\right| + C"
+      },
+      "Formas irracionales": {
+        "Raíz cuadrada de a²-x²": "\\int \\sqrt{a^2-x^2} \\, dx = \\frac{x}{2} \\cdot \\sqrt{a^2-x^2} + \\frac{a^2}{2} \\cdot \\arcsin\\left(\\frac{x}{a}\\right) + C",
+        "Raíz cuadrada de x²+a²": "\\int \\sqrt{x^2+a^2} \\, dx = \\frac{x}{2} \\cdot \\sqrt{x^2+a^2} + \\frac{a^2}{2} \\cdot \\ln(x+\\sqrt{x^2+a^2}) + C",
+        "Raíz cuadrada de x²-a²": "\\int \\sqrt{x^2-a^2} \\, dx = \\frac{x}{2} \\cdot \\sqrt{x^2-a^2} - \\frac{a^2}{2} \\cdot \\ln|x+\\sqrt{x^2-a^2}| + C"
+      },
+      "Funciones hiperbólicas": {
+        "Seno hiperbólico": "\\int \\sinh(x) \\, dx = \\cosh(x) + C",
+        "Coseno hiperbólico": "\\int \\cosh(x) \\, dx = \\sinh(x) + C",
+        "Tangente hiperbólica": "\\int \\tanh(x) \\, dx = \\ln(\\cosh(x)) + C"
+      }
+    },
+    "Función Inversa": {
+      "Definición": "Si f(x) = y, entonces f^{-1}(y) = x",
+      "Derivada": "Si y = f(x), entonces \\frac{dx}{dy} = \\frac{1}{\\frac{dy}{dx}}",
+      "Propiedad": "f(f^{-1}(x)) = f^{-1}(f(x)) = x"
+    },
+    "Límites y Continuidad": {
+      "Concepto de Límite": "\\lim_{x \\to a} f(x) = L",
+      "Límites laterales y al infinito": "\\lim_{x \\to \\infty} f(x) = L",
+      "Continuidad": "f \\text{ es continua en } x=a \\text{ si } \\lim_{x \\to a} f(x) = f(a)",
+      "Indeterminaciones": {
+        "0/0": "\\text{Usar factorización, conjugados, o l'Hôpital}",
+        "∞/∞": "\\text{Dividir por la mayor potencia o usar l'Hôpital}",
+        "0·∞": "\\text{Reescribir como } (0 \\cdot \\infty) = (0) \\cdot (\\infty) = (f(x)) \\cdot (1/g(x)) \\text{ donde } g(x) \\to 0",
+        "∞-∞": "\\text{Buscar factor común o usar un denominador común}",
+        "1^∞": "\\text{Utilizar } e^{\\lim(f(x)-1) \\cdot g(x)} \\text{ donde } f(x) \\to 1 \\text{ y } g(x) \\to \\infty",
+        "0^0": "\\text{Usar } e^{\\lim g(x) \\cdot \\ln(f(x))} \\text{ donde } f(x) \\to 0 \\text{ y } g(x) \\to 0",
+        "∞^0": "\\text{Usar } e^{\\lim g(x) \\cdot \\ln(f(x))} \\text{ donde } f(x) \\to \\infty \\text{ y } g(x) \\to 0"
+      },
+      "Teorema de Bolzano": "\\text{Si } f \\text{ es continua en } [a,b] \\text{ y } f(a) \\cdot f(b) < 0, \\text{ existe } c \\in (a,b) \\text{ tal que } f(c) = 0",
+      "Teorema de Weierstrass": "\\text{Si } f \\text{ es continua en } [a,b], \\text{ entonces } f \\text{ alcanza un máximo y un mínimo absoluto}"
+    }
+  },
+  "Numeros Complejos": {
+    "Forma Binomica": "z = a + bi",
+    "Modulo": "|z| = \\sqrt{a^2 + b^2}",
+    "Forma Polar": "z = r \\cdot (\\cos(\\theta) + i \\cdot \\sin(\\theta))",
+    "Forma exponencial": "z = r \\cdot e^{i\\theta}",
+    "Conjugado": "z^* = a - bi",
+    "Producto": "z_1 \\cdot z_2 = (a_1 + b_1i) \\cdot (a_2 + b_2i) = (a_1a_2 - b_1b_2) + (a_1b_2 + a_2b_1)i",
+    "Cociente": "\\frac{z_1}{z_2} = \\frac{(a_1a_2 + b_1b_2) + (b_1a_2 - a_1b_2)i}{a_2^2 + b_2^2}",
+    "Teorema de Moivre": "(r \\cdot (\\cos(\\theta) + i \\cdot \\sin(\\theta)))^n = r^n \\cdot (\\cos(n\\theta) + i \\cdot \\sin(n\\theta))",
+    "Raíces n-ésimas": "z^{1/n} = |z|^{1/n} \\cdot (\\cos((\\theta+2\\pi k)/n) + i \\cdot \\sin((\\theta+2\\pi k)/n)), \\text{ } k=0,1,...,n-1",
+    "Raíz cuadrada": "\\sqrt{a+bi} = \\pm(\\sqrt{(|z|+a)/2} + i \\cdot \\text{sgn}(b) \\cdot \\sqrt{(|z|-a)/2})",
+    "Potencia": "z^n = r^n \\cdot (\\cos(n\\theta) + i \\cdot \\sin(n\\theta))",
+    "Exponencial compleja": "e^{a+bi} = e^a \\cdot (\\cos(b) + i \\cdot \\sin(b))",
+    "Logaritmo complejo": "\\ln(z) = \\ln|z| + i \\cdot \\text{Arg}(z)"
+  },
+  "Estadistica y Probabilidad": {
+    "Estadística Descriptiva": {
+      "Media": "\\bar{x} = \\frac{\\sum x_i}{n}",
+      "Mediana": "Valor central de un conjunto de datos ordenados",
+      "Moda": "Valor que aparece con mayor frecuencia en un conjunto de datos",
+      "Rango": "Diferencia entre el valor máximo y el valor mínimo",
+      "Varianza": "\\sigma^2 = \\frac{\\sum(x_i - \\bar{x})^2}{n}",
+      "Desviación típica": "\\sigma = \\sqrt{\\sigma^2}",
+      "Cuartiles": "Q_1: 25\\%, Q_2: 50\\% \\text{ (mediana) }, Q_3: 75\\%",
+      "Rango intercuartílico": "RIC = Q_3 - Q_1"
+    },
+    "Probabilidad Básica": {
+      "Probabilidad de un evento": "P(A) = \\frac{n(A)}{n(S)}",
+      "Regla de la suma": "P(A \\cup B) = P(A) + P(B) - P(A \\cap B)",
+      "Regla del producto": "P(A \\cap B) = P(A) \\cdot P(B|A)",
+      "Eventos independientes": "P(A \\cap B) = P(A) \\cdot P(B)"
+    },
+    "Probabilidad Avanzada": {
+      "Probabilidad condicional": "P(A|B) = \\frac{P(A \\cap B)}{P(B)}",
+      "Teorema de Bayes": "P(A|B) = \\frac{P(B|A) \\cdot P(A)}{P(B)}",
+      "Probabilidad total": "P(B) = \\sum P(B|A_i) \\cdot P(A_i) \\text{ para eventos } A_i \\text{ que forman partición}"
+    },
+    "Combinatoria": {
+      "Permutaciones": "P(n) = n!",
+      "Permutaciones con repetición": "P(n; n_1,n_2,...,n_k) = \\frac{n!}{n_1! \\cdot n_2! \\cdot ... \\cdot n_k!}",
+      "Combinaciones": "C(n, k) = \\frac{n!}{k! \\cdot (n-k)!}",
+      "Variaciones": "V(n,k) = \\frac{n!}{(n-k)!}"
+    },
+    "Distribuciones de Probabilidad": {
+      "Distribución binomial": "P(X=k) = C(n,k) \\cdot p^k \\cdot (1-p)^{n-k}",
+      "Distribución normal": "f(x) = \\frac{1}{\\sigma \\sqrt{2\\pi}} \\cdot e^{-\\frac{1}{2} \\cdot \\left(\\frac{x-\\mu}{\\sigma}\\right)^2}",
+      "Distribución de Poisson": "P(X=k) = \\frac{\\lambda^k \\cdot e^{-\\lambda}}{k!}"
+    }
+  },
+  "Razonamiento Logico y Resolución de Problemas": {
+    "Tipos de Demostraciones": {
+      "Demostración directa": "Se demuestra la verdad de una proposición directamente",
+      "Demostración por contradicción": "Se asume la negación de la proposición y se llega a una contradicción",
+      "Demostración por inducción": "Se demuestra que una proposición es válida para todos los números naturales"
+    },
+    "Elementos de un problema": {
+      "Datos": "Información conocida",
+      "Incógnitas": "Lo que buscamos o queremos calcular",
+      "Condiciones": "Restricciones o relaciones entre datos e incógnitas"
+    },
+    "Estrategias de resolución": {
+      "Ensayo y error": "Probar diferentes soluciones hasta encontrar la correcta",
+      "Trabajar hacia atrás": "Partir del resultado deseado y retroceder",
+      "Problemas auxiliares": "Dividir el problema en subproblemas más sencillos"
+    }
+  }
+}

@@ -346,7 +346,7 @@ const InvoicesPage = () => {
       }
 
       // Crear datos del receptor desde los datos del estudiante
-      // Usar DNI o NIF, el que esté cumplimentado
+      // Usar DNI o NIF, el que esté cumplimentado (no null/undefined/vacío)
       console.log('=== DEBUG IDENTIFICACIÓN FISCAL ===')
       console.log('student.dni:', student.dni)
       console.log('student.nif:', student.nif)
@@ -356,8 +356,28 @@ const InvoicesPage = () => {
       console.log('student.nif truthy:', !!student.nif)
       console.log('student completo:', JSON.stringify(student, null, 2))
       
-      const identificacionFiscal = student.dni || '00000000A'
+      // Lógica mejorada: verificar que el campo no sea null, undefined o vacío
+      let identificacionFiscal = '00000000A' // Valor por defecto
+      let tipoIdentificacion = 'DNI' // Tipo por defecto
+      
+      if (student.dni && student.dni.trim() !== '') {
+        identificacionFiscal = student.dni
+        tipoIdentificacion = 'DNI'
+        console.log('Usando DNI del estudiante:', identificacionFiscal)
+      } else if (student.nif && student.nif.trim() !== '') {
+        identificacionFiscal = student.nif
+        tipoIdentificacion = 'NIF'
+        console.log('Usando NIF del estudiante:', identificacionFiscal)
+      } else {
+        console.warn('Ni DNI ni NIF disponibles, usando valor por defecto:', identificacionFiscal)
+      }
+      
       console.log('identificacionFiscal seleccionada:', identificacionFiscal)
+      console.log('tipoIdentificacion seleccionada:', tipoIdentificacion)
+      console.log('=== DEBUG TIPO IDENTIFICACION ===')
+      console.log('student.dni:', student.dni)
+      console.log('student.nif:', student.nif)
+      console.log('tipoIdentificacion final:', tipoIdentificacion)
       
       const datosReceptorEstudiante: ReceptorData = {
         nif: identificacionFiscal,
@@ -368,7 +388,8 @@ const InvoicesPage = () => {
         provincia: student.province || 'Provincia no especificada',
         pais: student.country || 'España',
         telefono: student.phone,
-        email: student.receptorEmail || student.email
+        email: student.receptorEmail || student.email,
+        tipoIdentificacion: tipoIdentificacion // Añadir el tipo de identificación
       }
       
       console.log('datosReceptorEstudiante creado:', JSON.stringify(datosReceptorEstudiante, null, 2))

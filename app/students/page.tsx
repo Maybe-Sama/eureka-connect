@@ -20,7 +20,8 @@ import {
   Phone,
   User,
   Monitor,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
@@ -35,6 +36,18 @@ interface TimeSlot {
   course_id: string
   course_name: string
   price?: number
+}
+
+interface Exam {
+  id: number
+  student_id: number
+  subject: string
+  exam_date: string
+  exam_time?: string
+  notes?: string
+  grade?: number
+  created_at: string
+  updated_at: string
 }
 
 interface Course {
@@ -89,7 +102,10 @@ const StudentsPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isViewEditModalOpen, setIsViewEditModalOpen] = useState(false)
+  const [isExamsModalOpen, setIsExamsModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [studentExams, setStudentExams] = useState<Exam[]>([])
+  const [isLoadingExams, setIsLoadingExams] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCourse, setFilterCourse] = useState('')
 
@@ -158,9 +174,9 @@ const StudentsPage = () => {
         province: studentData.province,
         country: studentData.country,
         // Datos del receptor
-        receptor_nombre: studentData.receptorNombre,
-        receptor_apellidos: studentData.receptorApellidos,
-        receptor_email: studentData.receptorEmail,
+        receptor_nombre: studentData.receptor_nombre,
+        receptor_apellidos: studentData.receptor_apellidos,
+        receptor_email: studentData.receptor_email,
         // Enlace a pizarra digital
         digital_board_link: studentData.digital_board_link
       }
@@ -214,6 +230,30 @@ const StudentsPage = () => {
   const handleViewStudent = (student: Student) => {
     setSelectedStudent(student)
     setIsViewEditModalOpen(true)
+  }
+
+  const handleViewExams = async (student: Student) => {
+    setSelectedStudent(student)
+    setIsExamsModalOpen(true)
+    setIsLoadingExams(true)
+    
+    try {
+      const response = await fetch(`/api/students/${student.id}/exams`)
+      if (response.ok) {
+        const data = await response.json()
+        setStudentExams(data.exams || [])
+      } else {
+        console.error('Error loading exams:', response.status, response.statusText)
+        toast.error('Error al cargar los exámenes')
+        setStudentExams([])
+      }
+    } catch (error) {
+      console.error('Error loading exams:', error)
+      toast.error('Error al cargar los exámenes')
+      setStudentExams([])
+    } finally {
+      setIsLoadingExams(false)
+    }
   }
 
   const handleUpdateStudent = async (updatedStudent: Omit<Student, 'id' | 'created_at' | 'updated_at' | 'course_name' | 'course_price' | 'course_color'> & { schedule: TimeSlot[] }) => {
@@ -366,6 +406,7 @@ const StudentsPage = () => {
             student={student}
             onDelete={() => handleDeleteStudent(student.id)}
             onView={handleViewStudent}
+            onViewExams={handleViewExams}
             allClasses={allClasses}
           />
         ))}
@@ -394,6 +435,21 @@ const StudentsPage = () => {
             allClasses={allClasses}
           />
         )}
+
+        {/* Student Exams Modal */}
+        {selectedStudent && (
+          <StudentExamsModal
+            isOpen={isExamsModalOpen}
+            onClose={() => {
+              setIsExamsModalOpen(false)
+              setSelectedStudent(null)
+              setStudentExams([])
+            }}
+            student={selectedStudent}
+            exams={studentExams}
+            isLoading={isLoadingExams}
+          />
+        )}
       </motion.div>
     </div>
   )
@@ -403,6 +459,7 @@ interface StudentCardProps {
   student: Student
   onDelete: () => void
   onView: (student: Student) => void
+  onViewExams: (student: Student) => void
   allClasses: any[]
 }
 
@@ -472,7 +529,7 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
   return monthlyIncome
 }
 
-const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps) => {
+const StudentCard = ({ student, onDelete, onView, onViewExams, allClasses }: StudentCardProps) => {
   const openDigitalBoard = () => {
     if (student.digital_board_link) {
       window.open(student.digital_board_link, '_blank', 'noopener,noreferrer')
@@ -507,6 +564,15 @@ const StudentCard = ({ student, onDelete, onView, allClasses }: StudentCardProps
       <div className="flex space-x-2">
         <Button variant="ghost" size="sm" onClick={() => onView(student)} className="text-foreground-muted hover:text-primary">
           <Eye size={16} />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onViewExams(student)}
+          className="text-blue-500 hover:text-blue-600"
+          title="Ver exámenes"
+        >
+          <FileText size={16} />
         </Button>
         {student.digital_board_link && (
           <Button 
@@ -667,6 +733,10 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
   })
   const [selectedSchedule, setSelectedSchedule] = useState<TimeSlot[]>([])
   const [studentCode, setStudentCode] = useState('')
+  
+  // Estados para el tipo de documento
+  const [documentType, setDocumentType] = useState<'dni' | 'nif'>('dni')
+  const [documentNumber, setDocumentNumber] = useState('')
 
   // Generar código único cuando se abre el modal
   useEffect(() => {
@@ -700,17 +770,18 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       fixed_schedule: selectedSchedule.length > 0 ? JSON.stringify(selectedSchedule) : undefined,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-        // Campos fiscales
-        dni: formData.dni || undefined,
+      // Campos fiscales - usar el tipo de documento seleccionado
+      dni: documentType === 'dni' ? (documentNumber || undefined) : undefined,
+      nif: documentType === 'nif' ? (documentNumber || undefined) : undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
       province: formData.province || undefined,
       country: formData.country || 'España',
       // Campos del receptor
-      receptorNombre: formData.receptorNombre || undefined,
-      receptorApellidos: formData.receptorApellidos || undefined,
-      receptorEmail: formData.receptorEmail || undefined,
+      receptor_nombre: formData.receptorNombre || undefined,
+      receptor_apellidos: formData.receptorApellidos || undefined,
+      receptor_email: formData.receptorEmail || undefined,
       // Enlace a pizarra digital
       digital_board_link: formData.digitalBoardLink || undefined,
       schedule: selectedSchedule
@@ -734,7 +805,6 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       hasSharedPricing: false,
       // Campos fiscales
       dni: '',
-      nif: '',
       address: '',
       postalCode: '',
       city: '',
@@ -749,6 +819,9 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
     })
     setSelectedSchedule([])
     setStudentCode('')
+    // Resetear campos de documento
+    setDocumentType('dni')
+    setDocumentNumber('')
     onClose()
   }
 
@@ -922,15 +995,55 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
+                  {/* Sección de Tipo de Documento */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Tipo de Documento del Padre/Madre/Tutor
+                    </label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="documentType"
+                          value="dni"
+                          checked={documentType === 'dni'}
+                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
+                          className="w-4 h-4 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-foreground">DNI (Persona física)</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="documentType"
+                          value="nif"
+                          checked={documentType === 'nif'}
+                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
+                          className="w-4 h-4 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-foreground">NIF (Empresa)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Campo de Número de Documento */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Número de {documentType === 'dni' ? 'DNI' : 'NIF'}
+                    </label>
                     <input
                       type="text"
-                      value={formData.dni}
-                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                      placeholder="12345678A"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
+                      placeholder={documentType === 'dni' ? '12345678A' : 'B13998539'}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                    <p className="text-xs text-foreground-muted mt-1">
+                      {documentType === 'dni' 
+                        ? 'Formato: 8 dígitos + 1 letra (ej: 12345678A)'
+                        : 'Formato: Letra + 8 dígitos (ej: B13998539)'
+                      }
+                    </p>
                   </div>
 
                   <div className="mt-4">
@@ -1157,6 +1270,21 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
     country: student.country || 'España'
   })
   const [selectedSchedule, setSelectedSchedule] = useState<TimeSlot[]>([])
+  
+  // Estados para el tipo de documento
+  const [documentType, setDocumentType] = useState<'dni' | 'nif'>('dni')
+  const [documentNumber, setDocumentNumber] = useState('')
+
+  // Cargar datos del documento existente
+  useEffect(() => {
+    if (student.dni) {
+      setDocumentType('dni')
+      setDocumentNumber(student.dni)
+    } else if (student.nif) {
+      setDocumentType('nif')
+      setDocumentNumber(student.nif)
+    }
+  }, [student])
 
   // Cargar el horario actual del estudiante
   useEffect(() => {
@@ -1259,8 +1387,9 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       student_code: student.student_code,
       start_date: formData.startDate,
       has_shared_pricing: formData.hasSharedPricing,
-        // Campos fiscales
-        dni: formData.dni || undefined,
+      // Campos fiscales - usar el tipo de documento seleccionado
+      dni: documentType === 'dni' ? (documentNumber || undefined) : undefined,
+      nif: documentType === 'nif' ? (documentNumber || undefined) : undefined,
       address: formData.address || undefined,
       postal_code: formData.postalCode || undefined,
       city: formData.city || undefined,
@@ -1297,13 +1426,24 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
       province: student.province || '',
       country: student.country || 'España',
       // Campos del receptor
-      receptorNombre: student.receptorNombre || '',
-      receptorApellidos: student.receptorApellidos || '',
-      receptorEmail: student.receptorEmail || '',
+      receptorNombre: student.receptor_nombre || '',
+      receptorApellidos: student.receptor_apellidos || '',
+      receptorEmail: student.receptor_email || '',
       // Campo para enlace a pizarra digital
       digitalBoardLink: student.digital_board_link || ''
     })
     setSelectedSchedule([])
+    // Resetear campos de documento
+    if (student.dni) {
+      setDocumentType('dni')
+      setDocumentNumber(student.dni)
+    } else if (student.nif) {
+      setDocumentType('nif')
+      setDocumentNumber(student.nif)
+    } else {
+      setDocumentType('dni')
+      setDocumentNumber('')
+    }
     onClose()
   }
 
@@ -1476,15 +1616,55 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
                     Estos datos se utilizarán para generar facturas RRSIF. Incluye tanto los datos del estudiante como del receptor (padre/madre/tutor).
                   </p>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">DNI del Padre/Madre/Tutor</label>
+                  {/* Sección de Tipo de Documento */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Tipo de Documento del Padre/Madre/Tutor
+                    </label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="documentType"
+                          value="dni"
+                          checked={documentType === 'dni'}
+                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
+                          className="w-4 h-4 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-foreground">DNI (Persona física)</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="documentType"
+                          value="nif"
+                          checked={documentType === 'nif'}
+                          onChange={(e) => setDocumentType(e.target.value as 'dni' | 'nif')}
+                          className="w-4 h-4 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-foreground">NIF (Empresa)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Campo de Número de Documento */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Número de {documentType === 'dni' ? 'DNI' : 'NIF'}
+                    </label>
                     <input
                       type="text"
-                      value={formData.dni}
-                      onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                      placeholder="12345678A"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
+                      placeholder={documentType === 'dni' ? '12345678A' : 'B13998539'}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                    <p className="text-xs text-foreground-muted mt-1">
+                      {documentType === 'dni' 
+                        ? 'Formato: 8 dígitos + 1 letra (ej: 12345678A)'
+                        : 'Formato: Letra + 8 dígitos (ej: B13998539)'
+                      }
+                    </p>
                   </div>
 
                   <div className="mt-4">
@@ -1643,6 +1823,157 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
               </Button>
             </div>
           </form>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+interface StudentExamsModalProps {
+  isOpen: boolean
+  onClose: () => void
+  student: Student
+  exams: Exam[]
+  isLoading: boolean
+}
+
+const StudentExamsModal = ({ isOpen, onClose, student, exams, isLoading }: StudentExamsModalProps) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const formatTime = (timeString?: string) => {
+    if (!timeString) return ''
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getGradeColor = (grade?: number) => {
+    if (!grade) return 'text-foreground-muted'
+    if (grade >= 9) return 'text-green-600'
+    if (grade >= 7) return 'text-yellow-600'
+    if (grade >= 5) return 'text-orange-600'
+    return 'text-red-600'
+  }
+
+  const getGradeText = (grade?: number) => {
+    if (!grade) return 'Sin calificar'
+    if (grade >= 9) return 'Sobresaliente'
+    if (grade >= 7) return 'Notable'
+    if (grade >= 5) return 'Aprobado'
+    return 'Suspenso'
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-background rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-border"
+      >
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground flex items-center">
+                <FileText size={24} className="mr-3 text-primary" />
+                Exámenes de {student.first_name} {student.last_name}
+              </h2>
+              <p className="text-sm text-foreground-muted mt-1">
+                {exams.length} {exams.length === 1 ? 'examen' : 'exámenes'} registrado{exams.length === 1 ? '' : 's'}
+              </p>
+            </div>
+            <Button variant="ghost" onClick={onClose} size="sm">
+              ✕
+            </Button>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <DiagonalBoxLoader size="md" color="hsl(var(--primary))" />
+                <p className="text-foreground-muted mt-4">Cargando exámenes...</p>
+              </div>
+            </div>
+          ) : exams.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText size={48} className="text-foreground-muted mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No hay exámenes registrados</h3>
+              <p className="text-foreground-muted">
+                Este estudiante aún no ha configurado ningún examen en su panel.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {exams.map((exam) => (
+                <motion.div
+                  key={exam.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-effect rounded-lg p-4 border border-border hover:border-primary/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-foreground mb-1">
+                        {exam.subject}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-foreground-muted">
+                        <div className="flex items-center">
+                          <Calendar size={16} className="mr-1" />
+                          {formatDate(exam.exam_date)}
+                        </div>
+                        {exam.exam_time && (
+                          <div className="flex items-center">
+                            <Clock size={16} className="mr-1" />
+                            {formatTime(exam.exam_time)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {exam.grade && (
+                      <div className="text-right">
+                        <div className={`text-2xl font-bold ${getGradeColor(exam.grade)}`}>
+                          {exam.grade.toFixed(1)}
+                        </div>
+                        <div className={`text-xs font-medium ${getGradeColor(exam.grade)}`}>
+                          {getGradeText(exam.grade)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {exam.notes && (
+                    <div className="mt-3 p-3 bg-background-secondary rounded border border-border">
+                      <p className="text-sm text-foreground">
+                        <span className="font-medium">Notas:</span> {exam.notes}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="mt-3 flex justify-between items-center text-xs text-foreground-muted">
+                    <span>Creado: {formatDate(exam.created_at)}</span>
+                    {exam.updated_at !== exam.created_at && (
+                      <span>Actualizado: {formatDate(exam.updated_at)}</span>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end mt-6 pt-4 border-t border-border">
+            <Button onClick={onClose} className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white">
+              Cerrar
+            </Button>
+          </div>
         </div>
       </motion.div>
     </div>

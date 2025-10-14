@@ -230,7 +230,7 @@ function generarDatosFiscales(
   })
   
   doc.text(`Email: ${emisor.email}`, PDF_CONFIG.MARGIN_LEFT, currentY)
-  doc.text(`DNI: (ES) ${emisor.nif}`, PDF_CONFIG.MARGIN_LEFT, currentY + 3.5)
+  doc.text(`DNI: ${emisor.nif}`, PDF_CONFIG.MARGIN_LEFT, currentY + 3.5)
   
   // Cliente (derecha)
   const clienteX = PDF_CONFIG.A4_WIDTH / 2 + 5
@@ -261,7 +261,9 @@ function generarDatosFiscales(
     currentY += 3.5
   })
   
-  doc.text(`DNI: (ES) ${receptor.nif}`, clienteX, currentY)
+  // Usar el tipo de identificación que se pasó desde el frontend
+  const tipoIdentificacion = receptor.tipoIdentificacion || 'DNI'
+  doc.text(`${tipoIdentificacion}:${receptor.nif}`, clienteX, currentY)
   currentY += 3.5
   
   // Mostrar información del alumno

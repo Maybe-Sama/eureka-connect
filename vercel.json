@@ -1,0 +1,32 @@
+{
+    "framework": "nextjs",
+    "buildCommand": "pnpm build",
+    "devCommand": "pnpm dev",
+    "installCommand": "pnpm install",
+    "functions": {
+      "app/api/**/*.ts": {
+        "maxDuration": 30
+      }
+    },
+    "env": {
+      "NODE_ENV": "production"
+    },
+    "build": {
+      "env": {
+        "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
+        "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+        "NEXT_PUBLIC_BASE_URL": "@next_public_base_url",
+        "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
+        "NEXT_PUBLIC_VERIFICATION_URL": "@next_public_verification_url",
+        "TEACHER_EMAIL": "@teacher_email",
+        "TEACHER_PASSWORD": "@teacher_password",
+        "SMTP_HOST": "@smtp_host",
+        "SMTP_PORT": "@smtp_port",
+        "SMTP_USER": "@smtp_user",
+        "SMTP_PASS": "@smtp_pass",
+        "SMTP_FROM": "@smtp_from",
+        "NEXT_PUBLIC_RRSIF_SECRET_KEY": "@next_public_rrsif_secret_key"
+      }
+    }
+  }

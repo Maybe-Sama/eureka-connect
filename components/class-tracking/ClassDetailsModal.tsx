@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { ClassItem } from './ClassItem'
+import { CourseFilteredSubjectSelector } from './CourseFilteredSubjectSelector'
 import { toast } from 'sonner'
 
 interface ClassData {
@@ -118,6 +119,17 @@ export const ClassDetailsModal = ({
   const [filterStatus, setFilterStatus] = useState<'all' | 'scheduled' | 'completed' | 'cancelled'>('all')
   const [filterPayment, setFilterPayment] = useState<'all' | 'paid' | 'unpaid'>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  
+  // Batch editing states
+  const [isBatchMode, setIsBatchMode] = useState(false)
+  const [selectedClasses, setSelectedClasses] = useState<Set<number>>(new Set())
+  const [batchEditData, setBatchEditData] = useState({
+    status: '',
+    payment_status: '',
+    subject: '',
+    payment_notes: ''
+  })
+  const [isSavingBatch, setIsSavingBatch] = useState(false)
 
   // Fetch classes for the student
   const fetchClasses = async () => {
@@ -185,6 +197,131 @@ export const ClassDetailsModal = ({
     } catch (error) {
       console.error('Error deleting class:', error)
       toast.error('Error al eliminar la clase')
+    }
+  }
+
+  // Batch editing functions
+  const toggleBatchMode = () => {
+    setIsBatchMode(!isBatchMode)
+    setSelectedClasses(new Set())
+    setBatchEditData({
+      status: '',
+      payment_status: '',
+      subject: '',
+      payment_notes: ''
+    })
+  }
+
+  const toggleClassSelection = (classId: number) => {
+    const newSelected = new Set(selectedClasses)
+    if (newSelected.has(classId)) {
+      newSelected.delete(classId)
+    } else {
+      newSelected.add(classId)
+    }
+    setSelectedClasses(newSelected)
+  }
+
+  const selectAllVisible = () => {
+    const visibleClassIds = filteredClasses.map(c => c.id)
+    setSelectedClasses(new Set(visibleClassIds))
+  }
+
+  const clearSelection = () => {
+    setSelectedClasses(new Set())
+  }
+
+  const handleBatchSave = async () => {
+    if (selectedClasses.size === 0) {
+      toast.error('No hay clases seleccionadas')
+      return
+    }
+
+    // Validate that at least one field is being changed
+    const hasChanges = Object.values(batchEditData).some(value => value !== '')
+    if (!hasChanges) {
+      toast.error('No hay cambios para guardar')
+      return
+    }
+
+    try {
+      setIsSavingBatch(true)
+      
+      // Prepare updates for each selected class
+      const updates = Array.from(selectedClasses).map(classId => {
+        const classData = classes.find(c => c.id === classId)
+        if (!classData) return null
+
+        const updateData: any = { classId }
+        
+        // Only include fields that have been changed
+        if (batchEditData.status) updateData.status = batchEditData.status
+        if (batchEditData.payment_status) updateData.payment_status = batchEditData.payment_status
+        if (batchEditData.subject) updateData.subject = batchEditData.subject
+        if (batchEditData.payment_notes) updateData.payment_notes = batchEditData.payment_notes
+
+        return updateData
+      }).filter(Boolean)
+
+      console.log('Sending batch update:', { updates, batchEditData, selectedClasses: Array.from(selectedClasses) })
+
+      // Send batch update
+      const response = await fetch('/api/class-tracking/classes/batch', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ updates }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        const updatedClasses = result.updatedClasses || result
+        
+        // Update local state
+        setClasses(prev => {
+          const newClasses = [...prev]
+          updatedClasses.forEach((updatedClass: ClassData) => {
+            const index = newClasses.findIndex(c => c.id === updatedClass.id)
+            if (index !== -1) {
+              newClasses[index] = updatedClass
+            }
+          })
+          return newClasses
+        })
+
+        // Update parent component
+        onClassUpdate()
+        
+        // Reset batch editing
+        setSelectedClasses(new Set())
+        setBatchEditData({
+          status: '',
+          payment_status: '',
+          subject: '',
+          payment_notes: ''
+        })
+        setIsBatchMode(false)
+        
+        if (result.errors && result.errors.length > 0) {
+          toast.success(`✅ ${updatedClasses.length} clases actualizadas, pero hubo ${result.errors.length} errores`)
+          console.warn('Batch update errors:', result.errors)
+        } else {
+          toast.success(`✅ ${updatedClasses.length} clases actualizadas exitosamente`)
+        }
+      } else {
+        const errorData = await response.json()
+        console.error('Batch update error:', errorData)
+        toast.error(`Error al actualizar las clases: ${errorData.error || 'Error desconocido'}`)
+        if (errorData.details) {
+          console.error('Error details:', errorData.details)
+        }
+      }
+    } catch (error) {
+      console.error('Error saving batch updates:', error)
+      toast.error('Error al guardar los cambios')
+    } finally {
+      setIsSavingBatch(false)
     }
   }
 
@@ -326,6 +463,42 @@ export const ClassDetailsModal = ({
               </select>
             </div>
           </div>
+          
+          {/* Batch Editing Controls */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={toggleBatchMode}
+                variant={isBatchMode ? "default" : "outline"}
+                className={isBatchMode ? "bg-primary" : ""}
+              >
+                <Edit size={16} className="mr-2" />
+                {isBatchMode ? 'Salir del Modo Lote' : 'Edición en Lote'}
+              </Button>
+              
+              {isBatchMode && (
+                <>
+                  <Button
+                    onClick={selectAllVisible}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Seleccionar Todas
+                  </Button>
+                  <Button
+                    onClick={clearSelection}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Limpiar Selección
+                  </Button>
+                  <span className="text-sm text-foreground-muted">
+                    {selectedClasses.size} clase{selectedClasses.size !== 1 ? 's' : ''} seleccionada{selectedClasses.size !== 1 ? 's' : ''}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Classes List */}
@@ -341,6 +514,9 @@ export const ClassDetailsModal = ({
                   key={`${classData.id}-${classData.status}-${classData.payment_status}`}
                   classData={classData}
                   onUpdate={handleClassUpdate}
+                  isBatchMode={isBatchMode}
+                  isSelected={selectedClasses.has(classData.id)}
+                  onToggleSelection={toggleClassSelection}
                 />
               ))}
             </div>
@@ -351,6 +527,107 @@ export const ClassDetailsModal = ({
             </div>
           )}
         </div>
+
+        {/* Batch Edit Panel */}
+        {isBatchMode && selectedClasses.size > 0 && (
+          <div className="p-6 border-t border-border bg-background-secondary/50">
+            <div className="bg-background rounded-lg border border-border p-4">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                <Edit size={20} className="mr-2" />
+                Editar {selectedClasses.size} Clase{selectedClasses.size !== 1 ? 's' : ''} Seleccionada{selectedClasses.size !== 1 ? 's' : ''}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Estado:
+                  </label>
+                  <select
+                    value={batchEditData.status}
+                    onChange={(e) => setBatchEditData({ ...batchEditData, status: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">No cambiar estado</option>
+                    <option value="scheduled">Programada</option>
+                    <option value="completed">Completada</option>
+                    <option value="cancelled">Cancelada</option>
+                  </select>
+                </div>
+
+                {/* Payment Status */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Estado de Pago:
+                  </label>
+                  <select
+                    value={batchEditData.payment_status}
+                    onChange={(e) => setBatchEditData({ ...batchEditData, payment_status: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">No cambiar pago</option>
+                    <option value="unpaid">Sin pagar</option>
+                    <option value="paid">Pagada</option>
+                  </select>
+                </div>
+
+                {/* Subject */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Asignatura:
+                  </label>
+                  <CourseFilteredSubjectSelector
+                    selectedSubject={batchEditData.subject}
+                    onSubjectChange={(subject) => setBatchEditData({ ...batchEditData, subject })}
+                    courseName={student.courses.name}
+                    placeholder="Selecciona una asignatura (opcional)"
+                  />
+                </div>
+
+                {/* Payment Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Notas:
+                  </label>
+                  <input
+                    type="text"
+                    value={batchEditData.payment_notes}
+                    onChange={(e) => setBatchEditData({ ...batchEditData, payment_notes: e.target.value })}
+                    placeholder="Dejar vacío para no cambiar"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  onClick={clearSelection}
+                  variant="outline"
+                  disabled={isSavingBatch}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleBatchSave}
+                  disabled={isSavingBatch || !Object.values(batchEditData).some(value => value !== '')}
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  {isSavingBatch ? (
+                    <>
+                      <DiagonalBoxLoader size="sm" color="white" className="mr-2" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} className="mr-2" />
+                      Guardar Cambios
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="p-6 border-t border-border">

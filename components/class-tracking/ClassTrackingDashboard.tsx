@@ -364,8 +364,8 @@ const ClassTrackingDashboard = () => {
                 <p className="text-foreground-muted">Completadas</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">€{totals.totalEarned.toFixed(2)}</p>
-                <p className="text-foreground-muted">Ingresos</p>
+                <p className="text-2xl font-bold text-foreground">€{totals.totalPaid.toFixed(2)}</p>
+                <p className="text-foreground-muted">Pagado</p>
               </div>
             </div>
           </div>

@@ -41,7 +41,6 @@ interface Exam {
 export default function StudentCalendarPage() {
   const { user, loading, isStudent } = useAuth()
   const router = useRouter()
-  const [classes, setClasses] = useState<ClassData[]>([])
   const [scheduledClasses, setScheduledClasses] = useState<ClassData[]>([])
   const [fixedSchedule, setFixedSchedule] = useState<FixedSchedule[]>([])
   const [exams, setExams] = useState<Exam[]>([])
@@ -57,11 +56,23 @@ export default function StudentCalendarPage() {
 
   const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
+  // Función para formatear tiempo sin segundos
+  const formatTime = (timeString: string) => {
+    if (!timeString) return timeString
+    // Si ya está en formato HH:MM, devolverlo tal como está
+    if (timeString.match(/^\d{1,2}:\d{2}$/)) return timeString
+    // Si tiene segundos (HH:MM:SS), quitar los segundos
+    if (timeString.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+      return timeString.substring(0, 5)
+    }
+    return timeString
+  }
+
   useEffect(() => {
     if (!loading && !isStudent) {
       router.push('/login')
     }
-  }, [loading, isStudent, router])
+  }, [loading, isStudent])
 
   useEffect(() => {
     if (isStudent && user?.studentId) {
@@ -81,7 +92,8 @@ export default function StudentCalendarPage() {
 
   const loadCalendarData = async () => {
     try {
-      // Usar la misma API que el calendario del profesor
+      // Solo cargar clases programadas (eventuales) del estudiante actual
+      // Las clases fijas se manejan por separado desde el horario fijo del estudiante
       const classesResponse = await fetch('/api/classes')
       
       if (!classesResponse.ok) {
@@ -92,33 +104,27 @@ export default function StudentCalendarPage() {
       
       console.log('=== DEBUG API DATA (Student Calendar) ===')
       console.log('Total classes from API:', classesData.length)
-      console.log('All classes data:', classesData)
       
-      // Filtrar solo las clases del estudiante actual
-      const studentClasses = classesData.filter((cls: any) => cls.student_id === user?.studentId)
+      // Filtrar solo las clases programadas (no fijas) del estudiante actual
+      const studentScheduledClasses = classesData.filter((cls: any) => 
+        cls.student_id === user?.studentId && !cls.is_recurring
+      )
       
-      console.log('Classes for student ID', user?.studentId, ':', studentClasses.length, studentClasses)
+      console.log('Scheduled classes for student ID', user?.studentId, ':', studentScheduledClasses.length, studentScheduledClasses)
       
       // Filtrar por mes actual
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
       const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
       
-      const classesThisMonth = studentClasses.filter((cls: any) => {
+      const scheduledClassesThisMonth = studentScheduledClasses.filter((cls: any) => {
         const classDate = new Date(cls.date)
         return classDate >= startOfMonth && classDate <= endOfMonth
       })
       
-      console.log('Classes this month:', classesThisMonth.length, classesThisMonth)
+      console.log('Scheduled classes this month:', scheduledClassesThisMonth.length, scheduledClassesThisMonth)
       
-      // Separar clases fijas (is_recurring: true) de clases programadas (is_recurring: false)
-      const fixedClasses = classesThisMonth.filter((cls: any) => cls.is_recurring)
-      const scheduledClassesData = classesThisMonth.filter((cls: any) => !cls.is_recurring)
-      
-      console.log('Fixed classes (is_recurring: true):', fixedClasses.length, fixedClasses)
-      console.log('Scheduled classes (is_recurring: false):', scheduledClassesData.length, scheduledClassesData)
-      
-      setClasses(fixedClasses)
-      setScheduledClasses(scheduledClassesData)
+      // Solo establecer las clases programadas (las fijas se manejan desde fixed_schedule)
+      setScheduledClasses(scheduledClassesThisMonth)
 
       // Cargar horario fijo
       const { data: student, error: studentError } = await supabase
@@ -156,12 +162,9 @@ export default function StudentCalendarPage() {
   }
 
   const getClassesForDate = (date: Date) => {
-    // Usar fecha local en lugar de UTC para evitar problemas de zona horaria
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const dateStr = `${year}-${month}-${day}`
-    return classes.filter(cls => cls.date === dateStr)
+    // Esta función ya no se usa porque las clases fijas se manejan desde fixed_schedule
+    // Mantenemos la función para compatibilidad pero devuelve array vacío
+    return []
   }
 
   const getScheduledClassesForDate = (date: Date) => {
@@ -280,65 +283,65 @@ export default function StudentCalendarPage() {
   const days = getDaysInMonth()
 
   return (
-    <div className="max-w-7xl xl:max-w-[1600px] 2xl:max-w-[1800px] mx-auto space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="max-w-7xl xl:max-w-[1600px] 2xl:max-w-[1800px] mx-auto space-y-3 sm:space-y-4 lg:space-y-6 p-2 sm:p-4 lg:p-6 xl:p-8">
       {/* Header */}
-      <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
-            <CalendarIcon className="mr-2 sm:mr-3 text-primary" size={32} />
-            Mi Calendario
+      <div className="glass-effect rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
+            <CalendarIcon className="mr-2 sm:mr-3 text-primary" size={24} />
+            <span className="hidden xs:inline">Mi Calendario</span>
+            <span className="xs:hidden">Calendario</span>
           </h1>
-          <div className="flex items-center justify-between sm:justify-center space-x-4">
+          <div className="flex items-center justify-between sm:justify-center space-x-2 sm:space-x-4">
             <button
               onClick={goToPreviousMonth}
-              className="p-2 rounded-lg hover:bg-background-tertiary transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-background-tertiary transition-colors"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={20} />
             </button>
-            <span className="text-base sm:text-lg font-semibold text-foreground min-w-[150px] sm:min-w-[200px] text-center">
+            <span className="text-sm sm:text-base lg:text-lg font-semibold text-foreground min-w-[120px] sm:min-w-[150px] lg:min-w-[200px] text-center">
               {currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
             </span>
             <button
               onClick={goToNextMonth}
-              className="p-2 rounded-lg hover:bg-background-tertiary transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-background-tertiary transition-colors"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={20} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
         {/* Calendar Grid */}
-        <div className="lg:col-span-2 glass-effect rounded-2xl shadow-lg p-3 sm:p-6 border border-border">
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-2 mb-3 sm:mb-4">
+        <div className="lg:col-span-2 glass-effect rounded-xl sm:rounded-2xl shadow-lg p-2 sm:p-3 lg:p-6 border border-border">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 lg:gap-2 mb-2 sm:mb-3 lg:mb-4">
             {daysOfWeek.map((day) => (
               <div
                 key={day}
-                className="text-center text-xs sm:text-sm font-semibold text-foreground-secondary py-2 sm:py-3"
+                className="text-center text-xs sm:text-sm font-semibold text-foreground-secondary py-1.5 sm:py-2 lg:py-3"
               >
                 {day.substring(0, 3)}
               </div>
             ))}
           </div>
           
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 lg:gap-2">
             {days.map((day, index) => {
               if (!day) {
                 return <div key={`empty-${index}`} className="aspect-square" />
               }
               
-              const classesForDay = getClassesForDate(day)
               const scheduledClassesForDay = getScheduledClassesForDate(day)
               const examsForDay = getExamsForDate(day)
               const fixedScheduleForDay = getFixedScheduleForDate(day)
               const isToday = day.toDateString() === new Date().toDateString()
-              const hasAnyActivity = classesForDay.length > 0 || scheduledClassesForDay.length > 0 || examsForDay.length > 0 || fixedScheduleForDay.length > 0
+              const hasAnyActivity = scheduledClassesForDay.length > 0 || examsForDay.length > 0 || fixedScheduleForDay.length > 0
               
               return (
                 <div
                   key={day.toISOString()}
-                  className={`aspect-square p-1 sm:p-2 rounded-lg sm:rounded-xl border-2 transition-all hover:shadow-md ${
+                  className={`aspect-square p-0.5 sm:p-1 lg:p-2 rounded-md sm:rounded-lg lg:rounded-xl border-2 transition-all hover:shadow-md ${
                     isToday 
                       ? 'border-primary bg-primary/10' 
                       : hasAnyActivity
@@ -346,52 +349,36 @@ export default function StudentCalendarPage() {
                       : 'border-border bg-background-secondary'
                   }`}
                 >
-                  <div className="text-xs sm:text-sm font-semibold text-foreground mb-1">
+                  <div className="text-xs sm:text-sm font-semibold text-foreground mb-0.5 sm:mb-1">
                     {day.getDate()}
                   </div>
                   <div className="space-y-0.5 sm:space-y-1">
-                    {/* Mostrar clases fijas - solo en desktop */}
-                    {classesForDay.slice(0, 2).map((cls) => (
-                      <div
-                        key={`class-${cls.id}`}
-                        className={`hidden sm:flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg sm:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 ${getStatusColor(cls.status)}`}
-                        title={`Clase fija: ${cls.start_time} - ${getStatusText(cls.status)}`}
-                      >
-                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-current opacity-60"></div>
-                        <span className="text-xs font-medium truncate">{cls.start_time}</span>
-                      </div>
-                    ))}
-                    
                     {/* Mostrar clases programadas - versión móvil y desktop */}
                     {scheduledClassesForDay.slice(0, 1).map((cls) => (
                       <div key={`scheduled-container-${cls.id}`}>
-                        {/* Versión móvil - solo punto */}
+                        {/* Versión móvil - punto más pequeño */}
                         <div
                           className="flex sm:hidden items-center justify-center"
-                          title={`Clase programada: ${cls.course_name || 'Sin curso'} - ${cls.start_time}`}
+                          title={`Clase: ${cls.course_name || 'Sin curso'} - ${formatTime(cls.start_time)}`}
                         >
                           <div 
-                            className="w-2 h-2 rounded-full shadow-sm"
+                            className="w-1.5 h-1.5 rounded-full shadow-sm"
                             style={{ backgroundColor: customColors.scheduled }}
                           ></div>
                         </div>
-                        {/* Versión desktop - cartel completo */}
+                        {/* Versión desktop - cartel completo con estética de horario fijo */}
                         <div
-                          className="hidden sm:block px-1 sm:px-2 py-1 rounded-lg shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:flex items-center space-x-1 sm:space-x-2 px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
                           style={{ 
                             backgroundColor: customColors.scheduled,
                             borderColor: customColors.scheduled
                           }}
-                          title={`Clase programada: ${cls.course_name || 'Sin curso'} - ${cls.start_time}${cls.subject ? ` - ${cls.subject}` : ''}`}
+                          title={`Clase eventual: ${cls.course_name || 'Sin curso'} - ${formatTime(cls.start_time)}${cls.subject ? ` - ${cls.subject}` : ''}`}
                         >
-                          <div className="text-xs font-bold truncate mb-0.5">
-                            {cls.course_name || 'Sin curso'}
-                          </div>
-                          {cls.subject && (
-                            <div className="text-xs text-white/80 truncate">
-                              {cls.subject}
-                            </div>
-                          )}
+                          <div 
+                            className="w-1 h-1 sm:w-1.5 sm:h-1.5 lg:w-2 lg:h-2 rounded-full bg-white opacity-80"
+                          ></div>
+                          <span className="text-xs font-medium truncate">{formatTime(cls.start_time)}</span>
                         </div>
                       </div>
                     ))}
@@ -399,24 +386,24 @@ export default function StudentCalendarPage() {
                     {/* Mostrar exámenes - versión móvil y desktop */}
                     {examsForDay.slice(0, 1).map((exam) => (
                       <div key={`exam-container-${exam.id}`}>
-                        {/* Versión móvil - solo punto */}
+                        {/* Versión móvil - punto más pequeño */}
                         <div
                           className="flex sm:hidden items-center justify-center"
-                          title={`Examen: ${exam.subject}${exam.exam_time ? ` - ${exam.exam_time}` : ''}`}
+                          title={`Examen: ${exam.subject}${exam.exam_time ? ` - ${formatTime(exam.exam_time)}` : ''}`}
                         >
                           <div 
-                            className="w-2 h-2 rounded-full shadow-sm"
+                            className="w-1.5 h-1.5 rounded-full shadow-sm"
                             style={{ backgroundColor: customColors.exams }}
                           ></div>
                         </div>
                         {/* Versión desktop - cartel completo */}
                         <div
-                          className="hidden sm:block px-1 sm:px-2 py-1 rounded-lg shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:block px-1 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-sm transition-all duration-200 hover:scale-105 text-white border"
                           style={{ 
                             backgroundColor: customColors.exams,
                             borderColor: customColors.exams
                           }}
-                          title={`Examen: ${exam.subject}${exam.exam_time ? ` - ${exam.exam_time}` : ''}${exam.notes ? ` - ${exam.notes}` : ''}`}
+                          title={`Examen: ${exam.subject}${exam.exam_time ? ` - ${formatTime(exam.exam_time)}` : ''}${exam.notes ? ` - ${exam.notes}` : ''}`}
                         >
                           <div className="text-xs font-bold truncate mb-0.5">
                             {exam.subject}
@@ -433,37 +420,37 @@ export default function StudentCalendarPage() {
                     {/* Mostrar horario fijo - versión móvil y desktop */}
                     {fixedScheduleForDay.slice(0, 1).map((schedule, index) => (
                       <div key={`schedule-container-${index}`}>
-                        {/* Versión móvil - solo punto */}
+                        {/* Versión móvil - punto más pequeño */}
                         <div
                           className="flex sm:hidden items-center justify-center"
-                          title={`Horario fijo: ${schedule.subject} - ${schedule.start_time}`}
+                          title={`Horario: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
                         >
                           <div 
-                            className="w-2 h-2 rounded-full shadow-sm"
+                            className="w-1.5 h-1.5 rounded-full shadow-sm"
                             style={{ backgroundColor: customColors.schedule }}
                           ></div>
                         </div>
                         {/* Versión desktop - cartel completo */}
                         <div
-                          className="hidden sm:flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg sm:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:flex items-center space-x-1 sm:space-x-2 px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
                           style={{ 
                             backgroundColor: customColors.schedule,
                             borderColor: customColors.schedule
                           }}
-                          title={`Horario fijo: ${schedule.subject} - ${schedule.start_time}`}
+                          title={`Horario fijo: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
                         >
                           <div 
-                            className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white opacity-80"
+                            className="w-1 h-1 sm:w-1.5 sm:h-1.5 lg:w-2 lg:h-2 rounded-full bg-white opacity-80"
                           ></div>
-                          <span className="text-xs font-medium truncate">{schedule.start_time}</span>
+                          <span className="text-xs font-medium truncate">{formatTime(schedule.start_time)}</span>
                         </div>
                       </div>
                     ))}
                     
                     {/* Contador de actividades adicionales */}
-                    {hasAnyActivity && (classesForDay.length + scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) > 3 && (
+                    {hasAnyActivity && (scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) > 3 && (
                       <div className="flex items-center justify-center px-1 sm:px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
-                        +{(classesForDay.length + scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) - 3} más
+                        +{(scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) - 3} más
                       </div>
                     )}
                   </div>
@@ -474,72 +461,72 @@ export default function StudentCalendarPage() {
         </div>
 
         {/* Horario Fijo y Próximos Exámenes */}
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Leyenda de colores - Visible en todas las pantallas */}
-          <div className="glass-effect rounded-2xl shadow-lg p-4 border border-border">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-foreground">Leyenda de colores</h3>
+          <div className="glass-effect rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 border border-border">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground">Leyenda</h3>
               <button
                 onClick={() => setShowColorConfig(!showColorConfig)}
-                className="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs bg-primary text-white rounded-md sm:rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
               >
-                Configurar
+                Config
               </button>
             </div>
             
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 text-xs">
-              <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-4 lg:space-x-6 text-xs">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
                 <div 
-                  className="w-3 h-3 rounded-full shadow-sm"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm"
                   style={{ backgroundColor: customColors.exams }}
                 ></div>
                 <span className="text-foreground-secondary">Exámenes</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
                 <div 
-                  className="w-3 h-3 rounded-full shadow-sm"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm"
                   style={{ backgroundColor: customColors.schedule }}
                 ></div>
                 <span className="text-foreground-secondary">Horario fijo</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
                 <div 
-                  className="w-3 h-3 rounded-full shadow-sm"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm"
                   style={{ backgroundColor: customColors.scheduled }}
                 ></div>
-                <span className="text-foreground-secondary">Clases programadas</span>
+                <span className="text-foreground-secondary">Clases eventuales</span>
               </div>
             </div>
 
             {/* Panel de configuración de colores */}
             {showColorConfig && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xs sm:text-sm text-foreground-secondary">Exámenes</span>
+              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <span className="text-xs text-foreground-secondary">Exámenes</span>
                     <input
                       type="color"
                       value={customColors.exams}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, exams: e.target.value }))}
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xs sm:text-sm text-foreground-secondary">Horario fijo</span>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <span className="text-xs text-foreground-secondary">Horario fijo</span>
                     <input
                       type="color"
                       value={customColors.schedule}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, schedule: e.target.value }))}
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xs sm:text-sm text-foreground-secondary">Clases programadas</span>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <span className="text-xs text-foreground-secondary">Clases programadas</span>
                     <input
                       type="color"
                       value={customColors.scheduled}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, scheduled: e.target.value }))}
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
                 </div>
@@ -549,38 +536,39 @@ export default function StudentCalendarPage() {
 
           {/* Horario y Clases */}
           {(fixedSchedule.length > 0 || scheduledClasses.length > 0) && (
-            <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center">
-                <div className="p-2 bg-primary/10 rounded-lg mr-2 sm:mr-3">
-                  <Book className="text-primary" size={20} />
+            <div className="glass-effect rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-border">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground mb-3 sm:mb-4 lg:mb-6 flex items-center">
+                <div className="p-1.5 sm:p-2 bg-primary/10 rounded-md sm:rounded-lg mr-2 sm:mr-3">
+                  <Book className="text-primary" size={16} />
                 </div>
-                Mis Clases
+                <span className="hidden xs:inline">Mis Clases</span>
+                <span className="xs:hidden">Clases</span>
               </h2>
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-2 sm:space-y-3 lg:space-y-4">
                 {/* Horario Fijo */}
                 {fixedSchedule.map((schedule, index) => (
                   <div
                     key={`fixed-${index}`}
-                    className="group p-4 sm:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm sm:text-base font-bold text-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 sm:mb-3 space-y-1.5 sm:space-y-0">
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
+                        <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
                           {daysOfWeek[schedule.day_of_week]}
                         </span>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full border border-blue-200">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
                           Fijo
                         </span>
                       </div>
-                      <span className="text-xs sm:text-sm font-medium text-primary bg-primary/20 px-3 py-1.5 rounded-full border border-student-primary/30">
+                      <span className="text-xs sm:text-sm font-medium text-primary bg-primary/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-student-primary/30">
                         {schedule.subject}
                       </span>
                     </div>
-                    <div className="flex items-center text-sm sm:text-base text-foreground-secondary">
-                      <div className="p-1.5 bg-primary/20 rounded-lg mr-3">
-                        <Clock size={14} className="text-primary" />
+                    <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
+                      <div className="p-1 sm:p-1.5 bg-primary/20 rounded-md sm:rounded-lg mr-2 sm:mr-3">
+                        <Clock size={12} className="text-primary" />
                       </div>
-                      <span className="font-semibold">{schedule.start_time} - {schedule.end_time}</span>
+                      <span className="font-semibold">{formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
                     </div>
                   </div>
                 ))}
@@ -589,33 +577,33 @@ export default function StudentCalendarPage() {
                 {scheduledClasses.slice(0, 5).map((cls) => (
                   <div
                     key={`scheduled-${cls.id}`}
-                    className="group p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-2xl border border-amber-200 dark:border-amber-700 hover:border-amber-300 dark:hover:border-amber-600 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm sm:text-base font-bold text-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 sm:mb-3 space-y-1.5 sm:space-y-0">
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
+                        <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
                           {new Date(cls.date).toLocaleDateString('es-ES', {
                             weekday: 'long',
                             day: 'numeric',
                             month: 'short'
                           })}
                         </span>
-                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full border border-amber-200">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
                           Programada
                         </span>
                       </div>
-                      <span className="text-xs sm:text-sm font-medium text-amber-800 dark:text-amber-200 bg-amber-200 dark:bg-amber-800 px-3 py-1.5 rounded-full border border-amber-300 dark:border-amber-600">
+                      <span className="text-xs sm:text-sm font-medium text-primary bg-primary/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-primary/30">
                         {cls.course_name || 'Sin curso'}
                       </span>
                     </div>
-                    <div className="flex items-center text-sm sm:text-base text-foreground-secondary">
-                      <div className="p-1.5 bg-amber-200 dark:bg-amber-800 rounded-lg mr-3">
-                        <Clock size={14} className="text-amber-700 dark:text-amber-300" />
+                    <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
+                      <div className="p-1 sm:p-1.5 bg-primary/20 rounded-md sm:rounded-lg mr-2 sm:mr-3">
+                        <Clock size={12} className="text-primary" />
                       </div>
-                      <span className="font-semibold">{cls.start_time} - {cls.end_time}</span>
+                      <span className="font-semibold">{formatTime(cls.start_time)} - {formatTime(cls.end_time)}</span>
                     </div>
                     {cls.subject && (
-                      <div className="mt-2 text-xs text-foreground-secondary">
+                      <div className="mt-1.5 sm:mt-2 text-xs text-foreground-secondary">
                         <span className="font-medium">Materia:</span> {cls.subject}
                       </div>
                     )}
@@ -624,9 +612,9 @@ export default function StudentCalendarPage() {
                 
                 {/* Mensaje si no hay clases */}
                 {fixedSchedule.length === 0 && scheduledClasses.length === 0 && (
-                  <div className="text-center py-6 sm:py-8">
-                    <div className="p-3 sm:p-4 bg-primary/5 rounded-2xl inline-block mb-4">
-                      <Book size={32} className="text-primary/50" />
+                  <div className="text-center py-4 sm:py-6 lg:py-8">
+                    <div className="p-2 sm:p-3 lg:p-4 bg-primary/5 rounded-xl sm:rounded-2xl inline-block mb-3 sm:mb-4">
+                      <Book size={24} className="text-primary/50" />
                     </div>
                     <p className="text-foreground-muted text-xs sm:text-sm">
                       No tienes clases registradas
@@ -638,50 +626,51 @@ export default function StudentCalendarPage() {
           )}
 
           {/* Próximos Exámenes */}
-          <div className="glass-effect rounded-2xl shadow-lg p-4 sm:p-6 border border-border">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center">
-                <div className="p-2 bg-primary/10 rounded-lg mr-2 sm:mr-3">
-                  <BookOpen className="text-primary" size={20} />
+          <div className="glass-effect rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-border">
+            <div className="flex items-center justify-between mb-3 sm:mb-4 lg:mb-6">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground flex items-center">
+                <div className="p-1.5 sm:p-2 bg-primary/10 rounded-md sm:rounded-lg mr-2 sm:mr-3">
+                  <BookOpen className="text-primary" size={16} />
                 </div>
-                Próximos Exámenes
+                <span className="hidden xs:inline">Próximos Exámenes</span>
+                <span className="xs:hidden">Exámenes</span>
               </h2>
               <button
                 onClick={() => setShowExamManager(true)}
-                className="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs bg-primary text-white rounded-md sm:rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
               >
                 Gestionar
               </button>
             </div>
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-2 sm:space-y-3 lg:space-y-4">
               {exams.slice(0, 5).map((exam) => (
                 <div
                   key={exam.id}
-                  className="group p-4 sm:p-5 rounded-2xl border-2 border-primary/20 bg-gradient-to-r from-student-primary/5 to-student-primary/10 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                  className="group p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl border-2 border-primary/20 bg-gradient-to-r from-student-primary/5 to-student-primary/10 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 space-y-2 sm:space-y-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 sm:mb-3 space-y-1.5 sm:space-y-0">
                     <div className="flex-1">
-                      <div className="text-sm sm:text-base font-bold text-foreground mb-1">
+                      <div className="text-xs sm:text-sm lg:text-base font-bold text-foreground mb-1">
                         {exam.subject}
                       </div>
                       {exam.notes && (
-                        <div className="text-xs sm:text-sm text-foreground-secondary mb-2">
+                        <div className="text-xs sm:text-sm text-foreground-secondary mb-1.5 sm:mb-2">
                           <span className="font-medium">Tema:</span> {exam.notes}
                         </div>
                       )}
                     </div>
                     {exam.grade && (
-                      <div className="flex items-center text-xs sm:text-sm bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-full border border-yellow-200">
-                        <Star size={14} className="mr-1 text-yellow-600" />
+                      <div className="flex items-center text-xs sm:text-sm bg-yellow-100 text-yellow-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-yellow-200">
+                        <Star size={12} className="mr-1 text-yellow-600" />
                         <span className="font-bold text-yellow-700">
                           {exam.grade}/10
                         </span>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center text-sm sm:text-base text-foreground-secondary">
-                    <div className="p-1.5 bg-primary/20 rounded-lg mr-3">
-                      <CalendarIcon size={14} className="text-primary" />
+                  <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
+                    <div className="p-1 sm:p-1.5 bg-primary/20 rounded-md sm:rounded-lg mr-2 sm:mr-3">
+                      <CalendarIcon size={12} className="text-primary" />
                     </div>
                     <span className="font-semibold">
                       {new Date(exam.exam_date).toLocaleDateString('es-ES', {
@@ -692,26 +681,26 @@ export default function StudentCalendarPage() {
                     </span>
                     {exam.exam_time && (
                       <>
-                        <div className="p-1.5 bg-primary/20 rounded-lg mx-3">
-                          <Clock size={14} className="text-primary" />
+                        <div className="p-1 sm:p-1.5 bg-primary/20 rounded-md sm:rounded-lg mx-2 sm:mx-3">
+                          <Clock size={12} className="text-primary" />
                         </div>
-                        <span className="font-semibold">{exam.exam_time}</span>
+                        <span className="font-semibold">{formatTime(exam.exam_time)}</span>
                       </>
                     )}
                   </div>
                 </div>
               ))}
               {exams.length === 0 && (
-                <div className="text-center py-6 sm:py-8">
-                  <div className="p-3 sm:p-4 bg-primary/5 rounded-2xl inline-block mb-4">
-                    <BookOpen size={32} className="text-primary/50" />
+                <div className="text-center py-4 sm:py-6 lg:py-8">
+                  <div className="p-2 sm:p-3 lg:p-4 bg-primary/5 rounded-xl sm:rounded-2xl inline-block mb-3 sm:mb-4">
+                    <BookOpen size={24} className="text-primary/50" />
                   </div>
-                  <p className="text-foreground-muted text-xs sm:text-sm mb-4">
+                  <p className="text-foreground-muted text-xs sm:text-sm mb-3 sm:mb-4">
                     No tienes exámenes registrados
                   </p>
                   <button
                     onClick={() => setShowExamManager(true)}
-                    className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-lg transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                    className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-md sm:rounded-lg transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
                   >
                     Crear primer examen
                   </button>

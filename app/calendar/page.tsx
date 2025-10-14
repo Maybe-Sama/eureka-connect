@@ -24,7 +24,7 @@ import { toast } from 'sonner'
 
 const CalendarPage = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date())
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ day: number; time: string } | undefined>(undefined)
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ day: number; time: string; date?: string } | undefined>(undefined)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isEditOrDeleteModalOpen, setIsEditOrDeleteModalOpen] = useState(false)
@@ -262,7 +262,10 @@ const CalendarPage = () => {
   }
 
   const handleTimeSlotClick = (day: number, time: string) => {
-    setSelectedTimeSlot({ day, time })
+    // Obtener la fecha real correspondiente al día de la semana
+    const weekDates = getWeekDates()
+    const selectedDate = weekDates[day] || weekDates[0]
+    setSelectedTimeSlot({ day, time, date: selectedDate.toISOString().split('T')[0] })
     setIsAddModalOpen(true)
   }
 
@@ -308,6 +311,7 @@ const CalendarPage = () => {
 
   const handleAddClass = async (newClass: any) => {
     try {
+      
       const response = await fetch('/api/classes', {
         method: 'POST',
         headers: {
@@ -601,7 +605,7 @@ const CalendarPage = () => {
               variant="outline"
               size="sm"
             >
-              Hoy
+              Semana
             </Button>
             
             <Button

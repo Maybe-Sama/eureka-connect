@@ -200,61 +200,119 @@ export async function PUT(
     const result = await dbOperations.updateStudent(Number(params.id), updateData)
 
     // ========================================
-    // AUTOMATIC CLASS GENERATION (UPDATE)
+    // AUTOMATIC CLASS GENERATION (UPDATE) - WITH DATA PROTECTION
     // ========================================
-    // Update classes when student schedule is modified
-    // This replaces all existing classes with new ones based on updated schedule
-    
-    let scheduleToProcess = schedule
-    
-    // If no schedule but fixed_schedule is provided, parse it
-    if (!scheduleToProcess && fixed_schedule) {
-      try {
-        scheduleToProcess = typeof fixed_schedule === 'string' 
-          ? JSON.parse(fixed_schedule) 
-          : fixed_schedule
-      } catch (error) {
-        console.error('Error parsing fixed_schedule:', error)
+    // Only regenerate classes when the fixed_schedule actually changes
+    // This prevents unnecessary class regeneration for simple data updates
+
+    // Get current student data to compare schedules
+    const currentStudent = await dbOperations.getStudentById(Number(params.id))
+    const currentSchedule = currentStudent?.fixed_schedule
+
+    // Check if the schedule actually changed
+    const scheduleChanged = JSON.stringify(currentSchedule) !== JSON.stringify(fixed_schedule)
+
+    if (scheduleChanged) {
+      console.log(`🔄 Schedule changed for student ${params.id} - checking for data protection...`)
+
+      let scheduleToProcess = schedule
+
+      // If no schedule but fixed_schedule is provided, parse it
+      if (!scheduleToProcess && fixed_schedule) {
+        try {
+          scheduleToProcess = typeof fixed_schedule === 'string'
+            ? JSON.parse(fixed_schedule)
+            : fixed_schedule
+        } catch (error) {
+          console.error('Error parsing fixed_schedule:', error)
+        }
       }
-    }
-    
-    // Update classes if we have a valid schedule
-    if (scheduleToProcess && Array.isArray(scheduleToProcess) && scheduleToProcess.length > 0) {
-      try {
-        // Delete existing classes for this student first (clean slate approach)
-        const allClasses = await dbOperations.getAllClasses()
-        const existingClasses = allClasses.filter(cls => cls.student_id === Number(params.id))
-        
-        console.log(`🔄 Updating classes for student ${params.id}: ${existingClasses.length} existing → regenerating...`)
-        for (const cls of existingClasses) {
-          await dbOperations.deleteClass(cls.id)
-        }
-        
-        // Generate all classes from start date to today
-        const generatedClasses = await generateClassesFromStartDate(
-          Number(params.id),
-          Number(course_id),
-          scheduleToProcess,
-          start_date,
-          new Date().toISOString().split('T')[0]
-        )
-        
-        // Create all generated classes
-        if (generatedClasses.length > 0) {
-          for (const classData of generatedClasses) {
-            await dbOperations.createClass(classData)
+
+      // Update classes if we have a valid schedule
+      if (scheduleToProcess && Array.isArray(scheduleToProcess) && scheduleToProcess.length > 0) {
+        try {
+          // Get all existing classes for this student
+          const allClasses = await dbOperations.getAllClasses()
+          const existingClasses = allClasses.filter(cls => cls.student_id === Number(params.id))
+          
+          // Check for classes with critical data that cannot be lost
+          const classesWithCriticalData = existingClasses.filter(cls => 
+            cls.payment_status === 'paid' ||           // ❌ Clase ya pagada
+            cls.status === 'completed' ||              // ❌ Clase ya completada
+            cls.subject ||                             // ❌ Tiene asignatura asignada
+            cls.notes ||                               // ❌ Tiene notas
+            cls.payment_notes ||                       // ❌ Tiene notas de pago
+            cls.status_invoice === 1                   // ❌ Ya está facturada
+          )
+
+          if (classesWithCriticalData.length > 0) {
+            console.log(`🚨 DATA PROTECTION: ${classesWithCriticalData.length} clases tienen datos críticos - NO se regenerarán`)
+            console.log('Clases con datos críticos:', classesWithCriticalData.map(c => ({
+              id: c.id,
+              date: c.date,
+              payment_status: c.payment_status,
+              status: c.status,
+              subject: c.subject,
+              has_notes: !!(c.notes || c.payment_notes),
+              is_invoiced: c.status_invoice === 1
+            })))
+            
+            return NextResponse.json({ 
+              message: 'Alumno actualizado exitosamente. No se regeneraron clases para preservar datos críticos.',
+              warning: `${classesWithCriticalData.length} clases tienen datos importantes y no se modificaron`,
+              protected_classes: classesWithCriticalData.length
+            })
           }
-          console.log(`✅ Student ${params.id}: Created ${generatedClasses.length} classes`)
-        } else {
-          console.log(`⚠️ No classes generated for student ${params.id}`)
+
+          // If no critical data, proceed with safe regeneration
+          console.log(`✅ No critical data found - proceeding with safe class regeneration for student ${params.id}`)
+          
+          // Delete existing future recurring classes for this student (preserve historical data)
+          const today = new Date().toISOString().split('T')[0]
+          const existingRecurringClasses = allClasses.filter(cls =>
+            cls.student_id === Number(params.id) &&
+            cls.is_recurring === true &&
+            cls.date >= today // Solo eliminar clases de hoy en adelante
+          )
+
+          console.log(`Deleting ${existingRecurringClasses.length} future recurring classes for student ${params.id} (from ${today} onwards)`)
+          console.log('Preserving historical classes before:', today)
+          for (const cls of existingRecurringClasses) {
+            await dbOperations.deleteClass(cls.id)
+          }
+
+          // Generate new classes from today onwards (preserve historical classes)
+          const futureEndDate = new Date()
+          futureEndDate.setMonth(futureEndDate.getMonth() + 3)
+          const endDate = futureEndDate.toISOString().split('T')[0]
+
+          const generatedClasses = await generateClassesFromStartDate(
+            Number(params.id),
+            Number(course_id),
+            scheduleToProcess,
+            today, // Empezar desde hoy, no desde la fecha de inicio original
+            endDate
+          )
+
+          // Create all generated classes
+          if (generatedClasses.length > 0) {
+            for (const classData of generatedClasses) {
+              await dbOperations.createClass(classData)
+            }
+            console.log(`✅ Student ${params.id}: Created ${generatedClasses.length} classes`)
+          } else {
+            console.log(`⚠️ No classes generated for student ${params.id}`)
+          }
+        } catch (error) {
+          console.error(`❌ Error updating classes for student ${params.id}:`, error)
+          // Don't fail the student update if class generation fails
+          // The student information is already updated successfully
         }
-      } catch (error) {
-        console.error(`❌ Error updating classes for student ${params.id}:`, error)
-        // Don't fail the student update if class generation fails
-        // The student information is already updated successfully
+      } else {
+        console.log(`No valid schedule provided for student ${params.id} - skipping class update`)
       }
     } else {
-      console.log(`No schedule provided for student ${params.id} - skipping class update`)
+      console.log(`No schedule changes detected for student ${params.id} - skipping class regeneration`)
     }
 
     return NextResponse.json({ message: 'Alumno actualizado exitosamente' })

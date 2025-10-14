@@ -26,8 +26,6 @@ export async function GET(request: NextRequest) {
     const monthYear = searchParams.get('month') || new Date().toISOString().slice(0, 7) // YYYY-MM format
     const studentId = searchParams.get('studentId')
 
-    console.log(`Fetching class tracking for month: ${monthYear}`)
-
     // Get all students with their courses
     let studentsQuery = supabase
       .from('students')
@@ -54,10 +52,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al obtener estudiantes' }, { status: 500 })
     }
 
-    console.log(`Found ${students?.length || 0} students`)
-
     if (!students || students.length === 0) {
-      console.log('No students found')
       return NextResponse.json([])
     }
 
@@ -73,7 +68,6 @@ export async function GET(request: NextRequest) {
     for (const student of students) {
       // Validate student has required fields
       if (!student.start_date || !student.fixed_schedule) {
-        console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): missing start_date or fixed_schedule`)
         skippedStudents.push({
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
@@ -85,7 +79,6 @@ export async function GET(request: NextRequest) {
 
       // Skip students with future start dates
       if (student.start_date > today) {
-        console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): start_date is in the future (${student.start_date})`)
         skippedStudents.push({
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
@@ -103,7 +96,6 @@ export async function GET(request: NextRequest) {
           : student.fixed_schedule
         
         if (!Array.isArray(fixedSchedule) || fixedSchedule.length === 0) {
-          console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): invalid or empty fixed_schedule`)
           skippedStudents.push({
             id: student.id,
             name: `${student.first_name} ${student.last_name}`,
@@ -113,7 +105,6 @@ export async function GET(request: NextRequest) {
           continue
         }
       } catch (error) {
-        console.error(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): error parsing fixed_schedule`, error)
         skippedStudents.push({
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
@@ -137,10 +128,40 @@ export async function GET(request: NextRequest) {
       const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
       
       // Use the later of: student's start_date OR first day of month
-      const queryStartDate = student.start_date > monthStart ? student.start_date : monthStart
+      let queryStartDate = student.start_date > monthStart ? student.start_date : monthStart
       
-      // Use the earlier of: today OR last day of month
-      const queryEndDate = today < monthEnd ? today : monthEnd
+      // Include ALL classes in the selected month, including future classes
+      const queryEndDate = monthEnd
+      
+      // If student started after the month, check if they have any classes in that month
+      if (queryStartDate > queryEndDate) {
+        // Check if student has any classes (especially eventual ones) in the requested month
+        const { data: eventualClasses, error: eventualError } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('student_id', student.id)
+          .gte('date', monthStart)
+          .lte('date', monthEnd)
+        
+        if (eventualError) {
+          console.error(`Error checking eventual classes for student ${student.id}:`, eventualError)
+          continue
+        }
+        
+        // If no classes found in the month, skip this student
+        if (!eventualClasses || eventualClasses.length === 0) {
+          skippedStudents.push({
+            id: student.id,
+            name: `${student.first_name} ${student.last_name}`,
+            course: (student.courses as any)?.name || 'Sin curso',
+            reason: `started after requested month: ${student.start_date} > ${monthEnd} and no classes in month`
+          })
+          continue
+        } else {
+          // Student has classes in the month, use the month range instead of student start date
+          queryStartDate = monthStart
+        }
+      }
       
       // Query classes ONLY for the selected month
       const { data: classes, error: classesError } = await supabase
@@ -155,9 +176,25 @@ export async function GET(request: NextRequest) {
         continue
       }
 
-      // Use only existing classes from database
-      // DO NOT generate classes here - that should only happen when user clicks "Update Classes"
-      const classesArray = classes || []
+      // Get existing classes from database
+      let classesArray = classes || []
+      
+      // Filter classes to respect student's start date
+      // Allow eventual classes (is_recurring: false) in any date
+      // Only allow recurring classes (is_recurring: true) after student's start date
+      classesArray = classesArray.filter(cls => {
+        if (!cls.is_recurring) {
+          // Eventual classes can be in any date
+          return true
+        } else {
+          // Recurring classes must be after student's start date
+          return cls.date >= student.start_date
+        }
+      })
+      
+      // Note: Auto-generation of missing classes has been moved to a separate endpoint
+      // This GET endpoint now only reads existing classes for better performance
+      // Use POST /api/class-tracking/generate-missing-classes to generate missing classes
       
       // Calculate statistics
       const stats = {
@@ -236,14 +273,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    console.log(`Returning ${trackingData.length} students with tracking data`)
-    
-    if (skippedStudents.length > 0) {
-      console.warn(`⚠️ Skipped ${skippedStudents.length} students:`)
-      skippedStudents.forEach(s => {
-        console.warn(`  - ${s.name} (${s.course}): ${s.reason}`)
-      })
-    }
+    // Return tracking data (logs removed for cleaner console output)
     
     return NextResponse.json(trackingData)
   } catch (error) {
