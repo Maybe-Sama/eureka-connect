@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -59,17 +59,7 @@ export default function StudentClassesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'status' | 'payment'>('date')
 
-  useEffect(() => {
-    if (!loading) {
-      if (!isStudent) {
-        router.push('/login')
-      } else {
-        fetchClasses()
-      }
-    }
-  }, [loading, isStudent, router, selectedMonth])
-
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       setIsLoading(true)
       
@@ -113,14 +103,33 @@ export default function StudentClassesPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user?.studentId, selectedMonth])
+
+  useEffect(() => {
+    if (!loading) {
+      if (!isStudent) {
+        router.push('/login')
+      }
+    }
+  }, [loading, isStudent])
+
+  useEffect(() => {
+    if (isStudent && !loading) {
+      fetchClasses()
+    }
+  }, [isStudent, loading, fetchClasses])
 
   const handleRefresh = () => {
     fetchClasses()
   }
 
-  // Filter and search classes
+  // Filter and search classes - Only show completed classes
   const filteredClasses = classes.filter(cls => {
+    // Only show completed classes
+    if (cls.status !== 'completed') {
+      return false
+    }
+    
     const matchesSearch = 
       cls.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cls.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,16 +161,17 @@ export default function StudentClassesPage() {
     }
   })
 
-  // Calculate statistics
+  // Calculate statistics - Only for completed classes
+  const completedClasses = classes.filter(c => c.status === 'completed')
   const stats = {
-    total: classes.length,
-    completed: classes.filter(c => c.status === 'completed').length,
-    cancelled: classes.filter(c => c.status === 'cancelled').length,
-    paid: classes.filter(c => c.payment_status === 'paid').length,
-    unpaid: classes.filter(c => c.payment_status === 'unpaid').length,
-    totalEarned: classes.reduce((sum, c) => sum + c.price, 0),
-    totalPaid: classes.filter(c => c.payment_status === 'paid').reduce((sum, c) => sum + c.price, 0),
-    totalUnpaid: classes.filter(c => c.payment_status === 'unpaid').reduce((sum, c) => sum + c.price, 0)
+    total: completedClasses.length,
+    completed: completedClasses.length,
+    cancelled: 0, // Not relevant since we only show completed
+    paid: completedClasses.filter(c => c.payment_status === 'paid').length,
+    unpaid: completedClasses.filter(c => c.payment_status === 'unpaid').length,
+    totalEarned: completedClasses.reduce((sum, c) => sum + c.price, 0),
+    totalPaid: completedClasses.filter(c => c.payment_status === 'paid').reduce((sum, c) => sum + c.price, 0),
+    totalUnpaid: completedClasses.filter(c => c.payment_status === 'unpaid').reduce((sum, c) => sum + c.price, 0)
   }
 
 
@@ -187,28 +197,20 @@ export default function StudentClassesPage() {
           <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-2 xs:gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
             <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-foreground flex items-center">
               <BookOpen size={18} className="mr-2 text-primary" />
-              <span className="hidden xs:inline">Mis Clases</span>
-              <span className="xs:hidden">Clases</span>
+              <span className="hidden xs:inline">Mis Clases Completadas</span>
+              <span className="xs:hidden">Clases Completadas</span>
             </h1>
-            <Button 
-              onClick={handleRefresh} 
-              variant="outline" 
-              className="w-full xs:w-auto h-9 xs:h-auto text-xs sm:text-sm"
-              size="sm"
-            >
-              <RefreshCw size={14} className="mr-1 xs:mr-2" />
-              <span>Actualizar</span>
-            </Button>
+            
           </div>
 
           {/* Main Panel */}
           <div className="bg-card/50 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 border border-border/50 shadow-lg">
             {/* Month Selector and Stats Row */}
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
-              {/* Month Selector */}
-              <div className="flex-1 w-full min-w-0">
-                <label className="text-xs sm:text-sm font-medium text-foreground mb-1 sm:mb-2 block">Mes:</label>
-                <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6 mb-4 sm:mb-6">
+              {/* Month Selector - Centered */}
+              <div className="flex flex-col items-center space-y-3">
+                <label className="text-sm sm:text-base font-semibold text-foreground"></label>
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <Button 
                     onClick={() => {
                       const [year, month] = selectedMonth.split('-').map(Number)
@@ -218,16 +220,46 @@ export default function StudentClassesPage() {
                     }}
                     variant="outline" 
                     size="sm"
-                    className="px-2 sm:px-3 h-8 sm:h-9 text-xs sm:text-sm flex-shrink-0"
+                    className="h-9 w-9 p-0 hover:bg-primary/10 transition-colors duration-200"
                   >
                     ←
                   </Button>
-                  <input
-                    type="month"
+                  <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 bg-background border border-border rounded-lg text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+                    className="w-44 sm:w-48 md:w-52 px-3 py-2 bg-background/80 backdrop-blur-sm border border-border/50 rounded-lg text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 hover:bg-background/90"
+                  >
+                    {(() => {
+                      const currentYear = new Date().getFullYear()
+                      const months = []
+                      
+                      // Add months for current year
+                      for (let i = 0; i < 12; i++) {
+                        const date = new Date(currentYear, i)
+                        const monthValue = `${currentYear}-${String(i + 1).padStart(2, '0')}`
+                        const monthName = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+                        months.push(
+                          <option key={monthValue} value={monthValue}>
+                            {monthName}
+                          </option>
+                        )
+                      }
+                      
+                      // Add months for previous year
+                      for (let i = 0; i < 12; i++) {
+                        const date = new Date(currentYear - 1, i)
+                        const monthValue = `${currentYear - 1}-${String(i + 1).padStart(2, '0')}`
+                        const monthName = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+                        months.push(
+                          <option key={monthValue} value={monthValue}>
+                            {monthName}
+                          </option>
+                        )
+                      }
+                      
+                      return months
+                    })()}
+                  </select>
                   <Button 
                     onClick={() => {
                       const [year, month] = selectedMonth.split('-').map(Number)
@@ -241,7 +273,7 @@ export default function StudentClassesPage() {
                     }}
                     variant="outline" 
                     size="sm"
-                    className="px-2 sm:px-3 h-8 sm:h-9 text-xs sm:text-sm flex-shrink-0"
+                    className="h-9 w-9 p-0 hover:bg-primary/10 transition-colors duration-200"
                     disabled={selectedMonth >= new Date().toISOString().slice(0, 7)}
                   >
                     →
@@ -249,23 +281,19 @@ export default function StudentClassesPage() {
                 </div>
               </div>
               
-              {/* Quick Stats - Optimized for mobile */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-3 w-full xl:w-auto">
-                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <p className="text-sm sm:text-lg md:text-xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-xs text-foreground-muted">Total</p>
+              {/* Quick Stats - Enhanced */}
+              <div className="flex flex-row gap-3 sm:gap-4 justify-center lg:ml-auto">
+                <div className="text-center p-2 sm:p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg border border-primary/30 shadow-sm hover:shadow-md transition-all duration-200 min-w-[70px]">
+                  <p className="text-base sm:text-lg font-bold text-primary mb-1">{stats.total}</p>
+                  <p className="text-xs text-foreground-muted font-medium">Clases</p>
                 </div>
-                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                  <p className="text-sm sm:text-lg md:text-xl font-bold text-green-500">{stats.completed}</p>
-                  <p className="text-xs text-foreground-muted">Completadas</p>
+                <div className="text-center p-2 sm:p-3 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg border border-blue-500/30 shadow-sm hover:shadow-md transition-all duration-200 min-w-[70px]">
+                  <p className="text-base sm:text-lg font-bold text-blue-500 mb-1">€{stats.totalEarned.toFixed(0)}</p>
+                  <p className="text-xs text-foreground-muted font-medium">Total</p>
                 </div>
-                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                  <p className="text-xs sm:text-sm md:text-xl font-bold text-blue-500">€{stats.totalEarned.toFixed(0)}</p>
-                  <p className="text-xs text-foreground-muted">Total</p>
-                </div>
-                <div className="text-center p-1.5 sm:p-2 md:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                  <p className="text-xs sm:text-sm md:text-xl font-bold text-green-500">€{stats.totalPaid.toFixed(0)}</p>
-                  <p className="text-xs text-foreground-muted">Pagado</p>
+                <div className="text-center p-2 sm:p-3 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg border border-green-500/30 shadow-sm hover:shadow-md transition-all duration-200 min-w-[70px]">
+                  <p className="text-base sm:text-lg font-bold text-green-500 mb-1">€{stats.totalPaid.toFixed(0)}</p>
+                  <p className="text-xs text-foreground-muted font-medium">Pagado</p>
                 </div>
               </div>
             </div>
@@ -321,7 +349,7 @@ export default function StudentClassesPage() {
               ) : (
                 <div className="text-center py-4 sm:py-6 md:py-8 lg:py-12">
                   <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-foreground-muted mx-auto mb-2 sm:mb-3 lg:mb-4" />
-                  <p className="text-xs sm:text-sm md:text-base text-foreground-muted px-4">No se encontraron clases para el mes seleccionado</p>
+                  <p className="text-xs sm:text-sm md:text-base text-foreground-muted px-4">No se encontraron clases completadas para el mes seleccionado</p>
                 </div>
               )}
             </div>

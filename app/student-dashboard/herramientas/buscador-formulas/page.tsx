@@ -78,7 +78,7 @@ export default function BuscadorFormulasPage() {
     }
 
     performSearch()
-  }, [debouncedQuery, selectedSubject, selectedCategory, searchFormulas])
+  }, [debouncedQuery, selectedSubject, selectedCategory]) // Sin searchFormulas
 
   // Resetear categoría cuando cambia la materia
   useEffect(() => {
@@ -403,7 +403,7 @@ export default function BuscadorFormulasPage() {
               >
                 {formulas.map((formula, index) => (
                   <motion.div
-                    key={`${formula.subject}-${formula.name}`}
+                    key={`${formula.subject}-${formula.name}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}

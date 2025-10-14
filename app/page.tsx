@@ -22,7 +22,7 @@ export default function HomePage() {
         router.push('/login')
       }
     }
-  }, [user, loading, router])
+  }, [user, loading])
 
   // Mostrar loading mientras se decide la redirección
   return (

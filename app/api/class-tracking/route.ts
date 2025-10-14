@@ -26,8 +26,6 @@ export async function GET(request: NextRequest) {
     const monthYear = searchParams.get('month') || new Date().toISOString().slice(0, 7) // YYYY-MM format
     const studentId = searchParams.get('studentId')
 
-    console.log(`Fetching class tracking for month: ${monthYear}`)
-
     // Get all students with their courses
     let studentsQuery = supabase
       .from('students')
@@ -54,10 +52,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al obtener estudiantes' }, { status: 500 })
     }
 
-    console.log(`Found ${students?.length || 0} students`)
-
     if (!students || students.length === 0) {
-      console.log('No students found')
       return NextResponse.json([])
     }
 
@@ -73,7 +68,6 @@ export async function GET(request: NextRequest) {
     for (const student of students) {
       // Validate student has required fields
       if (!student.start_date || !student.fixed_schedule) {
-        console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): missing start_date or fixed_schedule`)
         skippedStudents.push({
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
@@ -85,7 +79,6 @@ export async function GET(request: NextRequest) {
 
       // Skip students with future start dates
       if (student.start_date > today) {
-        console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): start_date is in the future (${student.start_date})`)
         skippedStudents.push({
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
@@ -103,7 +96,6 @@ export async function GET(request: NextRequest) {
           : student.fixed_schedule
         
         if (!Array.isArray(fixedSchedule) || fixedSchedule.length === 0) {
-          console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): invalid or empty fixed_schedule`)
           skippedStudents.push({
             id: student.id,
             name: `${student.first_name} ${student.last_name}`,
@@ -113,7 +105,6 @@ export async function GET(request: NextRequest) {
           continue
         }
       } catch (error) {
-        console.error(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): error parsing fixed_schedule`, error)
         skippedStudents.push({
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
@@ -159,7 +150,6 @@ export async function GET(request: NextRequest) {
         
         // If no classes found in the month, skip this student
         if (!eventualClasses || eventualClasses.length === 0) {
-          console.warn(`⚠️ Skipping student ${student.id} (${student.first_name} ${student.last_name}): started (${student.start_date}) after requested month (${monthEnd}) and has no classes in that month`)
           skippedStudents.push({
             id: student.id,
             name: `${student.first_name} ${student.last_name}`,
@@ -169,7 +159,6 @@ export async function GET(request: NextRequest) {
           continue
         } else {
           // Student has classes in the month, use the month range instead of student start date
-          console.log(`ℹ️ Student ${student.id} (${student.first_name} ${student.last_name}) has ${eventualClasses.length} classes in month ${monthYear}, including them`)
           queryStartDate = monthStart
         }
       }
@@ -203,53 +192,9 @@ export async function GET(request: NextRequest) {
         }
       })
       
-      // AUTO-GENERATE MISSING CLASSES: Generate classes that should exist but aren't in DB yet
-      // This ensures that scheduled classes appear in tracking even if not explicitly generated
-      try {
-        const generatedClasses = await generateClassesFromStartDate(
-          student.id,
-          student.course_id,
-          fixedSchedule,
-          queryStartDate,
-          queryEndDate
-        )
-
-        // Get existing classes to avoid duplicates
-        const existingClassKeys = new Set(
-          classesArray.map(cls => `${cls.date}-${cls.start_time}-${cls.end_time}`)
-        )
-
-        // Filter out classes that already exist
-        const newClasses = generatedClasses.filter(genClass => 
-          !existingClassKeys.has(`${genClass.date}-${genClass.start_time}-${genClass.end_time}`)
-        )
-
-        // Insert new classes in batch if any are missing
-        if (newClasses.length > 0) {
-          console.log(`🔄 Auto-generating ${newClasses.length} missing classes for ${student.first_name} ${student.last_name}`)
-          
-          const { error: insertError } = await supabase
-            .from('classes')
-            .insert(newClasses)
-
-          if (insertError) {
-            // If error is duplicate key, it's not a real error - just skip silently
-            if (insertError.code === '23505') {
-              console.log(`ℹ️ Some classes already existed for ${student.first_name} ${student.last_name} (this is normal)`)
-            } else {
-              console.error(`❌ Error auto-generating classes for student ${student.id}:`, insertError)
-              // Continue with existing classes only
-            }
-          } else {
-            // Successfully inserted new classes, add them to our array
-            classesArray = [...classesArray, ...newClasses]
-            console.log(`✅ Auto-generated ${newClasses.length} classes for ${student.first_name} ${student.last_name}`)
-          }
-        }
-      } catch (autoGenError) {
-        console.error(`Error auto-generating classes for student ${student.id}:`, autoGenError)
-        // Continue with existing classes only
-      }
+      // Note: Auto-generation of missing classes has been moved to a separate endpoint
+      // This GET endpoint now only reads existing classes for better performance
+      // Use POST /api/class-tracking/generate-missing-classes to generate missing classes
       
       // Calculate statistics
       const stats = {
@@ -328,14 +273,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    console.log(`Returning ${trackingData.length} students with tracking data`)
-    
-    if (skippedStudents.length > 0) {
-      console.warn(`⚠️ Skipped ${skippedStudents.length} students:`)
-      skippedStudents.forEach(s => {
-        console.warn(`  - ${s.name} (${s.course}): ${s.reason}`)
-      })
-    }
+    // Return tracking data (logs removed for cleaner console output)
     
     return NextResponse.json(trackingData)
   } catch (error) {

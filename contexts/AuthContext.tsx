@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/dashboard')
       return
     }
-  }, [user, pathname, loading, mounted, router])
+  }, [user, pathname, loading, mounted])
 
   const login = (user: User, token: string) => {
     setUser(user)

@@ -15,7 +15,7 @@ export default function LogoutPage() {
     }
     
     handleLogout()
-  }, [logout, router])
+  }, [logout])
 
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -18,7 +18,7 @@ export default function StudentDashboard() {
         router.push('/student-dashboard/profile')
       }
     }
-  }, [loading, isStudent, router])
+  }, [loading, isStudent])
 
   // Mostrar loading mientras redirige
   return (

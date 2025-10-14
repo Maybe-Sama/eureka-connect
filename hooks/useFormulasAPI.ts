@@ -142,7 +142,7 @@ export function useFormulasAPI() {
   // Cargar datos al montar el componente
   useEffect(() => {
     loadInitialData()
-  }, [loadInitialData])
+  }, []) // Solo se ejecuta una vez al montar
 
   // Función para obtener categorías de una materia específica
   const getCategoriesForSubject = useCallback((subjectId: string): string[] => {
@@ -159,8 +159,8 @@ export function useFormulasAPI() {
 
   // Función para recargar datos
   const reload = useCallback(() => {
-    return loadInitialData()
-  }, [loadInitialData])
+    return searchFormulas({ limit: 50 })
+  }, [searchFormulas])
 
   return {
     // Estado

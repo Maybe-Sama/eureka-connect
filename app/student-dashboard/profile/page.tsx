@@ -15,7 +15,7 @@ export default function StudentProfilePage() {
     if (!loading && !isStudent) {
       router.push('/login')
     }
-  }, [loading, isStudent, router])
+  }, [loading, isStudent])
 
   if (loading) {
     return (

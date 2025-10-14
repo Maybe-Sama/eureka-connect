@@ -52,9 +52,12 @@ interface ClassData {
 interface ClassItemProps {
   classData: ClassData
   onUpdate: (updatedClass: ClassData) => void
+  isBatchMode?: boolean
+  isSelected?: boolean
+  onToggleSelection?: (classId: number) => void
 }
 
-export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
+export const ClassItem = ({ classData, onUpdate, isBatchMode = false, isSelected = false, onToggleSelection }: ClassItemProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState({
     status: classData.status,
@@ -212,6 +215,16 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
         {/* Header with Date and Time */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-3">
+            {/* Selection Checkbox */}
+            {isBatchMode && (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onToggleSelection?.(classData.id)}
+                className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2"
+              />
+            )}
+            
             <div className="flex items-center space-x-2">
               <Calendar size={16} className="text-foreground-muted" />
               <span className="font-medium text-foreground">
@@ -360,7 +373,7 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
                 Guardar
               </Button>
             </>
-          ) : (
+          ) : !isBatchMode ? (
             <Button
               size="sm"
               onClick={() => setIsEditing(true)}
@@ -369,6 +382,10 @@ export const ClassItem = ({ classData, onUpdate }: ClassItemProps) => {
               <Edit size={14} className="mr-1" />
               Editar
             </Button>
+          ) : (
+            <div className="text-sm text-foreground-muted">
+              {isSelected ? 'Seleccionada' : 'No seleccionada'}
+            </div>
           )}
         </div>
       </div>

@@ -72,7 +72,7 @@ export default function StudentCalendarPage() {
     if (!loading && !isStudent) {
       router.push('/login')
     }
-  }, [loading, isStudent, router])
+  }, [loading, isStudent])
 
   useEffect(() => {
     if (isStudent && user?.studentId) {

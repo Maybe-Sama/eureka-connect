@@ -14,7 +14,19 @@ interface FormulaRendererProps {
 const convertToLatex = (formula: string): string => {
   let latex = formula
 
-  // 1. PRIMERO: Si ya es LaTeX válido, no hacer conversiones
+  // 0. PRIMERO: Escapar caracteres especiales y acentos
+  const escapeMap = {
+    'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+    'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+    'ñ': 'n', 'Ñ': 'N', 'ü': 'u', 'Ü': 'U',
+    'ç': 'c', 'Ç': 'C'
+  }
+  
+  Object.entries(escapeMap).forEach(([char, replacement]) => {
+    latex = latex.replace(new RegExp(char, 'g'), replacement)
+  })
+
+  // 1. Si ya es LaTeX válido, no hacer conversiones
   if (latex.includes('\\frac') || latex.includes('\\cdot') || latex.includes('\\sqrt') || latex.includes('\\sin') || latex.includes('\\cos')) {
     // Solo limpiar errores conocidos
     latex = latex.replace(/\\cdott/g, '\\cdot t')
@@ -107,7 +119,22 @@ const convertToLatex = (formula: string): string => {
 
   // 13. Convertir multiplicación: · -> \cdot
   latex = latex.replace(/·/g, '\\cdot')
-  latex = latex.replace(/\*/g, '\\cdot')
+  
+  // Convertir * a \cdot con manejo inteligente de espacios
+  // Caso 1: * seguido de letra/número (sin espacio) -> \cdot con espacio
+  latex = latex.replace(/\*([a-zA-Z0-9])/g, ' \\cdot $1')
+  // Caso 2: letra/número seguido de * (sin espacio) -> \cdot con espacio  
+  latex = latex.replace(/([a-zA-Z0-9])\*/g, '$1 \\cdot ')
+  // Caso 3: * entre paréntesis o en contextos especiales
+  latex = latex.replace(/\*\)/g, ' \\cdot )')
+  latex = latex.replace(/\(\*/g, '( \\cdot ')
+  // Caso 4: * al final de una expresión
+  latex = latex.replace(/\*$/g, ' \\cdot')
+  // Caso 5: * al inicio de una expresión  
+  latex = latex.replace(/^\*/g, '\\cdot ')
+  
+  // Limpiar espacios dobles que puedan haberse creado
+  latex = latex.replace(/\s+/g, ' ')
 
   // 14. Convertir símbolos especiales
   latex = latex.replace(/∞/g, '\\infty')
@@ -154,13 +181,23 @@ export function FormulaRenderer({ formula, display = 'inline', className = '' }:
     if (display === 'block') {
       return (
         <div className={`formula-block ${className}`}>
-          <BlockMath math={latexFormula} />
+          <BlockMath 
+            math={latexFormula}
+            errorColor="#cc0000"
+            strict={false}
+            throwOnError={false}
+          />
         </div>
       )
     } else {
       return (
         <span className={`formula-inline ${className}`}>
-          <InlineMath math={latexFormula} />
+          <InlineMath 
+            math={latexFormula}
+            errorColor="#cc0000"
+            strict={false}
+            throwOnError={false}
+          />
         </span>
       )
     }
