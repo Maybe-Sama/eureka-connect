@@ -125,3 +125,62 @@ secrets/
 .jest-cache/
 jest-results.json
 
+# Test files and temporary test data
+public/test-files/
+*_backup.*
+*.backup.*
+backup_*
+
+# Generated PDFs (test files)
+test-*.pdf
+*-test.pdf
+
+# SQLite databases (development)
+*.sqlite
+*.sqlite3
+
+# Next.js specific
+.next/
+out/
+.swc/
+
+# Cursor AI
+.cursor/
+.cursorrules
+
+# macOS specific
+.AppleDouble
+.LSOverride
+._*
+
+# Windows specific
+ehthumbs.db
+ehthumbs_vista.db
+
+# Environment variables (additional)
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Supabase local
+.supabase/
+
+# Generated files
+generated/
+*.generated.*
+
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
+
+# Storybook
+storybook-static/
+.storybook-out/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/

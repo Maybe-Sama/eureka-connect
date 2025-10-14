@@ -20,6 +20,7 @@ if (typeof window !== 'undefined') {
 
 import { supabaseAdmin } from './supabase-server'
 import crypto from 'crypto'
+import bcrypt from 'bcrypt'
 
 export interface User {
   id: string
@@ -42,9 +43,27 @@ export function generateSessionToken(): string {
   return crypto.randomBytes(32).toString('hex')
 }
 
-// Crear hash de contraseña (simple para desarrollo)
-export function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex')
+// Crear hash de contraseña con bcrypt (seguro para producción)
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12 // Balance entre seguridad y rendimiento
+  return await bcrypt.hash(password, saltRounds)
+}
+
+// Verificar contraseña con soporte para hashes antiguos (SHA-256) y nuevos (bcrypt)
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  // Si el hash tiene 64 caracteres, es SHA-256 (legacy)
+  if (hash.length === 64 && /^[a-f0-9]+$/.test(hash)) {
+    const sha256Hash = crypto.createHash('sha256').update(password).digest('hex')
+    return sha256Hash === hash
+  }
+  
+  // Si no, es bcrypt (nuevo sistema)
+  try {
+    return await bcrypt.compare(password, hash)
+  } catch (error) {
+    console.error('Error verifying password:', error)
+    return false
+  }
 }
 
 // Helper: Normalizar código de estudiante (quitar guiones, espacios, etc.)
@@ -66,7 +85,7 @@ export async function authenticateTeacher(email: string, password: string): Prom
     // Primero buscar si el usuario ya existe
     const { data: existingUser, error: userError } = await supabaseAdmin
       .from('system_users')
-      .select('id')
+      .select('id, password_hash')
       .eq('email', email)
       .eq('user_type', 'teacher')
       .single()
@@ -74,8 +93,8 @@ export async function authenticateTeacher(email: string, password: string): Prom
     let userId: string
 
     if (userError || !existingUser) {
-      // Si no existe, crear el usuario
-      const hashedPassword = hashPassword(password)
+      // Si no existe, crear el usuario con bcrypt
+      const hashedPassword = await hashPassword(password)
       const { data: newUser, error: createError } = await supabaseAdmin
         .from('system_users')
         .insert({
@@ -93,6 +112,18 @@ export async function authenticateTeacher(email: string, password: string): Prom
 
       userId = newUser.id
     } else {
+      // Usuario existe - verificar si necesita migración de hash
+      const needsMigration = existingUser.password_hash.length === 64
+      
+      if (needsMigration) {
+        // Migrar hash de SHA-256 a bcrypt
+        const newHash = await hashPassword(password)
+        await supabaseAdmin
+          .from('system_users')
+          .update({ password_hash: newHash })
+          .eq('id', existingUser.id)
+      }
+      
       userId = existingUser.id
     }
 
@@ -129,20 +160,14 @@ export async function authenticateTeacher(email: string, password: string): Prom
 // Autenticar estudiante (por código o email)
 export async function authenticateStudent(identifier: string, password: string): Promise<AuthResult> {
   try {
-    console.log('🔵 authenticateStudent called with:', { identifier: identifier?.substring(0, 10) + '...', hasPassword: !!password })
-    
-    const hashedPassword = hashPassword(password)
     const normalizedIdentifier = identifier.trim().toLowerCase()
-    console.log('🔵 Normalized identifier:', normalizedIdentifier)
     
     let systemUser: any
     let student: any
     
     // Determinar si es email o código de estudiante
     if (normalizedIdentifier.includes('@')) {
-      console.log('🔵 Treating as email')
       // Es un email - buscar directamente en system_users
-      console.log('🔵 Searching for user with email:', normalizedIdentifier)
       const { data: userData, error: userError } = await supabaseAdmin
         .from('system_users')
         .select('id, email, password_hash, user_type, student_id, email_verified')
@@ -150,21 +175,16 @@ export async function authenticateStudent(identifier: string, password: string):
         .eq('user_type', 'student')
         .maybeSingle()
 
-      console.log('🔵 User query result:', { userData, userError })
-
       if (userError) {
-        console.log('❌ Database error:', userError)
         return { success: false, error: 'Error de base de datos.' }
       }
 
       if (!userData) {
-        console.log('❌ User not found')
         return { success: false, error: 'Código de estudiante o email no encontrado.' }
       }
 
       // Verificar si el email está verificado
       if (!userData.email_verified) {
-        console.log('❌ Email not verified')
         return { success: false, error: 'Email no verificado. Por favor, verifica tu correo o inicia sesión con tu código.' }
       }
 
@@ -226,9 +246,19 @@ export async function authenticateStudent(identifier: string, password: string):
       systemUser = userData
     }
 
-    // Verificar contraseña
-    if (systemUser.password_hash !== hashedPassword) {
+    // Verificar contraseña usando la nueva función con soporte para SHA-256 y bcrypt
+    const isPasswordValid = await verifyPassword(password, systemUser.password_hash)
+    if (!isPasswordValid) {
       return { success: false, error: 'Contraseña incorrecta.' }
+    }
+    
+    // Si el hash es SHA-256 (legacy), migrarlo a bcrypt
+    if (systemUser.password_hash.length === 64) {
+      const newHash = await hashPassword(password)
+      await supabaseAdmin
+        .from('system_users')
+        .update({ password_hash: newHash })
+        .eq('id', systemUser.id)
     }
 
     // Crear sesión
@@ -423,10 +453,8 @@ export async function registerStudent(studentCode: string, password: string, con
   }
 
   try {
-    const hashedPassword = hashPassword(password)
+    const hashedPassword = await hashPassword(password)
     const normalizedCode = normalizeStudentCode(studentCode)
-    
-    console.log('🔵 Registering student with code:', normalizedCode)
     
     const { data, error } = await supabaseAdmin
       .rpc('create_student_user', {
@@ -434,11 +462,8 @@ export async function registerStudent(studentCode: string, password: string, con
         student_password: hashedPassword
       })
       .single()
-    
-    console.log('🔵 RPC result:', { data, error })
 
     if (error) {
-      console.error('❌ Error from RPC:', error)
       // Proporcionar mensajes de error más específicos
       if (error.message?.includes('not found') || error.code === 'PGRST202') {
         return { success: false, error: 'Código de estudiante no encontrado o ya registrado' }
@@ -450,10 +475,9 @@ export async function registerStudent(studentCode: string, password: string, con
       return { success: false, error: 'No se pudo completar el registro' }
     }
 
-    console.log('✅ Student registered successfully')
     return { success: true }
   } catch (error: any) {
-    console.error('❌ Exception registering student:', error)
+    console.error('Error registering student:', error)
     return { success: false, error: error.message || 'Error interno del servidor' }
   }
 }

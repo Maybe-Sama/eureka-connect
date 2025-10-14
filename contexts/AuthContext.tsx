@@ -15,18 +15,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Helper function to set cookie
+// Helper function to set cookie with security flags
 function setCookie(name: string, value: string, days: number = 7) {
   if (typeof window === 'undefined') return
   const expires = new Date()
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`
+  
+  // Detectar si estamos en producción (HTTPS)
+  const isProduction = window.location.protocol === 'https:'
+  const secureFlag = isProduction ? ';Secure' : ''
+  
+  // SameSite=Strict para mejor protección CSRF
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict${secureFlag}`
 }
 
 // Helper function to delete cookie
 function deleteCookie(name: string) {
   if (typeof window === 'undefined') return
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax`
+  const isProduction = window.location.protocol === 'https:'
+  const secureFlag = isProduction ? ';Secure' : ''
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict${secureFlag}`
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
