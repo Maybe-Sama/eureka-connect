@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
 
 import { supabaseAdmin } from './supabase-server'
 import crypto from 'crypto'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 export interface User {
   id: string
