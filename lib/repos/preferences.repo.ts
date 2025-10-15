@@ -47,7 +47,7 @@ export async function updatePreferencesForCurrentStudent(
     // #RGB → #RRGGBB
     const rgbMatch = /^#([0-9A-F]{3})$/i.exec(hex);
     if (rgbMatch) {
-      const [_, rgb] = rgbMatch;
+      const [, rgb] = rgbMatch;
       hex = `#${rgb[0]}${rgb[0]}${rgb[1]}${rgb[1]}${rgb[2]}${rgb[2]}`;
     }
     // Validar formato #RRGGBB o #RRGGBBAA

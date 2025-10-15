@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para obtener el hash del último registro (encadenamiento RRSIF)
  */

@@ -407,13 +407,14 @@ function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number
  * Genera sección de totales (sin IVA)
  */
 function generarTotales(doc: jsPDF, factura: FacturaRRSIF, tableEndY: number): void {
-  let currentY = tableEndY + 8
+  const currentY = tableEndY + 8
   
   // Solo mostrar total a pagar (sin impuestos)
-  const sumaX = PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 45
-  const valorX = PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 2
+  // const sumaX = PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 45
+  // const valorX = PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 2
   
-  
+  // TODO: Implementar lógica de totales
+  console.log('Generando totales en Y:', currentY)
 }
 
 /**
@@ -442,7 +443,7 @@ function generarNotas(doc: jsPDF, factura: FacturaRRSIF): void {
 /**
  * Genera pie de página (estilo profesional)
  */
-function generarPiePagina(doc: jsPDF, factura: FacturaRRSIF): void {
+function generarPiePagina(doc: jsPDF, _factura: FacturaRRSIF): void {
   const startY = PDF_CONFIG.A4_HEIGHT - 10
   
   doc.setFontSize(PDF_CONFIG.FONT_SIZE.TINY)
@@ -457,7 +458,7 @@ function generarPiePagina(doc: jsPDF, factura: FacturaRRSIF): void {
     const base64 = logoBuffer.toString('base64')
     const logoDataURL = `data:image/png;base64,${base64}`
     doc.addImage(logoDataURL, 'PNG', PDF_CONFIG.MARGIN_LEFT, startY - 6, logoSize, logoSize)
-  } catch (error) {
+  } catch {
     // Si no se puede cargar el logo, continuar sin él
   }
   
@@ -478,7 +479,7 @@ export async function guardarPDF(
   nombreArchivo: string
 ): Promise<string> {
   const pdfBlob = doc.output('blob')
-  const pdfArrayBuffer = await pdfBlob.arrayBuffer()
+  // const pdfArrayBuffer = await pdfBlob.arrayBuffer()
   
   // En un entorno real, esto se guardaría en el sistema de archivos
   // Por ahora, solo retornamos el nombre del archivo
@@ -498,7 +499,7 @@ export function generarNombreArchivo(factura: FacturaRRSIF): string {
 /**
  * Valida que el PDF cumple con RRSIF
  */
-export function validarPDFRRSIF(doc: jsPDF, factura: FacturaRRSIF): boolean {
+export function validarPDFRRSIF(_doc: jsPDF, _factura: FacturaRRSIF): boolean {
   // Verificar que el QR está en la posición correcta
   // Verificar que contiene todos los datos obligatorios
   // Verificar que el tamaño del QR es correcto

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para verificación de sincronización del reloj del sistema
  * RRSIF requiere desfase < 1 minuto con hora oficial

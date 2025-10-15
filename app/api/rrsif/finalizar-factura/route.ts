@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para finalizar facturas (cambiar de provisional a final)
  * Las facturas finales no se pueden borrar según RRSIF

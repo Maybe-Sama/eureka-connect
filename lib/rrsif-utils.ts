@@ -7,7 +7,7 @@ import CryptoJS from 'crypto-js'
 import { 
   RegistroFacturacionAlta, 
   RegistroAnulacion, 
-  EventoSistema,
+  // EventoSistema,
   EstadoReloj,
   FiscalData,
   ReceptorData,
@@ -19,7 +19,7 @@ import {
 /**
  * Genera hash SHA-256 de un objeto
  */
-export function generarHashSHA256(data: any): string {
+export function generarHashSHA256(data: unknown): string {
   const jsonString = JSON.stringify(data, Object.keys(data).sort())
   return CryptoJS.SHA256(jsonString).toString()
 }

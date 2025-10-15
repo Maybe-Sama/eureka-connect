@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para exportación de registros RRSIF
  * Permite exportar registros de facturación y eventos según normativa

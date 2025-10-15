@@ -78,6 +78,38 @@ export const WeeklyCalendar = ({
   const timeSlots = getTimeSlots()
   const [isColorPanelOpen, setIsColorPanelOpen] = useState(false)
   const [studentColors, setStudentColors] = useState<Record<number, string>>({})
+  
+  // Debug: Log cuando cambian las clases
+  useEffect(() => {
+    console.log('📅 WEEKLY CALENDAR:')
+    console.log('  - Received classes:', scheduledClasses.length)
+    
+    if (scheduledClasses.length > 0) {
+      const weekStart = weekDates[0].toISOString().split('T')[0]
+      const weekEnd = weekDates[6].toISOString().split('T')[0]
+      
+      const classesThisWeek = scheduledClasses.filter(cls => {
+        const classDate = cls.date
+        return classDate >= weekStart && classDate <= weekEnd
+      })
+      
+      console.log(`  - Week: ${weekStart} to ${weekEnd}`)
+      console.log(`  - Classes this week: ${classesThisWeek.length}`)
+      
+      if (classesThisWeek.length > 0) {
+        console.log('  - Sample class:', {
+          id: classesThisWeek[0].id,
+          date: classesThisWeek[0].date,
+          day_of_week: classesThisWeek[0].day_of_week,
+          start_time: classesThisWeek[0].start_time
+        })
+      } else {
+        console.log('  - ⚠️ NO CLASSES FOR THIS WEEK')
+      }
+    } else {
+      console.log('  - ⚠️ NO CLASSES RECEIVED')
+    }
+  }, [scheduledClasses, weekDates])
 
   // Cargar colores guardados del localStorage
   useEffect(() => {
@@ -239,67 +271,34 @@ export const WeeklyCalendar = ({
     const targetDateString = targetDate.toISOString().split('T')[0]
     
     
+    // SIMPLIFICADO: Buscar CUALQUIER clase que coincida con día, fecha y hora
+    // No importa si es is_recurring: true o false, todas se buscan igual
     
-    // Buscar clase programada específica (is_recurring: false) que coincida con la fecha
-    const scheduledClass = scheduledClasses.find(cls => {
+    // TEMPORAL: Buscar en la fecha correcta Y en la fecha incorrecta (día siguiente)
+    // Esto permite que el calendario funcione mientras se corrigen las fechas en la BD
+    const nextDay = new Date(targetDate)
+    nextDay.setDate(targetDate.getDate() + 1)
+    const nextDayString = nextDay.toISOString().split('T')[0]
+    
+    const matchingClass = scheduledClasses.find(cls => {
+      // 1. Verificar día de la semana
       if (cls.day_of_week !== day) return false
       
-      // Verificar que la fecha coincida
+      // 2. Verificar que la fecha coincida (fecha correcta O fecha incorrecta)
       const classDate = new Date(cls.date).toISOString().split('T')[0]
-      if (classDate !== targetDateString) return false
+      if (classDate !== targetDateString && classDate !== nextDayString) return false
       
-      
+      // 3. Verificar que la hora esté en el rango de la clase
       const startMinutes = timeToMinutes(cls.start_time)
       const endMinutes = timeToMinutes(cls.end_time)
-      
-      // La clase programada debe estar activa en este slot de tiempo
-      // Solo considerar el slot de tiempo donde comienza la clase
       const isInTimeRange = currentTimeMinutes >= startMinutes && currentTimeMinutes < endMinutes
-      
       
       return isInTimeRange
     })
     
-    if (scheduledClass) {
-      return { type: 'scheduled', data: scheduledClass }
-    }
-    
-    // Buscar horario fijo (is_recurring: true) - estos no dependen de fecha específica
-    const fixedSchedule = fixedSchedules.find(schedule => {
-      if (schedule.day_of_week !== day) return false
-      
-      const startMinutes = timeToMinutes(schedule.start_time)
-      const endMinutes = timeToMinutes(schedule.end_time)
-      
-      // El horario fijo debe estar activo en este slot de tiempo
-      const isInTimeRange = currentTimeMinutes >= startMinutes && currentTimeMinutes < endMinutes
-      
-      if (!isInTimeRange) return false
-      
-      // Verificar si la fecha actual es posterior o igual a la fecha de inicio del estudiante
-      const student = students.find(s => s.id === schedule.student_id)
-      if (student && student.start_date) {
-        const studentStartDate = new Date(student.start_date)
-        const currentDate = new Date(targetDateString)
-        if (currentDate < studentStartDate) {
-          return false // El estudiante aún no ha comenzado las clases
-        }
-      }
-      
-      // Verificar si este horario fijo está oculto para esta semana
-      const weekStart = weekDates[0]
-      const weekEnd = weekDates[6]
-      const exceptionKey = `${schedule.student_id}-${schedule.day_of_week}-${schedule.start_time}-${weekStart.toISOString().split('T')[0]}-${weekEnd.toISOString().split('T')[0]}`
-      
-      if (hiddenFixedSchedules.has(exceptionKey)) {
-        return false // Este horario fijo está oculto para esta semana
-      }
-      
-      return true
-    })
-    
-    if (fixedSchedule) {
-      return { type: 'fixed', data: fixedSchedule }
+    if (matchingClass) {
+      // Devolver como 'scheduled' independientemente de is_recurring
+      return { type: 'scheduled', data: matchingClass }
     }
     
     return null

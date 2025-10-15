@@ -141,38 +141,17 @@ const CalendarPage = () => {
           studentsResponse.json()
         ])
         
-        // Separar clases fijas (is_recurring: true) de clases programadas (is_recurring: false)
-        const fixedClasses = classesData.filter((cls: any) => cls.is_recurring)
-        const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
         
-        // Debug temporal para ver qué datos llegan
-        console.log('=== DEBUG API DATA ===')
-        console.log('Total classes from API:', classesData.length)
-        console.log('Fixed classes (recurring):', fixedClasses.length)
-        console.log('Scheduled classes (non-recurring):', scheduledClassesData.length)
         
-        if (scheduledClassesData.length > 0) {
-          console.log('First scheduled class:', scheduledClassesData[0])
-        }
-        
-        setScheduledClasses(scheduledClassesData)
+        // CAMBIO CRÍTICO: Ya no separamos en "fixedSchedules" y "scheduledClasses"
+        // TODAS las clases se muestran directamente desde la BD con su fecha específica
+        setScheduledClasses(classesData)
         setCourses(coursesData)
         setStudents(studentsData)
         
-        // Generate fixed schedules from recurring classes only
-        const fixedSchedulesData = fixedClasses.map((cls: any) => ({
-          student_id: cls.student_id,
-          student_name: cls.student_name,
-          course_name: cls.course_name,
-          course_color: cls.course_color,
-          day_of_week: cls.day_of_week,
-          start_time: cls.start_time,
-          end_time: cls.end_time,
-          subject: cls.subject,
-          is_scheduled: true
-        }))
-        
-        setFixedSchedules(fixedSchedulesData)
+        // No generamos "plantillas" de horarios fijos
+        // Las clases recurrentes ya están en la BD con fechas específicas
+        setFixedSchedules([])
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Error al cargar los datos')
@@ -311,6 +290,7 @@ const CalendarPage = () => {
 
   const handleAddClass = async (newClass: any) => {
     try {
+      // console.log('Creando nueva clase:', newClass)
       
       const response = await fetch('/api/classes', {
         method: 'POST',
@@ -321,23 +301,15 @@ const CalendarPage = () => {
       })
 
       if (response.ok) {
-        const result = await response.json()
+        setIsAddModalOpen(false)
+        setSelectedTimeSlot(undefined)
         
-        // Guardar en localStorage para debugging
-        const debugClasses = JSON.parse(localStorage.getItem('debugClasses') || '[]')
-        debugClasses.push({
-          ...newClass,
-          id: result.id,
-          created_at: new Date().toISOString()
-        })
-        localStorage.setItem('debugClasses', JSON.stringify(debugClasses))
-        
-        // Refresh only scheduled classes (is_recurring: false)
+        // Refresh classes - obtener todas las clases actualizadas de la BD
         const classesResponse = await fetch('/api/classes')
         if (classesResponse.ok) {
           const classesData = await classesResponse.json()
-          const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
-          setScheduledClasses(scheduledClassesData)
+          // console.log('Clases actualizadas desde BD:', classesData.length)
+          setScheduledClasses(classesData)
         }
         toast.success('Clase programada agregada correctamente')
       } else {
@@ -361,101 +333,39 @@ const CalendarPage = () => {
     try {
       setIsUpdating(true)
       
-      if (selectedClass.is_recurring) {
-        // Para horarios fijos, crear una nueva clase individual con los datos actualizados
-        // y ocultar el horario fijo original para esta semana
-        // Validate required fields
-        if (!selectedClass.course_id) {
-          throw new Error('No se pudo encontrar el curso del estudiante')
-        }
-        
-        const newClassData = {
-          student_id: selectedClass.student_id,
-          course_id: selectedClass.course_id,
-          start_time: updatedClass.start_time,
-          end_time: updatedClass.end_time,
-          duration: updatedClass.duration,
-          day_of_week: updatedClass.day_of_week,
-          date: updatedClass.date,
-          subject: selectedClass.subject,
-          is_recurring: false, // Nueva clase individual
-          price: selectedClass.price || 0,
-          notes: updatedClass.notes || `Clase modificada desde horario fijo - ${selectedClass.student_name}`
-        }
-        
-        // Crear la nueva clase individual
-        const response = await fetch('/api/classes', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newClassData),
-        })
-        
-        if (response.ok) {
-          // Ocultar el horario fijo original para esta semana
-          const weekStart = getWeekDates()[0]
-          const weekEnd = getWeekDates()[6]
-          const exceptionKey = `${selectedClass.student_id}-${selectedClass.day_of_week}-${selectedClass.start_time}-${weekStart.toISOString().split('T')[0]}-${weekEnd.toISOString().split('T')[0]}`
-          const currentWeekKey = getCurrentWeekKey(currentWeek)
-          
-          setHiddenFixedSchedules(prev => ({
-            ...prev,
-            [currentWeekKey]: new Set([...Array.from(prev[currentWeekKey] || new Set()), exceptionKey])
-          }))
-          
-          // Refresh classes data
-          const classesResponse = await fetch('/api/classes')
-          if (classesResponse.ok) {
-            const classesData = await classesResponse.json()
-            const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
-            setScheduledClasses(scheduledClassesData)
-          }
-          
-          toast.success('Clase individual creada y horario fijo ocultado para esta semana')
-        } else {
-          const errorData = await response.json()
-          
-          if (errorData.code === '23505' || errorData.message?.includes('duplicate key')) {
-            throw new Error('Ya existe una clase programada para este estudiante en la misma fecha y horario')
-          }
-          
-          throw new Error(errorData.error || 'Error al crear la clase individual')
-        }
-      } else {
-        // Para clases programadas, actualizar normalmente
-        // Validate required fields for scheduled classes
-        if (!selectedClass.course_id) {
-          throw new Error('No se pudo encontrar el curso del estudiante')
-        }
-        
-        const response = await fetch('/api/classes', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedClass),
-        })
+      // SIMPLIFICADO: Todas las clases se actualizan directamente en la BD
+      if (!selectedClass.course_id) {
+        throw new Error('No se pudo encontrar el curso del estudiante')
+      }
+      
+      // console.log('Actualizando clase:', updatedClass)
+      
+      const response = await fetch('/api/classes', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedClass),
+      })
 
-        if (response.ok) {
-          // Refresh classes data
-          const classesResponse = await fetch('/api/classes')
-          if (classesResponse.ok) {
-            const classesData = await classesResponse.json()
-            const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
-            setScheduledClasses(scheduledClassesData)
-          }
-          
-          toast.success('Clase actualizada correctamente')
-        } else {
-          const errorData = await response.json()
-          
-          if (errorData.code === '23505' || errorData.message?.includes('duplicate key')) {
-            throw new Error('Ya existe una clase programada para este estudiante en la misma fecha y horario')
-          }
-          
-          throw new Error(errorData.error || 'Error al actualizar la clase')
+      if (response.ok) {
+        // Refresh classes - obtener todas las clases actualizadas de la BD
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          // console.log('Clases actualizadas desde BD:', classesData.length)
+          setScheduledClasses(classesData)
         }
+        
+        toast.success('Clase actualizada correctamente')
+      } else {
+        const errorData = await response.json()
+        
+        if (errorData.code === '23505' || errorData.message?.includes('duplicate key')) {
+          throw new Error('Ya existe una clase programada para este estudiante en la misma fecha y horario')
+        }
+        
+        throw new Error(errorData.error || 'Error al actualizar la clase')
       }
       
       setIsEditModalOpen(false)
@@ -474,41 +384,31 @@ const CalendarPage = () => {
 
     setIsDeleting(true)
     try {
-      if (selectedClass.is_recurring) {
-        // Para horarios fijos, crear una excepción para esta semana específica
-        const weekStart = getWeekDates()[0]
-        const weekEnd = getWeekDates()[6]
-        const exceptionKey = `${selectedClass.student_id}-${selectedClass.day_of_week}-${selectedClass.start_time}-${weekStart.toISOString().split('T')[0]}-${weekEnd.toISOString().split('T')[0]}`
-        const currentWeekKey = getCurrentWeekKey(currentWeek)
-        
-        // Agregar a la lista de horarios fijos ocultos para esta semana
-        setHiddenFixedSchedules(prev => ({
-          ...prev,
-          [currentWeekKey]: new Set([...Array.from(prev[currentWeekKey] || new Set()), exceptionKey])
-        }))
-        
-        toast.success('Horario fijo eliminado de esta semana')
-      } else {
-        // Para clases programadas, eliminar completamente
-        const response = await fetch(`/api/classes?ids=${selectedClass.id}`, {
-          method: 'DELETE',
-        })
-
-        if (response.ok) {
-          // Refresh classes
-          const classesResponse = await fetch('/api/classes')
-          if (classesResponse.ok) {
-            const classesData = await classesResponse.json()
-            const scheduledClassesData = classesData.filter((cls: any) => !cls.is_recurring)
-            setScheduledClasses(scheduledClassesData)
-          }
-          toast.success('Clase programada eliminada correctamente')
-        } else {
-          const errorData = await response.json()
-          toast.error(`Error: ${errorData.error || 'Error al eliminar la clase'}`)
-        }
-      }
+      // console.log('Eliminando clase:', selectedClass)
       
+      // SIMPLIFICADO: Todas las clases tienen un ID y se eliminan directamente de la BD
+      const response = await fetch(`/api/classes?ids=${selectedClass.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // console.log('Clase eliminada exitosamente, actualizando lista...')
+        
+        // Refresh classes - obtener todas las clases actualizadas de la BD
+        const classesResponse = await fetch('/api/classes')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          // console.log('Clases actualizadas desde BD:', classesData.length)
+          setScheduledClasses(classesData)
+        }
+        
+        toast.success('Clase eliminada permanentemente de la base de datos')
+      } else {
+        const errorData = await response.json()
+        console.error('Error al eliminar clase:', errorData)
+        toast.error(`Error: ${errorData.error || 'Error al eliminar la clase'}`)
+      }
+
       setIsDeleteModalOpen(false)
       setSelectedClass(null)
     } catch (error) {
