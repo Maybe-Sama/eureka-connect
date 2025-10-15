@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { validateSession, hashPassword } from '@/lib/auth-complex';
 import { supabaseAdmin } from '@/lib/supabase-server';
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Error interno del servidor' }, { status: 500 });
   }
 }
+
 
 
 

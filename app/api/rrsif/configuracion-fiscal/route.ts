@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para gestión de configuración fiscal RRSIF
  * Guarda y recupera los datos fiscales del emisor

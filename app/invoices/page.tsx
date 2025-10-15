@@ -1214,7 +1214,7 @@ ${clasesFiltradas.slice(0, 3).map((c, i) =>
                       <span className="font-medium text-sm">Importante</span>
                     </div>
                     <p className="text-sm text-foreground-muted mt-2">
-                      Esta acción es irreversible. La factura pasará de estado "Provisional" a "Final".
+                      Esta acción es irreversible. La factura pasará de estado &quot;Provisional&quot; a &quot;Final&quot;.
                     </p>
                   </div>
                 </div>

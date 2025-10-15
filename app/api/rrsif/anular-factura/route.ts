@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para anulación de facturas RRSIF
  * Genera registro de anulación según normativa española

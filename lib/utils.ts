@@ -48,7 +48,7 @@ export function parseFixedSchedule(schedule: string | null | undefined): string 
     
     // Si es un string simple, devolverlo tal como está
     return schedule
-  } catch (error) {
+  } catch {
     // Si hay error al parsear, devolver el string original
     return schedule
   }

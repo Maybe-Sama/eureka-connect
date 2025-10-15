@@ -25,6 +25,7 @@ import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { ClassTrackingCard } from './ClassTrackingCard'
 import { ClassDetailsModal } from './ClassDetailsModal'
 import { MonthlyReportModal } from './MonthlyReportModal'
+import ClassComparisonModal from './ClassComparisonModal'
 import { toast } from 'sonner'
 
 interface ClassTrackingData {
@@ -94,6 +95,7 @@ const ClassTrackingDashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState<ClassTrackingData | null>(null)
   const [isClassDetailsOpen, setIsClassDetailsOpen] = useState(false)
   const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false)
+  const [isClassComparisonOpen, setIsClassComparisonOpen] = useState(false)
   const [filterType, setFilterType] = useState<'all' | 'recurring' | 'eventual'>('all')
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -288,6 +290,16 @@ const ClassTrackingDashboard = () => {
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
               </div>
             </div>
+            
+            <Button 
+              onClick={() => setIsClassComparisonOpen(true)} 
+              variant="outline" 
+              className="flex items-center bg-blue-500/10 border-blue-500 hover:bg-blue-500/20"
+            >
+              <Calendar size={20} className="mr-2" />
+              Comparar Clases
+            </Button>
+            
             <Button 
               onClick={() => setIsMonthlyReportOpen(true)} 
               variant="outline" 
@@ -499,6 +511,13 @@ const ClassTrackingDashboard = () => {
         isOpen={isMonthlyReportOpen}
         onClose={() => setIsMonthlyReportOpen(false)}
         report={monthlyReport}
+        month={selectedMonth}
+      />
+
+      <ClassComparisonModal
+        isOpen={isClassComparisonOpen}
+        onClose={() => setIsClassComparisonOpen(false)}
+        onClassesGenerated={handleClassUpdate}
         month={selectedMonth}
       />
 

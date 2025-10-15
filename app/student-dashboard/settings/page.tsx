@@ -11,8 +11,6 @@ import { useToast } from '@/hooks/use-toast'
 import { 
   Shield, 
   Mail, 
-  CheckCircle, 
-  AlertCircle, 
   Eye, 
   EyeOff,
   Camera,
@@ -33,13 +31,11 @@ export default function StudentSettingsPage() {
 
   // Estados para cuenta
   const [email, setEmail] = useState('')
-  const [emailVerified, setEmailVerified] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
   const [changingPassword, setChangingPassword] = useState(false)
-  const [verifyingEmail, setVerifyingEmail] = useState(false)
 
   // Estados para avatar
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -61,7 +57,6 @@ export default function StudentSettingsPage() {
     try {
       // Cargar datos de email (simulado por ahora)
       setEmail(user?.email || '')
-      setEmailVerified(true) // Esto debería venir de la API
       
       // Cargar avatares predefinidos
       await loadPredefinedAvatars()
@@ -189,45 +184,6 @@ export default function StudentSettingsPage() {
     }
   }
 
-  // Verificar email
-  const handleVerifyEmail = async () => {
-    try {
-      setVerifyingEmail(true)
-      const token = localStorage.getItem('session_token')
-      if (!token) return
-
-      const response = await fetch('/api/student/settings/initiate-email-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        toast({
-          title: "Email de verificación enviado",
-          description: "Revisa tu correo y haz clic en el enlace para verificar tu email.",
-          variant: "default"
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "No se pudo enviar el email de verificación.",
-          variant: "destructive"
-        })
-      }
-    } catch (error) {
-      console.error('Error verifying email:', error)
-      toast({
-        title: "Error",
-        description: "Error al enviar el email de verificación.",
-        variant: "destructive"
-      })
-    } finally {
-      setVerifyingEmail(false)
-    }
-  }
 
   // Toggle mostrar contraseña
   const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
@@ -552,35 +508,9 @@ export default function StudentSettingsPage() {
                       <div className="flex items-center gap-2 mt-1">
                         <Mail className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">{email}</span>
-                        {emailVerified ? (
-                          <div className="flex items-center gap-1 text-green-600">
-                            <CheckCircle className="w-4 h-4" />
-                            <span className="text-sm font-medium">Verificado</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1 text-amber-600">
-                            <AlertCircle className="w-4 h-4" />
-                            <span className="text-sm font-medium">Pendiente de verificación</span>
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    {!emailVerified && (
-                      <Button
-                        onClick={handleVerifyEmail}
-                        disabled={verifyingEmail}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                      >
-                        {verifyingEmail ? (
-                          <DiagonalBoxLoader size="sm" color="hsl(var(--primary))" />
-                        ) : (
-                          <Mail className="w-4 h-4" />
-                        )}
-                        Verificar correo electrónico
-                      </Button>
-                    )}
                   </div>
 
                   {/* Cambio de contraseña */}

@@ -60,12 +60,15 @@ export async function POST() {
           continue
         }
         
+        // Type assertion para que TypeScript reconozca las propiedades del curso
+        const courseData = course as { id: number; name: string; price: number }
+        
         // Crear clases para cada slot del horario fijo
         for (const timeSlot of fixedSchedule) {
           const startMinutes = timeToMinutes(timeSlot.start_time)
           const endMinutes = timeToMinutes(timeSlot.end_time)
           const duration = endMinutes - startMinutes
-          const price = (duration / 60) * course.price
+          const price = (duration / 60) * courseData.price
           
           // Calcular la próxima fecha para este día de la semana
           const nextDate = getNextOccurrence(timeSlot.day_of_week)

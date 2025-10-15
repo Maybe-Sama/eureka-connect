@@ -170,7 +170,7 @@ export async function authenticateStudent(identifier: string, password: string):
       // Es un email - buscar directamente en system_users
       const { data: userData, error: userError } = await supabaseAdmin
         .from('system_users')
-        .select('id, email, password_hash, user_type, student_id, email_verified')
+        .select('id, email, password_hash, user_type, student_id')
         .eq('email', normalizedIdentifier)
         .eq('user_type', 'student')
         .maybeSingle()
@@ -181,11 +181,6 @@ export async function authenticateStudent(identifier: string, password: string):
 
       if (!userData) {
         return { success: false, error: 'Código de estudiante o email no encontrado.' }
-      }
-
-      // Verificar si el email está verificado
-      if (!userData.email_verified) {
-        return { success: false, error: 'Email no verificado. Por favor, verifica tu correo o inicia sesión con tu código.' }
       }
 
       systemUser = userData

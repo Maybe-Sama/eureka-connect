@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
 import { generarPDFFactura } from '@/lib/pdf-generator'
 

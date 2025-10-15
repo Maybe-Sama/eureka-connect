@@ -82,7 +82,7 @@ export const PastDateWarningModal = ({
                   Información importante:
                 </p>
                 <ul className="text-orange-700 dark:text-orange-300 space-y-1 text-left">
-                  <li>• Esta clase se creará con estado "programada"</li>
+                  <li>• Esta clase se creará con estado &quot;programada&quot;</li>
                   <li>• Podrás modificar su estado posteriormente si es necesario</li>
                   <li>• Asegúrate de que la información sea correcta</li>
                 </ul>

@@ -302,6 +302,8 @@ export const dbOperations = {
       console.error('Error deleting class:', error)
       throw error
     }
+    
+    return true // Retornar true para indicar éxito
   },
 
   // Funciones para manejar status_invoice

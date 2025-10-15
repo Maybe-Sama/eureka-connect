@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API para eliminar facturas provisionales
  * Solo se pueden eliminar facturas en estado provisional

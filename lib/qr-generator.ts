@@ -209,7 +209,7 @@ export async function generarQRConLeyenda(
 /**
  * Decodifica el contenido de un QR (para debugging)
  */
-export function decodificarContenidoQR(qrDataURL: string): any {
+export function decodificarContenidoQR(qrDataURL: string): unknown {
   try {
     // En un entorno real, esto se haría con una librería de decodificación
     // Por ahora, solo extraemos el base64 y simulamos la decodificación

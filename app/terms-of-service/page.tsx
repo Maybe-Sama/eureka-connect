@@ -149,7 +149,7 @@ export default function TermsOfServicePage() {
                 intangibles.
               </p>
               <p className="text-foreground-muted">
-                Nuestro servicio se proporciona "tal como está" y "según disponibilidad" sin garantías 
+                Nuestro servicio se proporciona &quot;tal como está&quot; y &quot;según disponibilidad&quot; sin garantías 
                 de ningún tipo, ya sean expresas o implícitas.
               </p>
             </CardContent>

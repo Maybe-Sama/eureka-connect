@@ -164,13 +164,16 @@ export async function generateClassesFromStartDate(
       continue
     }
 
-    if (timeSlot.day_of_week < 0 || timeSlot.day_of_week > 6) {
+    if (timeSlot.day_of_week < 1 || timeSlot.day_of_week > 7) {
       console.warn('Invalid day_of_week, skipping:', timeSlot.day_of_week)
       continue
     }
 
-    // Convert day_of_week from 0-6 (Sunday-Saturday) to 1-7 (Monday-Sunday) for database
-    const dbDayOfWeek = timeSlot.day_of_week === 0 ? 7 : timeSlot.day_of_week
+    // Convert day_of_week from 1-7 (Monday-Sunday) to 0-6 (Sunday-Saturday) for getNextOccurrenceFromDate
+    const jsDayOfWeek = timeSlot.day_of_week === 7 ? 0 : timeSlot.day_of_week - 1
+    
+    // day_of_week is already in 1-7 format for database, no conversion needed
+    const dbDayOfWeek = timeSlot.day_of_week
 
     if (!timeSlot.start_time || !timeSlot.end_time) {
       console.warn('Missing start_time or end_time, skipping:', timeSlot)
@@ -178,7 +181,7 @@ export async function generateClassesFromStartDate(
     }
 
     // Get the first occurrence of this day of week from start date
-    let currentDate = getNextOccurrenceFromDate(timeSlot.day_of_week, startDate)
+    let currentDate = getNextOccurrenceFromDate(jsDayOfWeek, startDate)
     
     // Generate classes week by week
     while (currentDate <= endDate) {
