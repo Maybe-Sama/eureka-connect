@@ -23,7 +23,7 @@ async function testDetailedInvoice() {
     console.log(`   Total clases: ${classes.length}`)
     
     // 2. Filtrar clases pagadas
-    const clasesPagadas = classes.filter(c => c.payment_status === 'paid' || c.status === 'completed')
+    const clasesPagadas = classes.filter(c => c.payment_status === 'paid')
     console.log(`   Clases pagadas: ${clasesPagadas.length}`)
     
     if (clasesPagadas.length === 0) {

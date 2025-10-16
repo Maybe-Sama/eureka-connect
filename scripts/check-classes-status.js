@@ -26,7 +26,7 @@ async function checkClassesStatus() {
     // 2. Analizar estado de facturación
     const clasesFacturadas = classes.filter(c => c.status_invoice === true)
     const clasesNoFacturadas = classes.filter(c => c.status_invoice !== true)
-    const clasesPagadas = classes.filter(c => c.payment_status === 'paid' || c.status === 'completed')
+    const clasesPagadas = classes.filter(c => c.payment_status === 'paid')
     
     console.log(`   Clases marcadas como facturadas: ${clasesFacturadas.length}`)
     console.log(`   Clases NO marcadas como facturadas: ${clasesNoFacturadas.length}`)

@@ -269,7 +269,7 @@ const InvoicesPage = () => {
     // Obtener todas las clases pagadas (mostrar todas, validar después)
     const todasLasClasesPagadas = classes
       .filter((clase: any) => {
-        const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+        const isPaid = clase.payment_status === 'paid'
         console.log(`Clase ${clase.id}: paid=${isPaid}, status_invoice=${clase.status_invoice} (type: ${typeof clase.status_invoice})`)
         return isPaid
       })
@@ -748,7 +748,7 @@ const InvoicesPage = () => {
     
     // Filtrar clases como lo hace el sistema
     const clasesFiltradas = classes.filter((clase: any) => {
-      const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+      const isPaid = clase.payment_status === 'paid'
       const notInvoiced = clase.status_invoice !== true
       return isPaid && notInvoiced
     })

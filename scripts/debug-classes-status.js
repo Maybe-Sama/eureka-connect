@@ -81,7 +81,7 @@ async function debugClassesStatus() {
 
     // 3. Verificar clases que DEBERÍAN aparecer para facturar
     const clasesParaFacturar = allClasses?.filter(clase => {
-      const isPaid = clase.payment_status === 'paid' || clase.status === 'completed'
+      const isPaid = clase.payment_status === 'paid'
       const notInvoiced = !clase.status_invoice
       return isPaid && notInvoiced
     }) || []
