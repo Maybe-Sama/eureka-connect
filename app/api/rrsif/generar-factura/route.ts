@@ -11,11 +11,6 @@ export async function POST(request: NextRequest) {
     console.log('=== GENERANDO FACTURA ===')
     console.log('StudentId:', studentId)
     console.log('ClasesIds:', clasesIds)
-    console.log('DatosFiscales recibidos:', JSON.stringify(datosFiscales, null, 2))
-    console.log('DatosReceptor:', JSON.stringify(datosReceptor, null, 2))
-    console.log('DatosReceptor.tipoIdentificacion:', datosReceptor?.tipoIdentificacion)
-    console.log('Descripción:', descripcion)
-    console.log('Incluir QR:', incluirQR)
 
     // Validar datos requeridos
     if (!studentId || !clasesIds || !datosFiscales || !datosReceptor) {
@@ -44,7 +39,7 @@ export async function POST(request: NextRequest) {
       .eq('payment_status', 'paid')
 
     if (clasesError) {
-      console.error('Error obteniendo clases:', clasesError)
+      console.error('ERROR: No se pudieron obtener las clases:', clasesError.message)
       return NextResponse.json(
         { error: 'Error obteniendo datos de las clases' },
         { status: 500 }
@@ -121,7 +116,10 @@ export async function POST(request: NextRequest) {
     const total = clasesData.reduce((sum, clase) => sum + clase.precio, 0)
 
     // Obtener número correlativo de factura
-    const numeroResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/rrsif/numero-factura`, {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+    const fullUrl = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`
+    console.log('URL para número de factura:', fullUrl)
+    const numeroResponse = await fetch(`${fullUrl}/api/rrsif/numero-factura`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     })
@@ -133,7 +131,8 @@ export async function POST(request: NextRequest) {
         numeroFactura = numeroData.siguienteNumero
       }
     } else {
-      console.warn('Error obteniendo número de factura, usando fallback:', numeroResponse.status)
+      const errorText = await numeroResponse.text()
+      console.error('ERROR: No se pudo obtener número de factura:', numeroResponse.status, errorText)
     }
 
     const facturaData = {
@@ -300,7 +299,7 @@ export async function POST(request: NextRequest) {
       console.log('Factura guardada exitosamente en Supabase:', facturaData.id)
 
     } catch (dbError) {
-      console.error('Error en operación de base de datos:', dbError)
+      console.error('ERROR: Fallo al guardar en base de datos:', dbError instanceof Error ? dbError.message : 'Error desconocido')
       return NextResponse.json(
         { 
           success: false, 
@@ -321,7 +320,7 @@ export async function POST(request: NextRequest) {
       // En un entorno real, aquí se guardaría el PDF en el sistema de archivos o S3
       // Por ahora, solo logueamos el éxito
     } catch (pdfError) {
-      console.error('Error generando PDF:', pdfError)
+      console.error('ERROR: Fallo al generar PDF:', pdfError instanceof Error ? pdfError.message : 'Error desconocido')
       // Continuar sin PDF por ahora
     }
 
@@ -332,7 +331,8 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error generando factura:', error)
+    console.error('ERROR CRÍTICO:', error instanceof Error ? error.message : 'Error desconocido')
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack available')
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',
