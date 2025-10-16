@@ -198,9 +198,9 @@ export default function StudentCalendarPage() {
 
   const getFixedScheduleForDate = (date: Date) => {
     const dayOfWeek = date.getDay()
-    // Convertir de formato domingo=0 a formato lunes=0
-    const mondayBasedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-    return fixedSchedule.filter(schedule => schedule.day_of_week === mondayBasedDay)
+    // El horario fijo usa el mismo formato que JavaScript: domingo=0, lunes=1, ..., sábado=6
+    // No necesitamos conversión, solo comparar directamente
+    return fixedSchedule.filter(schedule => schedule.day_of_week === dayOfWeek)
   }
 
   const getDaysInMonth = () => {
