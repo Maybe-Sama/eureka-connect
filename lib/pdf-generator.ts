@@ -54,13 +54,38 @@ const PDF_CONFIG = {
 
 /**
  * Carga el logo de Eureka Learning
+ * Compatible con Vercel serverless environment
  */
 async function cargarLogo(): Promise<string> {
   try {
+    // Intentar cargar desde el sistema de archivos local
     const logoPath = path.join(process.cwd(), 'public', 'logo.png')
-    const logoBuffer = fs.readFileSync(logoPath)
-    const base64 = logoBuffer.toString('base64')
-    return `data:image/png;base64,${base64}`
+    
+    if (fs.existsSync(logoPath)) {
+      const logoBuffer = fs.readFileSync(logoPath)
+      const base64 = logoBuffer.toString('base64')
+      return `data:image/png;base64,${base64}`
+    }
+    
+    // Si no se encuentra localmente, intentar cargar desde URL pública
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+    const logoUrl = `${baseUrl}/logo.png`
+    
+    console.log('Intentando cargar logo desde URL:', logoUrl)
+    
+    try {
+      const response = await fetch(logoUrl)
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer()
+        const base64 = Buffer.from(arrayBuffer).toString('base64')
+        return `data:image/png;base64,${base64}`
+      }
+    } catch (urlError) {
+      console.warn('No se pudo cargar logo desde URL:', urlError)
+    }
+    
+    console.warn('Logo no encontrado en sistema de archivos ni URL')
+    return ''
   } catch (error) {
     console.warn('No se pudo cargar el logo:', error)
     return ''
@@ -94,7 +119,7 @@ export async function generarPDFFactura(factura: FacturaRRSIF, incluirQR: boolea
   const tableEndY = generarTablaConceptos(doc, factura.classes || [], factura)
   generarTotales(doc, factura, tableEndY)
   generarNotas(doc, factura)
-  generarPiePagina(doc, factura)
+  await generarPiePagina(doc, factura)
   
   return doc
 }
@@ -443,7 +468,7 @@ function generarNotas(doc: jsPDF, factura: FacturaRRSIF): void {
 /**
  * Genera pie de página (estilo profesional)
  */
-function generarPiePagina(doc: jsPDF, _factura: FacturaRRSIF): void {
+async function generarPiePagina(doc: jsPDF, _factura: FacturaRRSIF): Promise<void> {
   const startY = PDF_CONFIG.A4_HEIGHT - 10
   
   doc.setFontSize(PDF_CONFIG.FONT_SIZE.TINY)
@@ -453,13 +478,15 @@ function generarPiePagina(doc: jsPDF, _factura: FacturaRRSIF): void {
   // Logo pequeño a la izquierda
   const logoSize = 8
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'logo.png')
-    const logoBuffer = fs.readFileSync(logoPath)
-    const base64 = logoBuffer.toString('base64')
-    const logoDataURL = `data:image/png;base64,${base64}`
-    doc.addImage(logoDataURL, 'PNG', PDF_CONFIG.MARGIN_LEFT, startY - 6, logoSize, logoSize)
-  } catch {
+    // Usar la misma función de carga de logo
+    const logoDataURL = await cargarLogo()
+    
+    if (logoDataURL) {
+      doc.addImage(logoDataURL, 'PNG', PDF_CONFIG.MARGIN_LEFT, startY - 6, logoSize, logoSize)
+    }
+  } catch (error) {
     // Si no se puede cargar el logo, continuar sin él
+    console.warn('No se pudo cargar el logo en pie de página:', error)
   }
   
   // Texto "EUREKA" o nombre de la empresa
