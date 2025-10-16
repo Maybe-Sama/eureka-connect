@@ -3,27 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generateClassesFromStartDate } from '@/lib/class-generation'
 
+// Configurar la ruta como dinámica solo cuando sea necesario
+export const dynamic = 'auto'
+
 export async function GET(request: NextRequest) {
   try {
-    // Validar que la URL sea válida
-    if (!request.url) {
-      return NextResponse.json(
-        { error: 'URL de request inválida' },
-        { status: 400 }
-      )
-    }
-
-    let searchParams
-    try {
-      const url = new URL(request.url)
-      searchParams = url.searchParams
-    } catch (urlError) {
-      console.error('Error creando URL:', urlError)
-      return NextResponse.json(
-        { error: 'URL de request malformada' },
-        { status: 400 }
-      )
-    }
+    // Usar nextUrl.searchParams en lugar de request.url para evitar dynamic server usage
+    const searchParams = request.nextUrl.searchParams
     const monthYear = searchParams.get('month') || new Date().toISOString().slice(0, 7) // YYYY-MM format
     const studentId = searchParams.get('studentId')
 

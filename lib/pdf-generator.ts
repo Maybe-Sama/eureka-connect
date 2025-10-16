@@ -267,11 +267,8 @@ function generarDatosFiscales(
   doc.setFontSize(PDF_CONFIG.FONT_SIZE.SUBTITLE)
   doc.setTextColor(PDF_CONFIG.COLORS.PRIMARY)
   doc.setFont('helvetica', 'bold')
-  // Mostrar nombre del alumno (hijo) en lugar del padre
-  const nombreAlumno = factura?.student?.firstName && factura?.student?.lastName 
-    ? `${factura.student.firstName} ${factura.student.lastName}`
-    : receptor.nombre
-  doc.text(nombreAlumno, clienteX, startY + 5)
+  // Mostrar nombre del receptor (padre/madre/tutor) que es quien paga
+  doc.text(receptor.nombre, clienteX, startY + 5)
   
   doc.setFontSize(PDF_CONFIG.FONT_SIZE.SMALL)
   doc.setTextColor(PDF_CONFIG.COLORS.SECONDARY)
@@ -367,8 +364,8 @@ function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number
     const precioHoraTexto = `€${formatearImporte(precioPorHora)}`
     const totalTexto = `€${formatearImporte(clase.precio)}`
     
-    // Descripción de la clase (solo asignatura)
-    const descripcion = clase.asignatura || 'Clase particular'
+    // Descripción de la clase (con prefijo "Clases de:")
+    const descripcion = clase.asignatura ? `Clases de: ${clase.asignatura}` : 'Clase particular'
     
     // Hora separada (sin segundos)
     const formatearHora = (hora: string) => {
