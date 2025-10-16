@@ -22,7 +22,10 @@ import {
   Shield,
   Users,
   BookOpen,
-  Building
+  Building,
+  FileSpreadsheet,
+  CheckSquare,
+  Square
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
@@ -67,6 +70,11 @@ const InvoicesPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  
+  // Estados para selección múltiple y exportación Excel
+  const [selectedInvoices, setSelectedInvoices] = useState<string[]>([])
+  const [isExporting, setIsExporting] = useState(false)
+  const [selectAll, setSelectAll] = useState(false)
   
   // Estados RRSIF
   const [estadoReloj, setEstadoReloj] = useState<EstadoReloj | null>(null)
@@ -248,6 +256,15 @@ const InvoicesPage = () => {
     return matchesSearch && matchesStatus
   })
 
+  // Actualizar estado de selección cuando cambien los filtros
+  useEffect(() => {
+    const filteredIds = filteredInvoices.map(invoice => invoice.id)
+    const selectedFilteredIds = selectedInvoices.filter(id => filteredIds.includes(id))
+    
+    setSelectedInvoices(selectedFilteredIds)
+    setSelectAll(selectedFilteredIds.length === filteredInvoices.length && filteredInvoices.length > 0)
+  }, [searchTerm, filterStatus, filteredInvoices.length])
+
   const handleNuevaFactura = () => {
     if (!datosFiscales) {
       toast.error('Configure primero los datos fiscales')
@@ -326,7 +343,7 @@ const InvoicesPage = () => {
       const clasesYaFacturadas = clasesSeleccionadasData.filter(clase => {
         // Buscar la clase original en el estado de classes para verificar status_invoice
         const claseOriginal = classes.find(c => c.id.toString() === clase.id)
-        return claseOriginal && claseOriginal.status_invoice === true
+        return claseOriginal && (claseOriginal as any).status_invoice === true
       })
 
       if (clasesYaFacturadas.length > 0) {
@@ -729,57 +746,80 @@ const InvoicesPage = () => {
     }
   }
 
-  const handleDebugClases = () => {
-    console.log('=== DEBUG CLASES ===')
-    console.log('Total clases cargadas:', classes.length)
-    
-    if (classes.length > 0) {
-      console.log('Primeras 5 clases:')
-      classes.slice(0, 5).forEach((clase, index) => {
-        console.log(`${index + 1}. ID: ${clase.id}`)
-        console.log(`   - Payment status: ${clase.payment_status}`)
-        console.log(`   - Status: ${clase.status}`)
-        console.log(`   - Status invoice: ${clase.status_invoice} (type: ${typeof clase.status_invoice})`)
-        console.log(`   - Price: €${clase.price}`)
-        console.log(`   - Date: ${clase.date}`)
-        console.log('---')
-      })
-    }
-    
-    // Filtrar clases como lo hace el sistema
-    const clasesFiltradas = classes.filter((clase: any) => {
-      const isPaid = clase.payment_status === 'paid'
-      const notInvoiced = clase.status_invoice !== true
-      return isPaid && notInvoiced
+  // Funciones para selección múltiple y exportación Excel
+  const handleSelectInvoice = (invoiceId: string) => {
+    setSelectedInvoices(prev => {
+      const newSelection = prev.includes(invoiceId)
+        ? prev.filter(id => id !== invoiceId)
+        : [...prev, invoiceId]
+      
+      // Actualizar estado de "seleccionar todo"
+      setSelectAll(newSelection.length === filteredInvoices.length)
+      
+      return newSelection
     })
-    
-    console.log(`Clases que pasan el filtro: ${clasesFiltradas.length}`)
-    
-    if (clasesFiltradas.length > 0) {
-      console.log('Clases filtradas:')
-      clasesFiltradas.forEach((clase, index) => {
-        console.log(`${index + 1}. ID: ${clase.id} - ${clase.date} - €${clase.price}`)
-      })
-    }
-    
-    // Mostrar en un alert también
-    const debugInfo = `
-Total clases: ${classes.length}
-Clases filtradas: ${clasesFiltradas.length}
-
-Primeras 3 clases:
-${classes.slice(0, 3).map((c, i) => 
-  `${i+1}. ID ${c.id} - Payment: ${c.payment_status} - Status: ${c.status} - Invoice: ${c.status_invoice}`
-).join('\n')}
-
-Clases que pasan filtro:
-${clasesFiltradas.slice(0, 3).map((c, i) => 
-  `${i+1}. ID ${c.id} - ${c.date} - €${c.price}`
-).join('\n')}
-    `
-    
-    alert(debugInfo)
   }
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedInvoices([])
+      setSelectAll(false)
+    } else {
+      const allIds = filteredInvoices.map(invoice => invoice.id)
+      setSelectedInvoices(allIds)
+      setSelectAll(true)
+    }
+  }
+
+  const handleExportToExcel = async () => {
+    if (selectedInvoices.length === 0) {
+      toast.error('Selecciona al menos una factura para exportar')
+      return
+    }
+
+    setIsExporting(true)
+    try {
+      const response = await fetch('/api/rrsif/exportar-excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          facturaIds: selectedInvoices
+        }),
+      })
+
+      if (response.ok) {
+        // Obtener el archivo Excel
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        
+        // Crear enlace de descarga
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'Eureka-Connet-Facturas.xlsx'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        
+        toast.success(`Excel exportado exitosamente con ${selectedInvoices.length} factura${selectedInvoices.length !== 1 ? 's' : ''}`)
+        
+        // Limpiar selección
+        setSelectedInvoices([])
+        setSelectAll(false)
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Error al exportar facturas a Excel')
+      }
+    } catch (error) {
+      console.error('Error exportando a Excel:', error)
+      toast.error('Error al exportar facturas a Excel')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -863,14 +903,21 @@ ${clasesFiltradas.slice(0, 3).map((c, i) =>
               Verificar Clases
             </Button>
             
+            {/* Botón de Exportación Excel */}
             <Button 
               variant="outline" 
-              onClick={handleDebugClases}
+              onClick={handleExportToExcel}
+              disabled={selectedInvoices.length === 0 || isExporting}
               className="flex items-center"
             >
-              <Settings size={16} className="mr-2" />
-              Debug Clases
+              {isExporting ? (
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
+              ) : (
+                <FileSpreadsheet size={16} className="mr-2" />
+              )}
+              {isExporting ? 'Exportando...' : `Exportar Excel (${selectedInvoices.length})`}
             </Button>
+            
             
             {/* Toggle QR VeriFactu */}
             <div className={`flex items-center space-x-2 px-3 py-2 border rounded-lg transition-colors ${
@@ -981,6 +1028,61 @@ ${clasesFiltradas.slice(0, 3).map((c, i) =>
         </div>
       </motion.div>
 
+      {/* Barra de Selección Múltiple */}
+      {filteredInvoices.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass-effect rounded-xl p-4 mb-6 border border-border"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleSelectAll}
+                className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
+              >
+                {selectAll ? (
+                  <CheckSquare size={20} className="text-primary" />
+                ) : (
+                  <Square size={20} className="text-foreground-muted" />
+                )}
+                <span className="text-sm font-medium">
+                  {selectAll ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                </span>
+              </button>
+              
+              {selectedInvoices.length > 0 && (
+                <div className="flex items-center space-x-2 text-sm text-foreground-muted">
+                  <span>{selectedInvoices.length} factura{selectedInvoices.length !== 1 ? 's' : ''} seleccionada{selectedInvoices.length !== 1 ? 's' : ''}</span>
+                  <span>•</span>
+                  <span>Total: €{filteredInvoices
+                    .filter(invoice => selectedInvoices.includes(invoice.id))
+                    .reduce((sum, invoice) => sum + invoice.total, 0)
+                    .toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+            
+            {selectedInvoices.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedInvoices([])
+                    setSelectAll(false)
+                  }}
+                  className="text-foreground-muted hover:text-foreground"
+                >
+                  Limpiar selección
+                </Button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       {/* Invoices List */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -994,10 +1096,28 @@ ${clasesFiltradas.slice(0, 3).map((c, i) =>
               key={invoice.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="glass-effect rounded-xl p-6 border border-border"
+              className={`glass-effect rounded-xl p-6 border transition-all duration-200 ${
+                selectedInvoices.includes(invoice.id) 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border'
+              }`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
+                  {/* Checkbox de selección */}
+                  <button
+                    onClick={() => handleSelectInvoice(invoice.id)}
+                    className="flex items-center justify-center w-6 h-6 rounded border-2 transition-colors hover:scale-110"
+                    style={{
+                      backgroundColor: selectedInvoices.includes(invoice.id) ? 'hsl(var(--primary))' : 'transparent',
+                      borderColor: selectedInvoices.includes(invoice.id) ? 'hsl(var(--primary))' : 'hsl(var(--border))'
+                    }}
+                  >
+                    {selectedInvoices.includes(invoice.id) && (
+                      <CheckSquare size={16} className="text-white" />
+                    )}
+                  </button>
+                  
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                     <FileText size={24} className="text-primary" />
                   </div>
