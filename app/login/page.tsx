@@ -11,84 +11,84 @@ export default function LoginSelectionPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-      {/* Efectos de fondo animados - Distribuidos por toda la pantalla */}
-      <div className="absolute inset-0 opacity-50">
-        <div className="absolute top-0 -left-4 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-        <div className="absolute top-1/2 -left-8 w-72 h-72 sm:w-88 sm:h-88 lg:w-[24rem] lg:h-[24rem] bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-1000"></div>
-        <div className="absolute top-1/2 -right-8 w-72 h-72 sm:w-88 sm:h-88 lg:w-[24rem] lg:h-[24rem] bg-accent rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-3000"></div>
-        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-5000"></div>
+      {/* Efectos de fondo animados - Optimizados para móvil */}
+      <div className="absolute inset-0 opacity-40 sm:opacity-50">
+        <div className="absolute top-0 -left-4 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-primary rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="absolute top-1/2 -left-8 w-56 h-56 sm:w-88 sm:h-88 lg:w-[24rem] lg:h-[24rem] bg-primary rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-1000"></div>
+        <div className="absolute top-1/2 -right-8 w-56 h-56 sm:w-88 sm:h-88 lg:w-[24rem] lg:h-[24rem] bg-accent rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-3000"></div>
+        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-64 h-64 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-primary rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-5000"></div>
       </div>
       
-      {/* Luces principales distribuidas */}
-      <div className="absolute inset-0 opacity-60">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 bg-primary/35 rounded-full filter blur-2xl animate-pulse"></div>
-        <div className="absolute top-1/4 right-1/4 w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 bg-accent/35 rounded-full filter blur-2xl animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-3/4 left-1/4 w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52 bg-primary/30 rounded-full filter blur-2xl animate-pulse animation-delay-4000"></div>
-        <div className="absolute top-3/4 right-1/4 w-30 h-30 sm:w-38 sm:h-38 lg:w-46 lg:h-46 bg-accent/30 rounded-full filter blur-2xl animate-pulse animation-delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 bg-primary/40 rounded-full filter blur-xl animate-pulse animation-delay-3000"></div>
+      {/* Luces principales distribuidas - Optimizadas para móvil */}
+      <div className="absolute inset-0 opacity-40 sm:opacity-60">
+        <div className="absolute top-1/4 left-1/4 w-24 h-24 sm:w-40 sm:h-40 lg:w-48 lg:h-48 bg-primary/35 rounded-full blur-xl sm:blur-2xl animate-pulse"></div>
+        <div className="absolute top-1/4 right-1/4 w-20 h-20 sm:w-36 sm:h-36 lg:w-44 lg:h-44 bg-accent/35 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-3/4 left-1/4 w-28 h-28 sm:w-44 sm:h-44 lg:w-52 lg:h-52 bg-primary/30 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-4000"></div>
+        <div className="absolute top-3/4 right-1/4 w-24 h-24 sm:w-38 sm:h-38 lg:w-46 lg:h-46 bg-accent/30 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-32 sm:h-32 lg:w-40 lg:h-40 bg-primary/40 rounded-full blur-lg sm:blur-xl animate-pulse animation-delay-3000"></div>
       </div>
       
-      {/* Luces secundarias - Más pequeñas distribuidas */}
-      <div className="absolute inset-0 opacity-50">
-        <div className="absolute top-1/6 left-1/6 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-accent/30 rounded-full filter blur-xl animate-pulse animation-delay-1500"></div>
-        <div className="absolute top-1/6 right-1/6 w-22 h-22 sm:w-26 sm:h-26 lg:w-30 lg:h-30 bg-primary/30 rounded-full filter blur-xl animate-pulse animation-delay-2500"></div>
-        <div className="absolute top-2/3 left-1/6 w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-accent/35 rounded-full filter blur-lg animate-pulse animation-delay-3500"></div>
-        <div className="absolute top-2/3 right-1/6 w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-primary/35 rounded-full filter blur-lg animate-pulse animation-delay-4500"></div>
-        <div className="absolute top-1/3 left-1/2 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-accent/40 rounded-full filter blur-lg animate-pulse animation-delay-500"></div>
-        <div className="absolute top-2/3 left-1/2 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-primary/40 rounded-full filter blur-lg animate-pulse animation-delay-1500"></div>
+      {/* Luces secundarias - Optimizadas para móvil */}
+      <div className="absolute inset-0 opacity-30 sm:opacity-50">
+        <div className="absolute top-1/6 left-1/6 w-16 h-16 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-accent/30 rounded-full blur-lg sm:blur-xl animate-pulse animation-delay-1500"></div>
+        <div className="absolute top-1/6 right-1/6 w-18 h-18 sm:w-26 sm:h-26 lg:w-30 lg:h-30 bg-primary/30 rounded-full blur-lg sm:blur-xl animate-pulse animation-delay-2500"></div>
+        <div className="absolute top-2/3 left-1/6 w-14 h-14 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-accent/35 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-3500"></div>
+        <div className="absolute top-2/3 right-1/6 w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-primary/35 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-4500"></div>
+        <div className="absolute top-1/3 left-1/2 w-12 h-12 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-accent/40 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-500"></div>
+        <div className="absolute top-2/3 left-1/2 w-16 h-16 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-primary/40 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-1500"></div>
       </div>
       
-      {/* Luces de esquinas y bordes */}
-      <div className="absolute inset-0 opacity-40">
-        <div className="absolute top-0 left-0 w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 bg-accent/25 rounded-full filter blur-2xl animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-0 right-0 w-26 h-26 sm:w-34 sm:h-34 lg:w-42 lg:h-42 bg-primary/25 rounded-full filter blur-2xl animate-pulse animation-delay-3000"></div>
-        <div className="absolute bottom-0 left-0 w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 bg-accent/25 rounded-full filter blur-2xl animate-pulse animation-delay-4000"></div>
-        <div className="absolute bottom-0 right-0 w-22 h-22 sm:w-30 sm:h-30 lg:w-38 lg:h-38 bg-primary/25 rounded-full filter blur-2xl animate-pulse animation-delay-1000"></div>
-        <div className="absolute top-1/2 left-0 w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 bg-accent/30 rounded-full filter blur-xl animate-pulse animation-delay-2500"></div>
-        <div className="absolute top-1/2 right-0 w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 bg-primary/30 rounded-full filter blur-xl animate-pulse animation-delay-3500"></div>
+      {/* Luces de esquinas y bordes - Optimizadas para móvil */}
+      <div className="absolute inset-0 opacity-25 sm:opacity-40">
+        <div className="absolute top-0 left-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-40 lg:h-40 bg-accent/25 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-0 right-0 w-22 h-22 sm:w-34 sm:h-34 lg:w-42 lg:h-42 bg-primary/25 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-3000"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-36 sm:h-36 lg:w-44 lg:h-44 bg-accent/25 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-4000"></div>
+        <div className="absolute bottom-0 right-0 w-18 h-18 sm:w-30 sm:h-30 lg:w-38 lg:h-38 bg-primary/25 rounded-full blur-xl sm:blur-2xl animate-pulse animation-delay-1000"></div>
+        <div className="absolute top-1/2 left-0 w-16 h-16 sm:w-28 sm:h-28 lg:w-36 lg:h-36 bg-accent/30 rounded-full blur-lg sm:blur-xl animate-pulse animation-delay-2500"></div>
+        <div className="absolute top-1/2 right-0 w-20 h-20 sm:w-32 sm:h-32 lg:w-40 lg:h-40 bg-primary/30 rounded-full blur-lg sm:blur-xl animate-pulse animation-delay-3500"></div>
       </div>
       
-      {/* Luces adicionales para llenar espacios */}
-      <div className="absolute inset-0 opacity-35">
-        <div className="absolute top-1/5 left-1/3 w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 bg-accent/30 rounded-full filter blur-lg animate-pulse animation-delay-600"></div>
-        <div className="absolute top-1/5 right-1/3 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/30 rounded-full filter blur-lg animate-pulse animation-delay-1200"></div>
-        <div className="absolute top-4/5 left-1/3 w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-accent/30 rounded-full filter blur-lg animate-pulse animation-delay-1800"></div>
-        <div className="absolute top-4/5 right-1/3 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary/30 rounded-full filter blur-lg animate-pulse animation-delay-2400"></div>
-        <div className="absolute top-1/2 left-1/5 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-accent/35 rounded-full filter blur-lg animate-pulse animation-delay-3000"></div>
-        <div className="absolute top-1/2 right-1/5 w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 bg-primary/35 rounded-full filter blur-lg animate-pulse animation-delay-3600"></div>
+      {/* Luces adicionales para llenar espacios - Optimizadas para móvil */}
+      <div className="absolute inset-0 opacity-20 sm:opacity-35">
+        <div className="absolute top-1/5 left-1/3 w-12 h-12 sm:w-18 sm:h-18 lg:w-22 lg:h-22 bg-accent/30 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-600"></div>
+        <div className="absolute top-1/5 right-1/3 w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/30 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-1200"></div>
+        <div className="absolute top-4/5 left-1/3 w-16 h-16 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-accent/30 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-1800"></div>
+        <div className="absolute top-4/5 right-1/3 w-10 h-10 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary/30 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-2400"></div>
+        <div className="absolute top-1/2 left-1/5 w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-accent/35 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-3000"></div>
+        <div className="absolute top-1/2 right-1/5 w-12 h-12 sm:w-18 sm:h-18 lg:w-22 lg:h-22 bg-primary/35 rounded-full blur-md sm:blur-lg animate-pulse animation-delay-3600"></div>
       </div>
       
-      {/* Luces de fondo grandes detrás de la ventana central */}
-      <div className="absolute inset-0 opacity-60">
+      {/* Luces de fondo grandes detrás de la ventana central - Optimizadas para móvil */}
+      <div className="absolute inset-0 opacity-40 sm:opacity-60">
         {/* Luz principal grande detrás del centro */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 sm:w-[28rem] sm:h-[28rem] lg:w-[32rem] lg:h-[32rem] bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 sm:w-[24rem] sm:h-[24rem] lg:w-[28rem] lg:h-[28rem] bg-accent rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-[28rem] sm:h-[28rem] lg:w-[32rem] lg:h-[32rem] bg-primary rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-56 h-56 sm:w-[24rem] sm:h-[24rem] lg:w-[28rem] lg:h-[28rem] bg-accent rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
         
         {/* Luces adicionales grandes para crear más profundidad */}
-        <div className="absolute top-1/3 left-1/3 w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-primary/60 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-1000"></div>
-        <div className="absolute top-2/3 right-1/3 w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 bg-accent/60 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-3000"></div>
+        <div className="absolute top-1/3 left-1/3 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-primary/60 rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-1000"></div>
+        <div className="absolute top-2/3 right-1/3 w-40 h-40 sm:w-72 sm:h-72 lg:w-80 lg:h-80 bg-accent/60 rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-3000"></div>
         
         {/* Luces de respaldo más grandes */}
-        <div className="absolute top-1/4 right-1/4 w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-primary/40 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent/40 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-5000"></div>
+        <div className="absolute top-1/4 right-1/4 w-56 h-56 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-primary/40 rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent/40 rounded-full mix-blend-multiply blur-2xl sm:blur-3xl animate-blob animation-delay-5000"></div>
       </div>
       
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-15"></div>
+      {/* Grid pattern overlay - Optimizado para móvil */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 sm:opacity-15"></div>
       
-      {/* Gradiente de luz más intenso */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10"></div>
+      {/* Gradiente de luz más intenso - Optimizado para móvil */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 sm:from-primary/10 via-transparent to-accent/5 sm:to-accent/10"></div>
       
-      {/* Luz central adicional - Más intensa */}
+      {/* Luz central adicional - Más intensa - Optimizada para móvil */}
       <div className="absolute inset-0" style={{
-        background: 'radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 30%, transparent 70%)'
+        background: 'radial-gradient(circle at center, rgba(99, 102, 241, 0.04) 0%, rgba(139, 92, 246, 0.03) 30%, transparent 70%)'
       }}></div>
       
-      {/* Luz central de respaldo */}
+      {/* Luz central de respaldo - Optimizada para móvil */}
       <div className="absolute inset-0" style={{
-        background: 'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06) 0%, transparent 60%)'
+        background: 'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.03) 0%, transparent 60%)'
       }}></div>
       
       {/* Card principal con glassmorphism */}

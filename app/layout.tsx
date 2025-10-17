@@ -6,6 +6,11 @@ import { CookieBannerProvider } from '@/components/ui/CookieBannerProvider'
 export const metadata = {
   title: 'Profesor Eureka - CRM Profesional',
   description: 'Sistema de gestión para profesores autónomos',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
