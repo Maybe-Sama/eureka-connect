@@ -4,6 +4,9 @@ const nextConfig = {
   experimental: {
     esmExternals: 'loose'
   },
+  // Mejorar Fast Refresh
+  reactStrictMode: true,
+  swcMinify: true,
   eslint: {
     // Ignorar warnings durante el build (solo fallar en errores)
     ignoreDuringBuilds: true,
