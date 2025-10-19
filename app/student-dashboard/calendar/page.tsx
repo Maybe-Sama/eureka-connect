@@ -542,8 +542,10 @@ export default function StudentCalendarPage() {
             {showColorConfig && (
               <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div className="flex flex-col items-center space-y-2">
-                    <span className="text-xs text-foreground-secondary text-center">Exámenes</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-8 sm:h-10 flex items-center justify-center mb-2">
+                      <span className="text-xs text-foreground-secondary text-center leading-tight">Exámenes</span>
+                    </div>
                     <input
                       type="color"
                       value={customColors.exams}
@@ -551,8 +553,10 @@ export default function StudentCalendarPage() {
                       className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="flex flex-col items-center space-y-2">
-                    <span className="text-xs text-foreground-secondary text-center">Horario fijo</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-8 sm:h-10 flex items-center justify-center mb-2">
+                      <span className="text-xs text-foreground-secondary text-center leading-tight">Horario fijo</span>
+                    </div>
                     <input
                       type="color"
                       value={customColors.schedule}
@@ -560,8 +564,10 @@ export default function StudentCalendarPage() {
                       className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="flex flex-col items-center space-y-2">
-                    <span className="text-xs text-foreground-secondary text-center">Clases programadas</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-8 sm:h-10 flex items-center justify-center mb-2">
+                      <span className="text-xs text-foreground-secondary text-center leading-tight">Clases programadas</span>
+                    </div>
                     <input
                       type="color"
                       value={customColors.scheduled}
