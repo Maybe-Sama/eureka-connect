@@ -541,32 +541,32 @@ export default function StudentCalendarPage() {
             {/* Panel de configuración de colores */}
             {showColorConfig && (
               <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <span className="text-xs text-foreground-secondary">Exámenes</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="flex flex-col items-center space-y-2">
+                    <span className="text-xs text-foreground-secondary text-center">Exámenes</span>
                     <input
                       type="color"
                       value={customColors.exams}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, exams: e.target.value }))}
-                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <span className="text-xs text-foreground-secondary">Horario fijo</span>
+                  <div className="flex flex-col items-center space-y-2">
+                    <span className="text-xs text-foreground-secondary text-center">Horario fijo</span>
                     <input
                       type="color"
                       value={customColors.schedule}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, schedule: e.target.value }))}
-                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <span className="text-xs text-foreground-secondary">Clases programadas</span>
+                  <div className="flex flex-col items-center space-y-2">
+                    <span className="text-xs text-foreground-secondary text-center">Clases programadas</span>
                     <input
                       type="color"
                       value={customColors.scheduled}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, scheduled: e.target.value }))}
-                      className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
                 </div>
