@@ -42,8 +42,11 @@ export default function StudentCalendarPage() {
   const { user, loading, isStudent } = useAuth()
   const router = useRouter()
   const [scheduledClasses, setScheduledClasses] = useState<ClassData[]>([])
+  const [scheduledClassesNext7Days, setScheduledClassesNext7Days] = useState<ClassData[]>([])
   const [fixedSchedule, setFixedSchedule] = useState<FixedSchedule[]>([])
+  const [fixedScheduleNext7Days, setFixedScheduleNext7Days] = useState<FixedSchedule[]>([])
   const [exams, setExams] = useState<Exam[]>([])
+  const [examsNext7Days, setExamsNext7Days] = useState<Exam[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showExamManager, setShowExamManager] = useState(false)
@@ -126,6 +129,18 @@ export default function StudentCalendarPage() {
       // Solo establecer las clases programadas (las fijas se manejan desde fixed_schedule)
       setScheduledClasses(scheduledClassesThisMonth)
 
+      // Filtrar clases programadas para los próximos 7 días (para el apartado "Mis Clases")
+      const today = new Date()
+      const next7Days = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+      
+      const scheduledClassesNext7Days = studentScheduledClasses.filter((cls: any) => {
+        const classDate = new Date(cls.date)
+        return classDate >= today && classDate <= next7Days
+      })
+      
+      console.log('Scheduled classes next 7 days:', scheduledClassesNext7Days.length, scheduledClassesNext7Days)
+      setScheduledClassesNext7Days(scheduledClassesNext7Days)
+
       // Cargar horario fijo
       const { data: student, error: studentError } = await supabase
         .from('students')
@@ -137,6 +152,25 @@ export default function StudentCalendarPage() {
         try {
           const schedule = JSON.parse(student.fixed_schedule)
           setFixedSchedule(schedule)
+          
+          // Filtrar horario fijo para los próximos 7 días
+          const fixedScheduleNext7Days = schedule.filter((scheduleItem: FixedSchedule) => {
+            const today = new Date()
+            const next7Days = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+            
+            // Para horario fijo, necesitamos verificar si hay algún día de la semana
+            // en los próximos 7 días que coincida con el day_of_week del horario
+            for (let i = 0; i < 7; i++) {
+              const checkDate = new Date(today.getTime() + i * 24 * 60 * 60 * 1000)
+              if (checkDate.getDay() === scheduleItem.day_of_week) {
+                return true
+              }
+            }
+            return false
+          })
+          
+          console.log('Fixed schedule next 7 days:', fixedScheduleNext7Days.length, fixedScheduleNext7Days)
+          setFixedScheduleNext7Days(fixedScheduleNext7Days)
         } catch (e) {
           console.error('Error parsing fixed_schedule:', e)
         }
@@ -153,6 +187,18 @@ export default function StudentCalendarPage() {
         console.error('Error loading exams:', examsError)
       } else {
         setExams(studentExams || [])
+        
+        // Filtrar exámenes para los próximos 7 días
+        const today = new Date()
+        const next7Days = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+        
+        const examsNext7Days = (studentExams || []).filter((exam: Exam) => {
+          const examDate = new Date(exam.exam_date)
+          return examDate >= today && examDate <= next7Days
+        })
+        
+        console.log('Exams next 7 days:', examsNext7Days.length, examsNext7Days)
+        setExamsNext7Days(examsNext7Days)
       }
     } catch (error) {
       console.error('Error loading calendar data:', error)
@@ -488,7 +534,7 @@ export default function StudentCalendarPage() {
                   className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm"
                   style={{ backgroundColor: customColors.scheduled }}
                 ></div>
-                <span className="text-foreground-secondary">Clases eventuales</span>
+                <span className="text-foreground-secondary">Clases programadas</span>
               </div>
             </div>
 
@@ -528,26 +574,26 @@ export default function StudentCalendarPage() {
             )}
           </div>
 
-          {/* Horario y Clases */}
-          {(fixedSchedule.length > 0 || scheduledClasses.length > 0) && (
+          {/* Próximos Eventos */}
+          {(fixedScheduleNext7Days.length > 0 || scheduledClassesNext7Days.length > 0 || examsNext7Days.length > 0) && (
             <div className="glass-effect rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-border">
               <h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground mb-3 sm:mb-4 lg:mb-6 flex items-center">
                 <div className="p-1.5 sm:p-2 bg-primary/10 rounded-md sm:rounded-lg mr-2 sm:mr-3">
                   <Book className="text-primary" size={16} />
                 </div>
-                <span className="hidden xs:inline">Mis Clases</span>
-                <span className="xs:hidden">Clases</span>
+                <span className="hidden xs:inline">Próximos eventos</span>
+                <span className="xs:hidden">Eventos</span>
               </h2>
               <div className="space-y-2 sm:space-y-3 lg:space-y-4">
                 {/* Horario Fijo */}
-                {fixedSchedule.map((schedule, index) => (
+                {fixedScheduleNext7Days.map((schedule, index) => (
                   <div
                     key={`fixed-${index}`}
                     className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
                     <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
                       <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
-                        {daysOfWeek[schedule.day_of_week]}
+                        {daysOfWeek[schedule.day_of_week - 1]}
                       </span>
                       <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
                         Fijo
@@ -563,7 +609,7 @@ export default function StudentCalendarPage() {
                 ))}
                 
                 {/* Clases Programadas/Eventuales */}
-                {scheduledClasses.slice(0, 5).map((cls) => (
+                {scheduledClassesNext7Days.slice(0, 5).map((cls) => (
                   <div
                     key={`scheduled-${cls.id}`}
                     className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
@@ -594,14 +640,78 @@ export default function StudentCalendarPage() {
                   </div>
                 ))}
                 
-                {/* Mensaje si no hay clases */}
-                {fixedSchedule.length === 0 && scheduledClasses.length === 0 && (
+                {/* Exámenes */}
+                {examsNext7Days.slice(0, 5).map((exam) => (
+                  <div
+                    key={`exam-${exam.id}`}
+                    className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border-2 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    style={{ 
+                      borderColor: customColors.exams + '40' // 40 = 25% opacity
+                    }}
+                  >
+                    <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
+                        {new Date(exam.exam_date).toLocaleDateString('es-ES', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'short'
+                        })}
+                      </span>
+                      <span 
+                        className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border"
+                        style={{
+                          backgroundColor: customColors.exams + '20',
+                          color: customColors.exams,
+                          borderColor: customColors.exams + '40'
+                        }}
+                      >
+                        Examen
+                      </span>
+                    </div>
+                    <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
+                      <div 
+                        className="p-1 sm:p-1.5 rounded-md sm:rounded-lg mr-2 sm:mr-3"
+                        style={{ backgroundColor: customColors.exams + '20' }}
+                      >
+                        <BookOpen size={12} style={{ color: customColors.exams }} />
+                      </div>
+                      <span className="font-semibold">{exam.subject}</span>
+                    </div>
+                    {exam.notes && (
+                      <div className="flex items-center text-xs sm:text-sm text-foreground-secondary mt-1.5 sm:mt-2">
+                        <div 
+                          className="p-1 sm:p-1.5 rounded-md sm:rounded-lg mr-2 sm:mr-3"
+                          style={{ backgroundColor: customColors.exams + '20' }}
+                        >
+                          <BookOpen size={12} style={{ color: customColors.exams }} />
+                        </div>
+                        <span className="font-semibold">{exam.notes}</span>
+                      </div>
+                    )}
+                    {exam.exam_time && (
+                      <div className="mt-1.5 sm:mt-2 text-xs text-foreground-secondary">
+                        <span className="font-medium">Hora:</span> {formatTime(exam.exam_time)}
+                      </div>
+                    )}
+                    {exam.grade && (
+                      <div className="flex items-center mt-1.5 sm:mt-2 text-xs sm:text-sm bg-yellow-100 text-yellow-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-yellow-200 w-fit">
+                        <Star size={12} className="mr-1 text-yellow-600" />
+                        <span className="font-bold text-yellow-700">
+                          {exam.grade}/10
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Mensaje si no hay eventos */}
+                {fixedScheduleNext7Days.length === 0 && scheduledClassesNext7Days.length === 0 && examsNext7Days.length === 0 && (
                   <div className="text-center py-4 sm:py-6 lg:py-8">
                     <div className="p-2 sm:p-3 lg:p-4 bg-primary/5 rounded-xl sm:rounded-2xl inline-block mb-3 sm:mb-4">
                       <Book size={24} className="text-primary/50" />
                     </div>
                     <p className="text-foreground-muted text-xs sm:text-sm">
-                      No tienes clases registradas
+                      No tienes eventos en los próximos 7 días
                     </p>
                   </div>
                 )}
@@ -616,7 +726,7 @@ export default function StudentCalendarPage() {
                 <div className="p-1.5 sm:p-2 bg-primary/10 rounded-md sm:rounded-lg mr-2 sm:mr-3">
                   <BookOpen className="text-primary" size={16} />
                 </div>
-                <span className="hidden xs:inline">Próximos Exámenes</span>
+                <span className="hidden xs:inline">Exámenes</span>
                 <span className="xs:hidden">Exámenes</span>
               </h2>
               <button
