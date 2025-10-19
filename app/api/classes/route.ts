@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbOperations } from '@/lib/database'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 
+// Configurar la ruta como dinámica para evitar errores de SSG
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Verificar si se solicitan clases específicas por IDs

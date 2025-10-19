@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateSession, hashPassword } from '@/lib/auth-complex';
 import { getPreferencesForCurrentStudent, updatePreferencesForCurrentStudent } from '@/lib/repos/preferences.repo';
 
+// Configurar la ruta como dinámica para evitar errores de SSG
+export const dynamic = 'force-dynamic'
+
 /**
  * Devuelve los colores personalizados del alumno actual.
  * Espera recibir el token de sesión en la query (?token=...).

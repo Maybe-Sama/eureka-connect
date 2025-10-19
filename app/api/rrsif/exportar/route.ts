@@ -5,6 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+
+// Configurar la ruta como dinámica para evitar errores de SSG
+export const dynamic = 'force-dynamic'
 import { 
   registrarExportacion,
   obtenerEventos,

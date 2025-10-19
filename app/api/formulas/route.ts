@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
+// Configurar la ruta como dinámica para evitar errores de SSG
+export const dynamic = 'force-dynamic'
+
 interface Formula {
   name: string
   formula: string

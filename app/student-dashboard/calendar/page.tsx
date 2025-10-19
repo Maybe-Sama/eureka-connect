@@ -510,7 +510,7 @@ export default function StudentCalendarPage() {
                 onClick={() => setShowColorConfig(!showColorConfig)}
                 className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs bg-primary text-white rounded-md sm:rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
               >
-                Config
+                Colores
               </button>
             </div>
             
@@ -550,7 +550,7 @@ export default function StudentCalendarPage() {
                       type="color"
                       value={customColors.exams}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, exams: e.target.value }))}
-                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
                   <div className="flex flex-col items-center">
@@ -561,7 +561,7 @@ export default function StudentCalendarPage() {
                       type="color"
                       value={customColors.schedule}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, schedule: e.target.value }))}
-                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
                   <div className="flex flex-col items-center">
@@ -572,7 +572,7 @@ export default function StudentCalendarPage() {
                       type="color"
                       value={customColors.scheduled}
                       onChange={(e) => setCustomColors(prev => ({ ...prev, scheduled: e.target.value }))}
-                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
+                      className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded border border-border cursor-pointer hover:scale-105 transition-transform"
                     />
                   </div>
                 </div>

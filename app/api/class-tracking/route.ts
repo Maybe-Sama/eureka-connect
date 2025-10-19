@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generateClassesFromStartDate } from '@/lib/class-generation'
 
-// Configurar la ruta como dinámica solo cuando sea necesario
-export const dynamic = 'auto'
+// Configurar la ruta como dinámica para evitar errores de SSG
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
