@@ -1,7 +1,7 @@
 {
   "primaria": {
     "1_primaria": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Ciencias de la Naturaleza",
       "Ciencias Sociales",
@@ -11,7 +11,7 @@
       "Inglés"
     ],
     "2_primaria": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Ciencias de la Naturaleza",
       "Ciencias Sociales",
@@ -21,7 +21,7 @@
       "Inglés"
     ],
     "3_primaria": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Ciencias de la Naturaleza",
       "Ciencias Sociales",
@@ -31,7 +31,7 @@
       "Inglés"
     ],
     "4_primaria": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Ciencias de la Naturaleza",
       "Ciencias Sociales",
@@ -41,7 +41,7 @@
       "Inglés"
     ],
     "5_primaria": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Ciencias de la Naturaleza",
       "Ciencias Sociales",
@@ -51,7 +51,7 @@
       "Inglés"
     ],
     "6_primaria": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Ciencias de la Naturaleza",
       "Ciencias Sociales",
@@ -63,7 +63,7 @@
   },
   "secundaria": {
     "1_eso": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Geografía e Historia",
       "Biología y Geología",
@@ -72,13 +72,13 @@
       "Música",
       "Educación Física",
       "Religión/Valores Éticos",
-      "Primera Lengua Extranjera (Inglés)",
-      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Inglés",
+      "Francés/Alemán",
       "Tecnología y Digitalización",
       "Tutoría"
     ],
     "2_eso": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Geografía e Historia",
       "Biología y Geología",
@@ -87,13 +87,13 @@
       "Música",
       "Educación Física",
       "Religión/Valores Éticos",
-      "Primera Lengua Extranjera (Inglés)",
-      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Inglés",
+      "Francés/Alemán",
       "Tecnología y Digitalización",
       "Tutoría"
     ],
     "3_eso": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Geografía e Historia",
       "Biología y Geología",
@@ -102,13 +102,13 @@
       "Música",
       "Educación Física",
       "Religión/Valores Éticos",
-      "Primera Lengua Extranjera (Inglés)",
-      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Inglés",
+      "Francés/Alemán",
       "Tecnología y Digitalización",
       "Tutoría"
     ],
     "4_eso": [
-      "Lengua Castellana y Literatura",
+      "Lengua y Literatura",
       "Matemáticas",
       "Geografía e Historia",
       "Biología y Geología",
@@ -117,8 +117,8 @@
       "Música",
       "Educación Física",
       "Religión/Valores Éticos",
-      "Primera Lengua Extranjera (Inglés)",
-      "Segunda Lengua Extranjera (Francés/Alemán)",
+      "Inglés",
+      "Francés/Alemán",
       "Tecnología y Digitalización",
       "Tutoría"
     ]
@@ -126,64 +126,63 @@
   "bachillerato": {
     "1_bachillerato": {
       "técnológico": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas II",
-        "Química II",
-        "Física II",
-        "Dibujo Técnico II",
-        "Tecnología e Ingeniería II",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Lengua y Literatura I",
+        "Matemáticas I",
+        "Física y química",
+        "Dibujo Técnico I",
+        "Tecnología e Ingeniería I",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Educación Física",
         "Tutoría"
       ],
       "salud": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas CCSS II",
-        "Física II",
-        "Química II",
-        "Biología II",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Lengua y Literatura I",
+        "Matemáticas CCSS I",
+        "Física y química",
+        
+        "Biología I",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Educación Física",
         "Tutoría"
       ],
       "ccss": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas CCSS II",
-        "Historia del Mundo Contemporáneo",
+        "Lengua y Literatura I",
+        "Matemáticas CCSS I",
+        "Historia Mundo",
         "Economía",
         "Geografía",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Educación Física",
         "Tutoría"
       ],
       "humanidades": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas a las Ciencias Sociales II",
+        "Lengua y Literatura I",
+        "Matemáticas CCSS I",
         "Historia del Mundo Contemporáneo",
-        "Latín II",
-        "Griego II",
+        "Latín I",
+        "Griego I",
         "Economía",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Educación Física",
         "Tutoría"
       ],
       "artes": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas a las Ciencias Sociales II",
-        "Fundamentos del Arte II",
+        "Lengua y Literatura I",
+        "Matemáticas CCSS I",
+        "Fundamentos del Arte I",
         "Cultura Audiovisual",
         "Dibujo Artístico",
         "Volumen",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Educación Física",
         "Tutoría"
@@ -191,60 +190,60 @@
     },
     "2_bachillerato": {
       "técnológico": [
-        "Lengua Castellana y Literatura II",
+        "Lengua y Literatura II",
         "Matemáticas II",
-        "Física",
-        "Química",
+        "Física II",
+        "Química II",
         "Dibujo Técnico II",
         "Tecnología e Ingeniería II",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Tutoría"
       ],
       "salud": [
-        "Lengua Castellana y Literatura II",
+        "Lengua y Literatura II",
         "Matemáticas II",
-        "Física",
-        "Química",
-        "Biología",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Física II",
+        "Química II",
+        "Biología II",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Tutoría"
       ],
       "ccss": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas a las Ciencias Sociales II",
+        "Lengua y Literatura II",
+        "Matemáticas CCSS II",
         "Historia de España",
         "Economía de la Empresa",
         "Geografía",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Tutoría"
       ],
       "humanidades": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas a las Ciencias Sociales II",
+        "Lengua y Literatura II",
+        "Matemáticas CCSS II",
         "Historia de España",
         "Latín II",
         "Griego II",
         "Economía de la Empresa",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Tutoría"
       ],
       "artes": [
-        "Lengua Castellana y Literatura II",
-        "Matemáticas Aplicadas a las Ciencias Sociales II",
+        "Lengua y Literatura II",
+        "Matemáticas CCSS II",
         "Fundamentos del Arte II",
         "Cultura Audiovisual",
         "Dibujo Artístico",
         "Volumen",
-        "Primera Lengua Extranjera II (Inglés)",
-        "Segunda Lengua Extranjera II (Francés/Alemán)",
+        "Inglés",
+        "Francés/Alemán",
         "Religión/Valores Éticos",
         "Tutoría"
       ]

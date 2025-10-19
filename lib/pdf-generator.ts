@@ -308,13 +308,14 @@ function generarTablaConceptos(doc: jsPDF, clases: any[], factura?: any): number
   doc.rect(PDF_CONFIG.MARGIN_LEFT, currentY, PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_LEFT - PDF_CONFIG.MARGIN_RIGHT, headerHeight, 'F')
   
   // Encabezados de columna actualizados para desglose detallado
+  // Ajuste moderado para dar más espacio a la descripción sin solapamiento
   const colX = {
     num: PDF_CONFIG.MARGIN_LEFT + 2,
     descripcion: PDF_CONFIG.MARGIN_LEFT + 8,
-    fecha: PDF_CONFIG.MARGIN_LEFT + 50,
-    hora: PDF_CONFIG.MARGIN_LEFT + 75,
-    duracion: PDF_CONFIG.MARGIN_LEFT + 105,
-    precioHora: PDF_CONFIG.MARGIN_LEFT + 125,
+    fecha: PDF_CONFIG.MARGIN_LEFT + 70,     // Ajuste moderado (+20mm)
+    hora: PDF_CONFIG.MARGIN_LEFT + 90,      // Ajuste moderado (+15mm)
+    duracion: PDF_CONFIG.MARGIN_LEFT + 110, // Ajuste moderado (+5mm)
+    precioHora: PDF_CONFIG.MARGIN_LEFT + 130, // Ajuste moderado (+5mm)
     total: PDF_CONFIG.A4_WIDTH - PDF_CONFIG.MARGIN_RIGHT - 2
   }
   
