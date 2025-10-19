@@ -341,7 +341,7 @@ export default function StudentCalendarPage() {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`aspect-square p-0.5 sm:p-1 lg:p-2 rounded-md sm:rounded-lg lg:rounded-xl border-2 transition-all hover:shadow-md ${
+                  className={`aspect-square p-0.5 sm:p-1 lg:p-2 rounded-md sm:rounded-lg lg:rounded-xl border-2 transition-all hover:shadow-md overflow-hidden ${
                     isToday 
                       ? 'border-primary bg-primary/10' 
                       : hasAnyActivity
@@ -368,14 +368,14 @@ export default function StudentCalendarPage() {
                         </div>
                         {/* Versión desktop - cartel completo con estética de horario fijo */}
                         <div
-                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border w-full max-w-full"
                           style={{ 
                             backgroundColor: customColors.scheduled,
                             borderColor: customColors.scheduled
                           }}
                           title={`Clase eventual: ${cls.course_name || 'Sin curso'} - ${formatTime(cls.start_time)}${cls.subject ? ` - ${cls.subject}` : ''}`}
                         >
-                          <span className="text-xs font-medium truncate">{formatTime(cls.start_time)}</span>
+                          <span className="text-xs font-medium truncate w-full">{formatTime(cls.start_time)}</span>
                         </div>
                       </div>
                     ))}
@@ -395,18 +395,18 @@ export default function StudentCalendarPage() {
                         </div>
                         {/* Versión desktop - cartel completo */}
                         <div
-                          className="hidden sm:block px-1 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:block px-1 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-sm transition-all duration-200 hover:scale-105 text-white border w-full max-w-full"
                           style={{ 
                             backgroundColor: customColors.exams,
                             borderColor: customColors.exams
                           }}
                           title={`Examen: ${exam.subject}${exam.exam_time ? ` - ${formatTime(exam.exam_time)}` : ''}${exam.notes ? ` - ${exam.notes}` : ''}`}
                         >
-                          <div className="text-xs font-bold truncate mb-0.5">
+                          <div className="text-xs font-bold truncate mb-0.5 w-full">
                             {exam.subject}
                           </div>
                           {exam.notes && (
-                            <div className="text-xs text-white/80 truncate">
+                            <div className="text-xs text-white/80 truncate w-full">
                               {exam.notes}
                             </div>
                           )}
@@ -429,14 +429,14 @@ export default function StudentCalendarPage() {
                         </div>
                         {/* Versión desktop - cartel completo */}
                         <div
-                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border w-full max-w-full"
                           style={{ 
                             backgroundColor: customColors.schedule,
                             borderColor: customColors.schedule
                           }}
                           title={`Horario fijo: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
                         >
-                          <span className="text-xs font-medium truncate">{formatTime(schedule.start_time)}</span>
+                          <span className="text-xs font-medium truncate w-full">{formatTime(schedule.start_time)}</span>
                         </div>
                       </div>
                     ))}
