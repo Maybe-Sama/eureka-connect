@@ -83,15 +83,60 @@ export function getTimeSlots(): string[] {
 }
 
 /**
- * Formatea una fecha para mostrar
+ * Parsea una fecha en formato YYYY-MM-DD como fecha local (sin conversión de zona horaria)
+ * Esto evita el problema de que JavaScript interprete las fechas como UTC y luego
+ * las convierta a hora local, lo que puede hacer que se muestren un día antes.
+ * 
+ * @param dateString - Fecha en formato YYYY-MM-DD
+ * @returns Objeto Date en hora local
  */
-export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString('es-ES', {
+export function parseDateAsLocal(dateString: string): Date {
+  // Si la fecha ya tiene información de hora, usar el constructor normal
+  if (dateString.includes('T') || dateString.includes(' ')) {
+    return new Date(dateString)
+  }
+  
+  // Para fechas en formato YYYY-MM-DD, parsear como fecha local
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Date(year, month - 1, day) // month es 0-indexed en JavaScript
+}
+
+/**
+ * Formatea una fecha para mostrar en español
+ * Maneja correctamente fechas en formato YYYY-MM-DD sin problemas de zona horaria
+ * 
+ * @param date - Fecha como string (YYYY-MM-DD) o objeto Date
+ * @param options - Opciones de formato (opcional)
+ * @returns Fecha formateada en español
+ */
+export function formatDate(
+  date: Date | string,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const d = typeof date === 'string' ? parseDateAsLocal(date) : date
+  
+  const defaultOptions: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
+  }
+  
+  return d.toLocaleDateString('es-ES', options || defaultOptions)
+}
+
+/**
+ * Formatea una fecha en formato corto (DD/MM/YYYY)
+ * 
+ * @param date - Fecha como string (YYYY-MM-DD) o objeto Date
+ * @returns Fecha formateada como DD/MM/YYYY
+ */
+export function formatDateShort(date: Date | string): string {
+  const d = typeof date === 'string' ? parseDateAsLocal(date) : date
+  return d.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
   })
 }
 

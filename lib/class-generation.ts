@@ -169,8 +169,11 @@ export async function generateClassesFromStartDate(
       continue
     }
 
-    // Convert day_of_week from 1-7 (Monday-Sunday) to 0-6 (Sunday-Saturday) for getNextOccurrenceFromDate
-    const jsDayOfWeek = timeSlot.day_of_week === 7 ? 0 : timeSlot.day_of_week - 1
+    // Convert day_of_week from 1-7 (Monday-Sunday) to 0-6 (Sunday-Saturday) for JavaScript Date
+    // Database format: 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado, 7=Domingo
+    // JavaScript format: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+    // Conversion: Only Sunday (7 in DB) needs to become 0 in JS, all others stay the same
+    const jsDayOfWeek = timeSlot.day_of_week === 7 ? 0 : timeSlot.day_of_week
     
     // day_of_week is already in 1-7 format for database, no conversion needed
     const dbDayOfWeek = timeSlot.day_of_week

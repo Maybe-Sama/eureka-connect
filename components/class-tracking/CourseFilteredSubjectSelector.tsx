@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Search, BookOpen, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import subjectsData from '@/data/subjects.json'
 
 interface CourseFilteredSubjectSelectorProps {
   selectedSubject: string
   onSubjectChange: (subject: string) => void
   courseName: string
+  subjectGroup?: string  // Nuevo: grupo de asignaturas del curso
   placeholder?: string
   className?: string
 }
@@ -16,6 +18,7 @@ export function CourseFilteredSubjectSelector({
   selectedSubject, 
   onSubjectChange, 
   courseName,
+  subjectGroup,
   placeholder = "Selecciona una asignatura...",
   className 
 }: CourseFilteredSubjectSelectorProps) {
@@ -24,11 +27,63 @@ export function CourseFilteredSubjectSelector({
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Función para obtener asignaturas filtradas por curso
-  const getFilteredSubjects = () => {
+  // Función para obtener asignaturas desde subjects.json usando el subjectGroup
+  const getSubjectsFromGroup = (): string[] => {
+    if (!subjectGroup) {
+      // Fallback: usar la lógica antigua si no hay subjectGroup
+      return getFallbackSubjects()
+    }
+
+    try {
+      const parts = subjectGroup.split('.')
+      
+      // Caso especial para idiomas y especialidades
+      if (parts.length === 1) {
+        if (parts[0] === 'idiomas') {
+          return subjectsData.idiomas
+        }
+        if (parts[0] === 'especialidades') {
+          return subjectsData.especialidades
+        }
+      }
+      
+      // Para primaria y secundaria: nivel.curso
+      if (parts.length === 2) {
+        const [level, course] = parts
+        if (level === 'primaria' && subjectsData.primaria[course as keyof typeof subjectsData.primaria]) {
+          return subjectsData.primaria[course as keyof typeof subjectsData.primaria]
+        }
+        if (level === 'secundaria' && subjectsData.secundaria[course as keyof typeof subjectsData.secundaria]) {
+          return subjectsData.secundaria[course as keyof typeof subjectsData.secundaria]
+        }
+      }
+      
+      // Para bachillerato: nivel.curso.modalidad
+      if (parts.length === 3) {
+        const [level, course, branch] = parts
+        if (level === 'bachillerato') {
+          const bachData = subjectsData.bachillerato[course as keyof typeof subjectsData.bachillerato]
+          if (bachData && bachData[branch as keyof typeof bachData]) {
+            return bachData[branch as keyof typeof bachData] as string[]
+          }
+        }
+      }
+      
+      // Si no se encuentra, usar fallback
+      console.warn(`No se encontró el grupo de asignaturas: ${subjectGroup}`)
+      return getFallbackSubjects()
+      
+    } catch (error) {
+      console.error('Error obteniendo asignaturas del grupo:', error)
+      return getFallbackSubjects()
+    }
+  }
+
+  // Función fallback: lógica antigua basada en palabras clave del nombre del curso
+  const getFallbackSubjects = (): string[] => {
     const course = courseName.toLowerCase()
     
-    // Mapear nombres de cursos a asignaturas específicas
+    // Mapear nombres de cursos a asignaturas específicas (lógica antigua)
     if (course.includes('matemáticas') || course.includes('matematicas')) {
       return [
         'Matemáticas',
@@ -139,6 +194,9 @@ export function CourseFilteredSubjectSelector({
     }
   }
 
+  // Obtener asignaturas usando useMemo para mejor rendimiento
+  const filteredSubjects = useMemo(() => getSubjectsFromGroup(), [subjectGroup, courseName])
+
   // Función para normalizar texto (quitar acentos y convertir a minúsculas)
   const normalizeText = (text: string): string => {
     return text
@@ -153,9 +211,6 @@ export function CourseFilteredSubjectSelector({
       .replace(/[ñ]/g, 'n')
       .replace(/[ç]/g, 'c')
   }
-
-  // Obtener asignaturas filtradas
-  const filteredSubjects = getFilteredSubjects()
 
   // Filtrar por término de búsqueda
   const searchFilteredSubjects = filteredSubjects.filter(subject => {
@@ -246,6 +301,11 @@ export function CourseFilteredSubjectSelector({
               <div>
                 <p className="text-sm font-medium text-white">Asignaturas para:</p>
                 <p className="text-xs text-gray-300">{courseName}</p>
+                {subjectGroup && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Grupo: {subjectGroup.replace(/\./g, ' › ')}
+                  </p>
+                )}
               </div>
             </div>
           </div>

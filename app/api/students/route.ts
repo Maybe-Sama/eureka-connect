@@ -70,13 +70,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Validate that start_date is not in the future
-    // Students cannot start classes in the future - only today or in the past
+    // Validate that start_date is not too far in the future
+    // Allow dates up to 3 months in the future for planning purposes
     const today = new Date()
     today.setHours(0, 0, 0, 0) // Reset time to start of day for accurate comparison
-    if (startDateObj > today) {
+    const maxFutureDate = new Date(today)
+    maxFutureDate.setMonth(maxFutureDate.getMonth() + 3) // Allow up to 3 months ahead
+    
+    if (startDateObj > maxFutureDate) {
       return NextResponse.json({ 
-        error: 'La fecha de inicio no puede ser en el futuro' 
+        error: 'La fecha de inicio no puede ser más de 3 meses en el futuro' 
       }, { status: 400 })
     }
 

@@ -23,6 +23,7 @@ import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { ClassItem } from './ClassItem'
 import { CourseFilteredSubjectSelector } from './CourseFilteredSubjectSelector'
 import { toast } from 'sonner'
+import { formatDate, formatDateShort } from '@/lib/utils'
 
 interface ClassData {
   id: number
@@ -70,6 +71,7 @@ interface ClassTrackingData {
     price: number
     shared_class_price?: number
     color: string
+    subject_group?: string
   }
   total_classes_scheduled: number
   total_classes_completed: number
@@ -363,7 +365,7 @@ export const ClassDetailsModal = ({
               <p className="text-foreground-muted">{student.courses.name}</p>
               <p className="text-sm text-foreground-muted mt-1">
                 📅 {student.students.start_date 
-                  ? `Clases desde ${new Date(student.students.start_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} hasta hoy`
+                  ? `Clases desde ${formatDate(student.students.start_date)} hasta hoy`
                   : 'Todas las clases hasta hoy'
                 }
               </p>
@@ -580,6 +582,7 @@ export const ClassDetailsModal = ({
                     selectedSubject={batchEditData.subject}
                     onSubjectChange={(subject) => setBatchEditData({ ...batchEditData, subject })}
                     courseName={student.courses.name}
+                    subjectGroup={student.courses.subject_group}
                     placeholder="Selecciona una asignatura (opcional)"
                   />
                 </div>

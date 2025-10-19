@@ -239,12 +239,16 @@ export default function ExamManagerModal({ isOpen, onClose }: ExamManagerModalPr
                           </div>
                           <div className="flex items-center text-sm text-foreground-secondary mb-2">
                             <Calendar size={14} className="mr-2" />
-                            {new Date(exam.exam_date).toLocaleDateString('es-ES', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                            {(() => {
+                              const [year, month, day] = exam.exam_date.split('-').map(Number)
+                              const date = new Date(year, month - 1, day)
+                              return date.toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })
+                            })()}
                             {exam.exam_time && (
                               <>
                                 <Clock size={14} className="ml-4 mr-2" />

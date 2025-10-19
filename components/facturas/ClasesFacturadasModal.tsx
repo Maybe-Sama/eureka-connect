@@ -43,7 +43,10 @@ const ClasesFacturadasModal = ({
   if (!isOpen) return null
 
   const formatearFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString('es-ES', {
+    // Parsear fecha como local para evitar problemas de zona horaria
+    const [year, month, day] = fecha.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
+    return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'

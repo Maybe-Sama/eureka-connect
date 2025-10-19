@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { toast } from 'sonner'
+import { parseDateAsLocal } from '@/lib/utils'
 
 interface ClassComparisonModalProps {
   isOpen: boolean
@@ -211,7 +212,7 @@ const ClassComparisonModal = ({
   }
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
+    return parseDateAsLocal(dateStr).toLocaleDateString('es-ES', {
       weekday: 'short',
       day: 'numeric',
       month: 'short'

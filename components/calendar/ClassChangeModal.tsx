@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
 import { Class } from '@/types'
+import { formatDateShort } from '@/lib/utils'
 
 interface ClassChangeModalProps {
   isOpen: boolean
@@ -40,7 +41,7 @@ export const ClassChangeModal = ({
           <p className="text-sm text-foreground-muted">
             {classItem.isRecurring 
               ? `Horario semanal - ${classItem.student_name}` 
-              : `Clase para el ${new Date(classItem.date).toLocaleDateString()} - ${classItem.student_name}`
+              : `Clase para el ${formatDateShort(classItem.date)} - ${classItem.student_name}`
             }
           </p>
         </div>

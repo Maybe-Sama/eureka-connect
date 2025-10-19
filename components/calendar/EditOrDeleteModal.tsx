@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Edit3, Trash2, Clock, Calendar, User } from 'lucide-react'
+import { formatDateShort } from '@/lib/utils'
 
 interface EditOrDeleteModalProps {
   isOpen: boolean
@@ -58,7 +59,7 @@ export const EditOrDeleteModal = ({
             {!isRecurring && (
               <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted">
                 <Calendar className="w-4 h-4" />
-                <span>{new Date(classItem.date).toLocaleDateString('es-ES')}</span>
+                <span>{formatDateShort(classItem.date)}</span>
               </div>
             )}
           </div>

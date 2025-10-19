@@ -51,7 +51,8 @@ export const MonthlyReportModal = ({ isOpen, onClose, report, month }: MonthlyRe
 
   const formatMonth = (monthYear: string) => {
     const [year, month] = monthYear.split('-')
-    const date = new Date(parseInt(year), parseInt(month) - 1)
+    // Usar día 1 para asegurar que siempre estamos en el mes correcto
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1)
     return date.toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long' 

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Trash2, AlertTriangle, Clock, RotateCcw } from 'lucide-react'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
+import { formatDateShort } from '@/lib/utils'
 
 interface DeleteClassModalProps {
   isOpen: boolean
@@ -59,7 +60,7 @@ export const DeleteClassModal = ({
             </div>
             {!isRecurring && (
               <div className="text-center text-sm text-foreground-muted">
-                {new Date(classItem.date).toLocaleDateString('es-ES')}
+                {formatDateShort(classItem.date)}
               </div>
             )}
           </div>

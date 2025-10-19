@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { CourseFilteredSubjectSelector } from './CourseFilteredSubjectSelector'
+import { formatDate as formatDateHelper, formatDateShort } from '@/lib/utils'
 
 interface ClassData {
   id: number
@@ -46,6 +47,7 @@ interface ClassData {
     name: string
     price: number
     color: string
+    subject_group?: string
   }
 }
 
@@ -191,16 +193,6 @@ export const ClassItem = ({ classData, onUpdate, isBatchMode = false, isSelected
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
   const formatTime = (timeString: string) => {
     return timeString.slice(0, 5) // Remove seconds if present
   }
@@ -228,7 +220,7 @@ export const ClassItem = ({ classData, onUpdate, isBatchMode = false, isSelected
             <div className="flex items-center space-x-2">
               <Calendar size={16} className="text-foreground-muted" />
               <span className="font-medium text-foreground">
-                {formatDate(classData.date)}
+                {formatDateHelper(classData.date)}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -319,7 +311,7 @@ export const ClassItem = ({ classData, onUpdate, isBatchMode = false, isSelected
         {classData.payment_date && (
           <div className="mb-3">
             <p className="text-xs text-foreground-muted">
-              <strong>Fecha de pago:</strong> {new Date(classData.payment_date).toLocaleDateString('es-ES')}
+              <strong>Fecha de pago:</strong> {formatDateShort(classData.payment_date)}
             </p>
           </div>
         )}
@@ -331,6 +323,7 @@ export const ClassItem = ({ classData, onUpdate, isBatchMode = false, isSelected
               selectedSubject={editData.subject}
               onSubjectChange={(subject) => setEditData({ ...editData, subject })}
               courseName={classData.courses.name}
+              subjectGroup={classData.courses.subject_group}
               placeholder="Selecciona una asignatura"
             />
           </div>

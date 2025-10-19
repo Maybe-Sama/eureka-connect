@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
           payment_date,
           payment_notes,
           students!classes_student_id_fkey(first_name, last_name, email),
-          courses(name, price, color)
+          courses(name, price, color, subject_group)
         `)
         .single()
 

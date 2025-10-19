@@ -368,16 +368,13 @@ export default function StudentCalendarPage() {
                         </div>
                         {/* Versión desktop - cartel completo con estética de horario fijo */}
                         <div
-                          className="hidden sm:flex items-center space-x-1 sm:space-x-2 px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
                           style={{ 
                             backgroundColor: customColors.scheduled,
                             borderColor: customColors.scheduled
                           }}
                           title={`Clase eventual: ${cls.course_name || 'Sin curso'} - ${formatTime(cls.start_time)}${cls.subject ? ` - ${cls.subject}` : ''}`}
                         >
-                          <div 
-                            className="w-1 h-1 sm:w-1.5 sm:h-1.5 lg:w-2 lg:h-2 rounded-full bg-white opacity-80"
-                          ></div>
                           <span className="text-xs font-medium truncate">{formatTime(cls.start_time)}</span>
                         </div>
                       </div>
@@ -432,16 +429,13 @@ export default function StudentCalendarPage() {
                         </div>
                         {/* Versión desktop - cartel completo */}
                         <div
-                          className="hidden sm:flex items-center space-x-1 sm:space-x-2 px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
+                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border"
                           style={{ 
                             backgroundColor: customColors.schedule,
                             borderColor: customColors.schedule
                           }}
                           title={`Horario fijo: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
                         >
-                          <div 
-                            className="w-1 h-1 sm:w-1.5 sm:h-1.5 lg:w-2 lg:h-2 rounded-full bg-white opacity-80"
-                          ></div>
                           <span className="text-xs font-medium truncate">{formatTime(schedule.start_time)}</span>
                         </div>
                       </div>
@@ -551,17 +545,12 @@ export default function StudentCalendarPage() {
                     key={`fixed-${index}`}
                     className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 sm:mb-3 space-y-1.5 sm:space-y-0">
-                      <div className="flex items-center space-x-1.5 sm:space-x-2">
-                        <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
-                          {daysOfWeek[schedule.day_of_week]}
-                        </span>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
-                          Fijo
-                        </span>
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-primary bg-primary/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-student-primary/30">
-                        {schedule.subject}
+                    <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
+                        {daysOfWeek[schedule.day_of_week]}
+                      </span>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
+                        Fijo
                       </span>
                     </div>
                     <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
@@ -579,21 +568,16 @@ export default function StudentCalendarPage() {
                     key={`scheduled-${cls.id}`}
                     className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 sm:mb-3 space-y-1.5 sm:space-y-0">
-                      <div className="flex items-center space-x-1.5 sm:space-x-2">
-                        <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
-                          {new Date(cls.date).toLocaleDateString('es-ES', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'short'
-                          })}
-                        </span>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
-                          Programada
-                        </span>
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-primary bg-primary/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-primary/30">
-                        {cls.course_name || 'Sin curso'}
+                    <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
+                        {new Date(cls.date).toLocaleDateString('es-ES', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'short'
+                        })}
+                      </span>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
+                        Programada
                       </span>
                     </div>
                     <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">

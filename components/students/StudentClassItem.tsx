@@ -87,7 +87,9 @@ export const StudentClassItem = ({ classData }: StudentClassItemProps) => {
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    // Parsear fecha como local para evitar problemas de zona horaria
+    const [year, month, day] = dateString.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',

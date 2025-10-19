@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { CookieBannerProvider } from '@/components/ui/CookieBannerProvider'
 
 export const metadata = {
-  title: 'Profesor Eureka - CRM Profesional',
-  description: 'Sistema de gestión para profesores autónomos',
+  title: 'Eureka-Connect',
+  description: 'Portal de coexión entre el Profesor Eureka y sus alumnos',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

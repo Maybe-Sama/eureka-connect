@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
     // Get course info
     const { data: course, error: courseError } = await supabase
       .from('courses')
-      .select('name, price, shared_class_price, color')
+      .select('name, price, shared_class_price, color, subject_group')
       .eq('id', student.course_id)
       .single()
 
@@ -169,7 +169,8 @@ export async function GET(request: NextRequest) {
         name: course.name,
         price: course.price,
         shared_class_price: course.shared_class_price || null,
-        color: course.color
+        color: course.color,
+        subject_group: course.subject_group || null
       }
     }))
     

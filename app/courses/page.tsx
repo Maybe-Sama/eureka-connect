@@ -6,13 +6,14 @@ import { Plus, Edit, Trash2, BookOpen, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
 import { toast } from 'sonner'
-import { SubjectSelector } from '@/components/courses/SubjectSelector'
+import { SubjectGroupSelector } from '@/components/courses/SubjectGroupSelector'
 
 interface Course {
   id: number
   name: string
   description?: string
   subject?: string
+  subject_group?: string  // Nuevo campo para el grupo de asignaturas
   price: number
   shared_class_price?: number
   duration: number
@@ -253,11 +254,11 @@ const CourseCard = ({ course, onEdit, onDelete }: CourseCardProps) => (
         </Button>
       </div>
     </div>
-    {course.subject && (
+    {course.subject_group && (
       <div className="mb-3">
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
           <BookOpen size={12} className="mr-1" />
-          {course.subject}
+          {course.subject_group.split('.').pop()?.replace(/_/g, ' ').toUpperCase()}
         </span>
       </div>
     )}
@@ -301,6 +302,7 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
       name: '',
       description: '',
       subject: '',
+      subject_group: '',  // Inicializar el nuevo campo
       price: 0,
       shared_class_price: 0,
       duration: 60,
@@ -326,6 +328,7 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
         name: '',
         description: '',
         subject: '',
+        subject_group: '',
         price: 0,
         shared_class_price: 0,
         duration: 60,
@@ -370,11 +373,13 @@ const AddEditCourseModal = ({ isOpen, onClose, onSave, title, initialData }: Add
           </div>
           
           <div className="mb-4">
-            <SubjectSelector
-              selectedSubject={formData.subject || ''}
-              onSubjectChange={(subject) => setFormData(prev => ({ ...prev, subject }))}
-              placeholder="Buscar asignatura (opcional)..."
+            <SubjectGroupSelector
+              selectedGroup={formData.subject_group || ''}
+              onGroupChange={(subject_group) => setFormData(prev => ({ ...prev, subject_group }))}
             />
+            <p className="text-xs text-foreground-muted mt-2">
+              💡 Define el grupo de asignaturas que estarán disponibles en el seguimiento de clases para los alumnos de este curso.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>

@@ -44,6 +44,7 @@ interface ClassTrackingData {
     price: number
     shared_class_price?: number
     color: string
+    subject_group?: string
   }
   total_classes_scheduled: number
   total_classes_completed: number
