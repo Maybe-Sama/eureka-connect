@@ -34,7 +34,7 @@ const navigation = [
 ]
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true) // Start collapsed on mobile
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -42,7 +42,12 @@ export default function Sidebar() {
 
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
+      const mobile = window.innerWidth < 1024
+      setIsMobile(mobile)
+      // On desktop, always show sidebar (not collapsed)
+      if (!mobile) {
+        setIsCollapsed(false)
+      }
     }
     
     checkIsMobile()
@@ -56,9 +61,21 @@ export default function Sidebar() {
     router.push('/login')
   }
 
+  // Debug function
+  const handleCloseSidebar = () => {
+    console.log('🔴 Botón X clickeado!')
+    console.log('🔴 Estado actual isCollapsed:', isCollapsed)
+    console.log('🔴 Estado actual isMobile:', isMobile)
+    setIsCollapsed(true)
+    console.log('🔴 Después de setIsCollapsed(true)')
+  }
+
   if (!user) {
     return null
   }
+
+  // Debug logs
+  console.log('🔵 Render Sidebar - isMobile:', isMobile, 'isCollapsed:', isCollapsed)
 
   return (
     <>
@@ -79,13 +96,12 @@ export default function Sidebar() {
       {/* Sidebar */}
       <motion.div
         initial={{ x: 300 }}
-        animate={{ x: 0 }}
+        animate={isMobile && isCollapsed ? { x: 300 } : { x: 0 }}
         exit={{ x: 300 }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
         className={cn(
           "fixed right-0 top-0 z-50 h-full w-64 sm:w-70 glass-effect border-l border-border",
-          "lg:relative lg:translate-x-0 lg:border-l-0",
-          isMobile && isCollapsed ? "translate-x-full" : "translate-x-0"
+          "lg:relative lg:translate-x-0 lg:border-l-0"
         )}
       >
         {/* Header */}
@@ -118,12 +134,13 @@ export default function Sidebar() {
             </div>
           </div>
           
-          {isMobile && (
+          {isMobile && !isCollapsed && (
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1.5 sm:p-2 rounded-lg hover:bg-muted transition-colors relative z-10"
+              onClick={handleCloseSidebar}
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-muted transition-colors relative z-20"
+              type="button"
             >
               <X size={20} />
             </motion.button>
