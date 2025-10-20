@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const result = await validateSession(token)
           
           if (result.success && result.user) {
-            console.log('Sesión válida, usuario:', result.user)
             setUser(result.user)
             // Establecer cookie con el tipo de usuario
             setCookie('user_type', result.user.userType)

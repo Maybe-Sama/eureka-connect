@@ -69,16 +69,12 @@ export default function StudentSettingsPage() {
   // Cargar avatares predefinidos
   const loadPredefinedAvatars = async () => {
     try {
-      console.log('🔄 Cargando avatares predefinidos...')
-      
       const { data, error } = await supabase.storage
         .from('avatars')
         .list('defaults', {
           limit: 10,
           sortBy: { column: 'name', order: 'asc' }
         })
-
-      console.log('📁 Datos de storage:', { data, error })
 
       if (error) {
         console.error('❌ Error loading predefined avatars:', error)
@@ -91,7 +87,6 @@ export default function StudentSettingsPage() {
       }
 
       if (!data || data.length === 0) {
-        console.log('⚠️ No se encontraron avatares predefinidos')
         toast({
           title: "Información",
           description: "No hay avatares predefinidos disponibles. Sube algunas imágenes a la carpeta 'defaults' del bucket 'avatars'.",
@@ -102,11 +97,9 @@ export default function StudentSettingsPage() {
 
       const avatarUrls = data.map(file => {
         const url = supabase.storage.from('avatars').getPublicUrl(`defaults/${file.name}`).data.publicUrl
-        console.log(`🖼️ Avatar URL: ${file.name} -> ${url}`)
         return url
       })
 
-      console.log('✅ Avatares predefinidos cargados:', avatarUrls)
       setPredefinedAvatars(avatarUrls)
     } catch (error) {
       console.error('❌ Error loading predefined avatars:', error)

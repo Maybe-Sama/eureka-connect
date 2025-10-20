@@ -155,6 +155,8 @@ export async function generateClassesFromStartDate(
   }
   
   console.log(`Using ${student.has_shared_pricing ? 'shared' : 'normal'} pricing for student ${studentId}: €${pricePerHour}/hour`)
+  console.log(`📅 Generating classes from ${startDate} to ${endDate}`)
+  console.log(`📋 Processing ${fixedSchedule.length} time slots:`, fixedSchedule.map(ts => `${ts.day_of_week}(${ts.start_time}-${ts.end_time})`))
   
   // Generate classes for each time slot
   for (const timeSlot of fixedSchedule) {

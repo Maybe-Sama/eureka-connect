@@ -235,19 +235,22 @@ export async function PUT(
           const allClasses = await dbOperations.getAllClasses()
           const existingClasses = allClasses.filter(cls => cls.student_id === Number(params.id))
           
-          // Check for classes with critical data that cannot be lost
-          const classesWithCriticalData = existingClasses.filter(cls => 
-            cls.payment_status === 'paid' ||           // ❌ Clase ya pagada
-            cls.status === 'completed' ||              // ❌ Clase ya completada
-            cls.subject ||                             // ❌ Tiene asignatura asignada
-            cls.notes ||                               // ❌ Tiene notas
-            cls.payment_notes ||                       // ❌ Tiene notas de pago
-            cls.status_invoice === 1                   // ❌ Ya está facturada
+          // Check for classes with critical data that cannot be lost (only FUTURE classes)
+          const today = new Date().toISOString().split('T')[0]
+          const futureClassesWithCriticalData = existingClasses.filter(cls => 
+            cls.date >= today && (  // Solo verificar clases futuras
+              cls.payment_status === 'paid' ||           // ❌ Clase ya pagada
+              cls.status === 'completed' ||              // ❌ Clase ya completada
+              cls.subject ||                             // ❌ Tiene asignatura asignada
+              cls.notes ||                               // ❌ Tiene notas
+              cls.payment_notes ||                       // ❌ Tiene notas de pago
+              cls.status_invoice === 1                   // ❌ Ya está facturada
+            )
           )
 
-          if (classesWithCriticalData.length > 0) {
-            console.log(`🚨 DATA PROTECTION: ${classesWithCriticalData.length} clases tienen datos críticos - NO se regenerarán`)
-            console.log('Clases con datos críticos:', classesWithCriticalData.map(c => ({
+          if (futureClassesWithCriticalData.length > 0) {
+            console.log(`🚨 DATA PROTECTION: ${futureClassesWithCriticalData.length} clases FUTURAS tienen datos críticos - NO se regenerarán`)
+            console.log('Clases futuras con datos críticos:', futureClassesWithCriticalData.map(c => ({
               id: c.id,
               date: c.date,
               payment_status: c.payment_status,
@@ -258,9 +261,9 @@ export async function PUT(
             })))
             
             return NextResponse.json({ 
-              message: 'Alumno actualizado exitosamente. No se regeneraron clases para preservar datos críticos.',
-              warning: `${classesWithCriticalData.length} clases tienen datos importantes y no se modificaron`,
-              protected_classes: classesWithCriticalData.length
+              message: 'Alumno actualizado exitosamente. No se regeneraron clases futuras para preservar datos críticos.',
+              warning: `${futureClassesWithCriticalData.length} clases futuras tienen datos importantes y no se modificaron`,
+              protected_classes: futureClassesWithCriticalData.length
             })
           }
 
@@ -268,7 +271,6 @@ export async function PUT(
           console.log(`✅ No critical data found - proceeding with safe class regeneration for student ${params.id}`)
           
           // Delete existing future recurring classes for this student (preserve historical data)
-          const today = new Date().toISOString().split('T')[0]
           const existingRecurringClasses = allClasses.filter(cls =>
             cls.student_id === Number(params.id) &&
             cls.is_recurring === true &&
@@ -281,17 +283,17 @@ export async function PUT(
             await dbOperations.deleteClass(cls.id)
           }
 
-          // Generate new classes from today onwards (preserve historical classes)
+          // Generate new classes for the next 7 days only
           const futureEndDate = new Date()
-          futureEndDate.setMonth(futureEndDate.getMonth() + 3)
+          futureEndDate.setDate(futureEndDate.getDate() + 7) // Solo 7 días siguientes
           const endDate = futureEndDate.toISOString().split('T')[0]
 
           const generatedClasses = await generateClassesFromStartDate(
             Number(params.id),
             Number(course_id),
             scheduleToProcess,
-            today, // Empezar desde hoy, no desde la fecha de inicio original
-            endDate
+            today, // Empezar desde hoy
+            endDate // Hasta 7 días después
           )
 
           // Create all generated classes
@@ -299,9 +301,11 @@ export async function PUT(
             for (const classData of generatedClasses) {
               await dbOperations.createClass(classData)
             }
-            console.log(`✅ Student ${params.id}: Created ${generatedClasses.length} classes`)
+            console.log(`✅ Student ${params.id}: Created ${generatedClasses.length} classes for next 7 days`)
+            console.log(`📅 Classes created from ${today} to ${endDate}`)
           } else {
-            console.log(`⚠️ No classes generated for student ${params.id}`)
+            console.log(`⚠️ No classes generated for student ${params.id} - Check schedule and date range`)
+            console.log(`📅 Date range: ${today} to ${endDate}`)
           }
         } catch (error) {
           console.error(`❌ Error updating classes for student ${params.id}:`, error)

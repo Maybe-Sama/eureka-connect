@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "check-build": "node scripts/check-build.js",
-    "pre-deploy": "pnpm check-build"
+    "pre-deploy": "pnpm check-build",
+    "backup-database": "node scripts/backup-supabase-database.js",
+    "test-backup": "node scripts/test-backup-dependencies.js",
+    "test-sql": "node scripts/test-sql-restoration.js",
+    "restore-test": "node scripts/restore-to-test-database.js",
+    "prepare-restore": "node scripts/prepare-restoration-files.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

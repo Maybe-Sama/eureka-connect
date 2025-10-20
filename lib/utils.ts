@@ -65,12 +65,12 @@ function minutesToTime(minutes: number): string {
 
 /**
  * Genera los slots de tiempo para el calendario
- * Crea slots de 15 minutos desde las 8:00 hasta las 22:00
+ * Crea slots de 15 minutos desde las 8:00 hasta las 23:00
  */
 export function getTimeSlots(): string[] {
   const slots = []
   const START_HOUR = 8
-  const TOTAL_HOURS = 14 // 8:00 to 22:00
+  const TOTAL_HOURS = 15 // 8:00 to 23:00
   
   for (let hour = START_HOUR; hour < START_HOUR + TOTAL_HOURS; hour++) {
     for (let quarter = 0; quarter < 4; quarter++) {

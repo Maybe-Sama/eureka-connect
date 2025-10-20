@@ -121,6 +121,9 @@ secrets/
 *.backup
 *~
 
+# Database backups directory
+backups/
+
 # Testing
 .jest-cache/
 jest-results.json

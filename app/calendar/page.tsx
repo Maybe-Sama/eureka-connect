@@ -61,7 +61,6 @@ const CalendarPage = () => {
           exceptionsByWeek[week] = new Set(exceptions as string[])
         })
         setHiddenFixedSchedules(exceptionsByWeek)
-        console.log('Excepciones cargadas desde localStorage:', Object.keys(exceptionsByWeek).length, 'semanas')
       } catch (error) {
         console.error('Error cargando excepciones:', error)
         setHiddenFixedSchedules({})
@@ -78,46 +77,14 @@ const CalendarPage = () => {
         exceptionsToSave[week] = Array.from(exceptions)
       })
       localStorage.setItem('hiddenFixedSchedules', JSON.stringify(exceptionsToSave))
-      console.log('Excepciones guardadas en localStorage:', Object.keys(exceptionsToSave).length, 'semanas')
     } else {
       localStorage.removeItem('hiddenFixedSchedules')
-      console.log('Excepciones eliminadas de localStorage')
     }
   }, [hiddenFixedSchedules])
 
   // Función para debuggear clases programadas
   const debugScheduledClasses = () => {
-    console.log('=== DEBUG SCHEDULED CLASSES ===')
-    console.log('Scheduled classes state:', scheduledClasses)
-    console.log('Week dates:', getWeekDates())
-    
-    console.log('--- CLASES EN ESTADO DEL COMPONENTE ---')
-    scheduledClasses.forEach((cls: any, index: number) => {
-      console.log(`Class ${index + 1}:`, {
-        id: cls.id,
-        student_name: cls.student_name,
-        date: cls.date,
-        day_of_week: cls.day_of_week,
-        start_time: cls.start_time,
-        end_time: cls.end_time,
-        is_recurring: cls.is_recurring
-      })
-    })
-    
-    console.log('--- CLASES EN LOCALSTORAGE (DEBUG) ---')
-    const debugClasses = JSON.parse(localStorage.getItem('debugClasses') || '[]')
-    debugClasses.forEach((cls: any, index: number) => {
-      console.log(`Debug Class ${index + 1}:`, {
-        id: cls.id,
-        student_id: cls.student_id,
-        date: cls.date,
-        day_of_week: cls.day_of_week,
-        start_time: cls.start_time,
-        end_time: cls.end_time,
-        is_recurring: cls.is_recurring,
-        created_at: cls.created_at
-      })
-    })
+    // Debug function - logs removed for production
   }
 
   // Fetch data from API routes
@@ -169,7 +136,6 @@ const CalendarPage = () => {
       newWeek.setDate(prev.getDate() - 7)
       return newWeek
     })
-    console.log('Cambio a semana anterior')
   }
 
   const goToNextWeek = () => {
@@ -178,24 +144,17 @@ const CalendarPage = () => {
       newWeek.setDate(prev.getDate() + 7)
       return newWeek
     })
-    console.log('Cambio a semana siguiente')
   }
 
   const goToToday = () => {
     setCurrentWeek(new Date())
-    console.log('Ir a hoy')
   }
 
   const restoreAllFixedSchedules = () => {
-    console.log('=== RESTAURAR HORARIOS FIJOS ===')
     const currentWeekKey = getCurrentWeekKey(currentWeek)
     const currentWeekExceptions = hiddenFixedSchedules[currentWeekKey] || new Set()
     
-    console.log('Horarios fijos ocultos en esta semana:', currentWeekExceptions.size)
-    console.log('Lista de horarios ocultos en esta semana:', Array.from(currentWeekExceptions))
-    
     if (currentWeekExceptions.size === 0) {
-      console.log('No hay horarios fijos ocultos en esta semana para restaurar')
       toast.info('No hay horarios fijos ocultos en esta semana para restaurar')
       return
     }
@@ -208,9 +167,6 @@ const CalendarPage = () => {
       delete newExceptions[currentWeekKey]
       return newExceptions
     })
-    
-    console.log('Horarios fijos ocultos en esta semana después: 0')
-    console.log('=== RESTAURACIÓN COMPLETADA ===')
     
     toast.success(`Restaurados ${countToRestore} horarios fijos de esta semana`)
   }
@@ -290,7 +246,6 @@ const CalendarPage = () => {
 
   const handleAddClass = async (newClass: any) => {
     try {
-      // console.log('Creando nueva clase:', newClass)
       
       const response = await fetch('/api/classes', {
         method: 'POST',
@@ -308,7 +263,6 @@ const CalendarPage = () => {
         const classesResponse = await fetch('/api/classes')
         if (classesResponse.ok) {
           const classesData = await classesResponse.json()
-          // console.log('Clases actualizadas desde BD:', classesData.length)
           setScheduledClasses(classesData)
         }
         toast.success('Clase programada agregada correctamente')
@@ -338,7 +292,6 @@ const CalendarPage = () => {
         throw new Error('No se pudo encontrar el curso del estudiante')
       }
       
-      // console.log('Actualizando clase:', updatedClass)
       
       const response = await fetch('/api/classes', {
         method: 'PUT',
@@ -353,7 +306,6 @@ const CalendarPage = () => {
         const classesResponse = await fetch('/api/classes')
         if (classesResponse.ok) {
           const classesData = await classesResponse.json()
-          // console.log('Clases actualizadas desde BD:', classesData.length)
           setScheduledClasses(classesData)
         }
         
@@ -384,7 +336,6 @@ const CalendarPage = () => {
 
     setIsDeleting(true)
     try {
-      // console.log('Eliminando clase:', selectedClass)
       
       // SIMPLIFICADO: Todas las clases tienen un ID y se eliminan directamente de la BD
       const response = await fetch(`/api/classes?ids=${selectedClass.id}`, {
@@ -392,13 +343,11 @@ const CalendarPage = () => {
       })
 
       if (response.ok) {
-        // console.log('Clase eliminada exitosamente, actualizando lista...')
         
         // Refresh classes - obtener todas las clases actualizadas de la BD
         const classesResponse = await fetch('/api/classes')
         if (classesResponse.ok) {
           const classesData = await classesResponse.json()
-          // console.log('Clases actualizadas desde BD:', classesData.length)
           setScheduledClasses(classesData)
         }
         

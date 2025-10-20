@@ -21,7 +21,8 @@ import {
   User,
   Monitor,
   ExternalLink,
-  FileText
+  FileText,
+  RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DiagonalBoxLoader } from '@/components/ui/DiagonalBoxLoader'
@@ -108,6 +109,7 @@ const StudentsPage = () => {
   const [isLoadingExams, setIsLoadingExams] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCourse, setFilterCourse] = useState('')
+  const [isRefreshingAll, setIsRefreshingAll] = useState(false)
 
   // Fetch data from database
   const fetchData = async () => {
@@ -125,7 +127,6 @@ const StudentsPage = () => {
       const coursesResponse = await fetch('/api/courses')
       if (coursesResponse.ok) {
         const coursesData = await coursesResponse.json()
-        console.log('Courses loaded:', coursesData)
         setCourses(coursesData)
       } else {
         console.error('Error loading courses:', coursesResponse.status, coursesResponse.statusText)
@@ -181,7 +182,6 @@ const StudentsPage = () => {
         digital_board_link: studentData.digital_board_link
       }
       
-      console.log('Sending student data:', requestData)
       
       const response = await fetch('/api/students', {
         method: 'POST',
@@ -305,6 +305,203 @@ const StudentsPage = () => {
     }
   }
 
+  // Función "tonta pero hipereficaz" para refrescar todos los alumnos
+  const handleRefreshAllStudents = async () => {
+    
+    // 1. VALIDACIÓN PREVIA - Verificar que hay estudiantes válidos
+    const validStudents = students.filter(student => {
+      try {
+        // Verificar que tenga start_date y course_id
+        if (!student.start_date || !student.course_id) {
+          return false
+        }
+
+        // Verificar que tenga fixed_schedule válido
+        if (!student.fixed_schedule) {
+          return false
+        }
+
+        // Verificar que el fixed_schedule sea un JSON válido
+        const schedule = typeof student.fixed_schedule === 'string' 
+          ? JSON.parse(student.fixed_schedule) 
+          : student.fixed_schedule
+
+        if (!Array.isArray(schedule) || schedule.length === 0) {
+          return false
+        }
+
+        // Verificar que cada slot del horario tenga los campos necesarios
+        for (const slot of schedule) {
+          if (!slot.day_of_week || !slot.start_time || !slot.end_time) {
+            return false
+          }
+        }
+
+        return true
+      } catch (error) {
+        return false
+      }
+    })
+
+    if (validStudents.length === 0) {
+      toast.error('No hay estudiantes con horarios válidos para refrescar')
+      return
+    }
+
+    // 2. CONFIRMACIÓN MANUAL
+    if (!confirm(`¿Refrescar ${validStudents.length} estudiantes? Esto regenerará sus clases automáticamente.`)) {
+      return
+    }
+
+    setIsRefreshingAll(true)
+    let successCount = 0
+    let errorCount = 0
+    const errors: string[] = []
+
+    try {
+
+      // 3. PROCESAMIENTO SEGURO - Uno por uno para evitar sobrecarga
+      for (let i = 0; i < validStudents.length; i++) {
+        const student = validStudents[i]
+        
+        try {
+          
+          // Simular cambio mínimo en fixed_schedule para disparar regeneración
+          const originalSchedule = student.fixed_schedule
+          // Crear un objeto temporal válido que cumpla con la validación de la API
+          const tempObject = {
+            day_of_week: 0, // Domingo (formato 0-6)
+            start_time: "00:00",
+            end_time: "00:01",
+            subject: "temp_trigger",
+            course_id: "temp",
+            course_name: "temp",
+            price: 0
+          }
+          const modifiedSchedule = originalSchedule?.replace(']', `,${JSON.stringify(tempObject)}]`) || `[${JSON.stringify(tempObject)}]`
+          
+          // Convertir a array de objetos - la API espera arrays, no strings
+          const originalScheduleArray = typeof originalSchedule === 'string' 
+            ? JSON.parse(originalSchedule) 
+            : originalSchedule
+          const modifiedScheduleArray = JSON.parse(modifiedSchedule)
+          
+          
+          // Primera actualización: dispara la regeneración de clases
+          const response1 = await fetch(`/api/students/${student.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              first_name: student.first_name,
+              last_name: student.last_name,
+              email: student.email,
+              birth_date: student.birth_date,
+              phone: student.phone,
+              parent_phone: student.parent_phone,
+              parent_contact_type: student.parent_contact_type,
+              course_id: student.course_id,
+              student_code: student.student_code,
+              fixed_schedule: modifiedScheduleArray, // Horario modificado
+              start_date: student.start_date,
+              has_shared_pricing: student.has_shared_pricing,
+              // Campos fiscales
+              dni: student.dni,
+              nif: student.nif,
+              address: student.address,
+              postal_code: student.postal_code,
+              city: student.city,
+              province: student.province,
+              country: student.country,
+              // Campos del receptor
+              receptor_nombre: student.receptor_nombre,
+              receptor_apellidos: student.receptor_apellidos,
+              receptor_email: student.receptor_email,
+              // Enlace a pizarra digital
+              digital_board_link: student.digital_board_link
+            }),
+          })
+
+          if (!response1.ok) {
+            const errorText = await response1.text()
+            throw new Error(`Error en primera actualización: ${response1.status} - ${errorText}`)
+          }
+
+          // Pequeña pausa para que se procese la regeneración
+          await new Promise(resolve => setTimeout(resolve, 200))
+
+          // Segunda actualización: restaura el horario original
+          const response2 = await fetch(`/api/students/${student.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              first_name: student.first_name,
+              last_name: student.last_name,
+              email: student.email,
+              birth_date: student.birth_date,
+              phone: student.phone,
+              parent_phone: student.parent_phone,
+              parent_contact_type: student.parent_contact_type,
+              course_id: student.course_id,
+              student_code: student.student_code,
+              fixed_schedule: originalScheduleArray, // Horario original restaurado
+              start_date: student.start_date,
+              has_shared_pricing: student.has_shared_pricing,
+              // Campos fiscales
+              dni: student.dni,
+              nif: student.nif,
+              address: student.address,
+              postal_code: student.postal_code,
+              city: student.city,
+              province: student.province,
+              country: student.country,
+              // Campos del receptor
+              receptor_nombre: student.receptor_nombre,
+              receptor_apellidos: student.receptor_apellidos,
+              receptor_email: student.receptor_email,
+              // Enlace a pizarra digital
+              digital_board_link: student.digital_board_link
+            }),
+          })
+
+          if (!response2.ok) {
+            throw new Error(`Error en segunda actualización: ${response2.status}`)
+          }
+
+          successCount++
+
+          // Pausa entre estudiantes para no sobrecargar el servidor
+          await new Promise(resolve => setTimeout(resolve, 100))
+
+        } catch (error) {
+          errorCount++
+          const errorMsg = `Error con ${student.first_name} ${student.last_name}: ${error instanceof Error ? error.message : 'Error desconocido'}`
+          errors.push(errorMsg)
+        }
+      }
+
+      // 4. MOSTRAR RESULTADOS
+      if (errorCount === 0) {
+        toast.success(`🎉 ¡Refresh completado! ${successCount} estudiantes procesados correctamente`)
+      } else {
+        toast.warning(`⚠️ Refresh completado con errores: ${successCount} exitosos, ${errorCount} errores`)
+      }
+
+      // 5. REFRESCAR DATOS
+      await fetchData()
+
+    } catch (error) {
+      console.error('Error crítico en refresh masivo:', error)
+      toast.error('Error crítico durante el refresh masivo')
+    } finally {
+      setIsRefreshingAll(false)
+    }
+  }
+
+
   // Filter students
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -344,13 +541,27 @@ const StudentsPage = () => {
             <Users size={32} className="mr-3 text-primary" />
             Gestión de Alumnos
           </h1>
-          <Button 
-            onClick={() => setIsAddModalOpen(true)} 
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center"
-          >
-            <Plus size={20} className="mr-2" />
-            Añadir Alumno
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleRefreshAllStudents} 
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white flex items-center"
+              disabled={isRefreshingAll}
+            >
+              {isRefreshingAll ? (
+                <Loader2 size={20} className="mr-2 animate-spin" />
+              ) : (
+                <RefreshCw size={20} className="mr-2" />
+              )}
+              {isRefreshingAll ? 'Refrescando...' : 'Refresh Todos'}
+            </Button>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)} 
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center"
+            >
+              <Plus size={20} className="mr-2" />
+              Añadir Alumno
+            </Button>
+          </div>
         </div>
 
         {/* Statistics */}
@@ -494,7 +705,6 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
         // Calculate monthly income: weekly hours * course price * 4 weeks
         const monthlyIncome = weeklyHours * pricePerHour * 4
         
-        console.log(`Fixed schedule calculation for ${student.first_name}: ${weeklyHours}h/week × €${pricePerHour} × 4 weeks = €${monthlyIncome}`)
         
         return monthlyIncome
       }
@@ -524,7 +734,6 @@ const calculateStudentMonthlyIncome = (student: Student, allClasses: any[]) => {
   // (pricePerHour was already defined at the start of the function)
   const monthlyIncome = weeklyHours * pricePerHour * 4
   
-  console.log(`Class-based calculation for ${student.first_name}: ${weeklyHours}h/week × €${pricePerHour} × 4 weeks = €${monthlyIncome}`)
   
   return monthlyIncome
 }
@@ -748,9 +957,6 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('Form submission - formData:', formData)
-    console.log('Form submission - selectedSchedule:', selectedSchedule)
-    console.log('Form submission - studentCode:', studentCode)
     
     if (!formData.courseId) {
       toast.error('Debes seleccionar un curso')
@@ -787,7 +993,6 @@ const AddStudentModal = ({ isOpen, onClose, onSave, courses, allClasses }: AddSt
       schedule: selectedSchedule
     }
     
-    console.log('Form submission - studentData:', studentData)
     onSave(studentData)
   }
 
@@ -1290,13 +1495,10 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
   useEffect(() => {
     const loadStudentSchedule = async () => {
       try {
-        console.log('Loading schedule for student:', student.id)
         const response = await fetch(`/api/students/${student.id}/schedule`)
-        console.log('Schedule response status:', response.status)
         
         if (response.ok) {
           const scheduleData = await response.json()
-          console.log('Schedule data received:', scheduleData)
           
           // Convertir los horarios fijos a formato editable con course_id como string
           const editableSchedule = scheduleData.map((slot: any) => ({
@@ -1306,7 +1508,6 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
           }))
           
           setSelectedSchedule(editableSchedule)
-          console.log('Editable schedule set:', editableSchedule)
         } else {
           const errorText = await response.text()
           console.error('Schedule response error:', errorText)
@@ -1325,7 +1526,6 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
               }))
               
               setSelectedSchedule(editableSchedule)
-              console.log('Fallback schedule loaded from fixed_schedule:', editableSchedule)
             } catch (fallbackError) {
               console.error('Error parsing fallback fixed_schedule:', fallbackError)
               setSelectedSchedule([])
@@ -1351,7 +1551,6 @@ const ViewEditStudentModal = ({ isOpen, onClose, onSave, student, courses, allCl
             }))
             
             setSelectedSchedule(editableSchedule)
-            console.log('Final fallback schedule loaded:', editableSchedule)
           } catch (fallbackError) {
             console.error('Error in final fallback:', fallbackError)
             setSelectedSchedule([])

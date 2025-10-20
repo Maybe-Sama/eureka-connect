@@ -47,6 +47,7 @@ export default function StudentCalendarPage() {
   const [fixedScheduleNext7Days, setFixedScheduleNext7Days] = useState<FixedSchedule[]>([])
   const [exams, setExams] = useState<Exam[]>([])
   const [examsNext7Days, setExamsNext7Days] = useState<Exam[]>([])
+  const [cancelledClasses, setCancelledClasses] = useState<ClassData[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showExamManager, setShowExamManager] = useState(false)
@@ -105,15 +106,10 @@ export default function StudentCalendarPage() {
       
       const classesData = await classesResponse.json()
       
-      console.log('=== DEBUG API DATA (Student Calendar) ===')
-      console.log('Total classes from API:', classesData.length)
-      
       // Filtrar solo las clases programadas (no fijas) del estudiante actual
       const studentScheduledClasses = classesData.filter((cls: any) => 
         cls.student_id === user?.studentId && !cls.is_recurring
       )
-      
-      console.log('Scheduled classes for student ID', user?.studentId, ':', studentScheduledClasses.length, studentScheduledClasses)
       
       // Filtrar por mes actual
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -123,8 +119,6 @@ export default function StudentCalendarPage() {
         const classDate = new Date(cls.date)
         return classDate >= startOfMonth && classDate <= endOfMonth
       })
-      
-      console.log('Scheduled classes this month:', scheduledClassesThisMonth.length, scheduledClassesThisMonth)
       
       // Solo establecer las clases programadas (las fijas se manejan desde fixed_schedule)
       setScheduledClasses(scheduledClassesThisMonth)
@@ -138,8 +132,19 @@ export default function StudentCalendarPage() {
         return classDate >= today && classDate <= next7Days
       })
       
-      console.log('Scheduled classes next 7 days:', scheduledClassesNext7Days.length, scheduledClassesNext7Days)
       setScheduledClassesNext7Days(scheduledClassesNext7Days)
+
+      // Cargar clases canceladas del mes actual (incluyendo horario fijo)
+      const cancelledClassesThisMonth = classesData.filter((cls: any) => 
+        cls.student_id === user?.studentId && 
+        cls.status === 'cancelled' &&
+        cls.is_recurring === true // Solo clases del horario fijo
+      ).filter((cls: any) => {
+        const classDate = new Date(cls.date)
+        return classDate >= startOfMonth && classDate <= endOfMonth
+      })
+      
+      setCancelledClasses(cancelledClassesThisMonth)
 
       // Cargar horario fijo
       const { data: student, error: studentError } = await supabase
@@ -169,7 +174,6 @@ export default function StudentCalendarPage() {
             return false
           })
           
-          console.log('Fixed schedule next 7 days:', fixedScheduleNext7Days.length, fixedScheduleNext7Days)
           setFixedScheduleNext7Days(fixedScheduleNext7Days)
         } catch (e) {
           console.error('Error parsing fixed_schedule:', e)
@@ -197,7 +201,6 @@ export default function StudentCalendarPage() {
           return examDate >= today && examDate <= next7Days
         })
         
-        console.log('Exams next 7 days:', examsNext7Days.length, examsNext7Days)
         setExamsNext7Days(examsNext7Days)
       }
     } catch (error) {
@@ -222,13 +225,6 @@ export default function StudentCalendarPage() {
     
     const filteredClasses = scheduledClasses.filter(cls => cls.date === dateStr)
     
-    // Debug para fechas específicas
-    if (filteredClasses.length > 0) {
-      console.log(`=== DEBUG SCHEDULED CLASSES FOR ${dateStr} ===`)
-      console.log('Date string:', dateStr)
-      console.log('All scheduled classes:', scheduledClasses)
-      console.log('Filtered classes for date:', filteredClasses)
-    }
     
     return filteredClasses
   }
@@ -247,6 +243,22 @@ export default function StudentCalendarPage() {
     // El horario fijo usa el mismo formato que JavaScript: domingo=0, lunes=1, ..., sábado=6
     // No necesitamos conversión, solo comparar directamente
     return fixedSchedule.filter(schedule => schedule.day_of_week === dayOfWeek)
+  }
+
+  // Función para verificar si una clase del horario fijo está cancelada
+  const isClassCancelled = (date: Date, startTime: string) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    
+    // Normalizar el tiempo para comparación (quitar segundos si los tiene)
+    const normalizedStartTime = startTime.includes(':') ? startTime.substring(0, 5) : startTime
+    
+    return cancelledClasses.some(cls => {
+      const clsStartTime = cls.start_time.includes(':') ? cls.start_time.substring(0, 5) : cls.start_time
+      return cls.date === dateStr && clsStartTime === normalizedStartTime
+    })
   }
 
   const getDaysInMonth = () => {
@@ -461,31 +473,37 @@ export default function StudentCalendarPage() {
                     ))}
                     
                     {/* Mostrar horario fijo - versión móvil y desktop */}
-                    {fixedScheduleForDay.slice(0, 1).map((schedule, index) => (
-                      <div key={`schedule-container-${index}`}>
-                        {/* Versión móvil - punto más pequeño */}
-                        <div
-                          className="flex sm:hidden items-center justify-center"
-                          title={`Horario: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
-                        >
-                          <div 
-                            className="w-1.5 h-1.5 rounded-full shadow-sm"
-                            style={{ backgroundColor: customColors.schedule }}
-                          ></div>
+                    {fixedScheduleForDay.slice(0, 1).map((schedule, index) => {
+                      const isCancelled = isClassCancelled(day, schedule.start_time)
+                      
+                      return (
+                        <div key={`schedule-container-${index}`}>
+                          {/* Versión móvil - punto más pequeño */}
+                          <div
+                            className="flex sm:hidden items-center justify-center"
+                            title={isCancelled ? `Cancelada: ${schedule.subject} - ${formatTime(schedule.start_time)}` : `Horario: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
+                          >
+                            <div 
+                              className="w-1.5 h-1.5 rounded-full shadow-sm"
+                              style={{ backgroundColor: isCancelled ? '#ef4444' : customColors.schedule }}
+                            ></div>
+                          </div>
+                          {/* Versión desktop - cartel completo */}
+                          <div
+                            className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border w-full max-w-full"
+                            style={{ 
+                              backgroundColor: isCancelled ? '#ef4444' : customColors.schedule,
+                              borderColor: isCancelled ? '#ef4444' : customColors.schedule
+                            }}
+                            title={isCancelled ? `Cancelada: ${schedule.subject} - ${formatTime(schedule.start_time)}` : `Horario fijo: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
+                          >
+                            <span className="text-xs font-medium truncate w-full">
+                              {isCancelled ? 'Cancelada' : formatTime(schedule.start_time)}
+                            </span>
+                          </div>
                         </div>
-                        {/* Versión desktop - cartel completo */}
-                        <div
-                          className="hidden sm:flex items-center px-1 sm:px-2 lg:px-3 py-0.5 sm:py-1 lg:py-2 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm transition-all duration-200 hover:scale-105 text-white border w-full max-w-full"
-                          style={{ 
-                            backgroundColor: customColors.schedule,
-                            borderColor: customColors.schedule
-                          }}
-                          title={`Horario fijo: ${schedule.subject} - ${formatTime(schedule.start_time)}`}
-                        >
-                          <span className="text-xs font-medium truncate w-full">{formatTime(schedule.start_time)}</span>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                     
                     {/* Contador de actividades adicionales */}
                     {hasAnyActivity && (scheduledClassesForDay.length + examsForDay.length + fixedScheduleForDay.length) > 3 && (
@@ -592,27 +610,55 @@ export default function StudentCalendarPage() {
               </h2>
               <div className="space-y-2 sm:space-y-3 lg:space-y-4">
                 {/* Horario Fijo */}
-                {fixedScheduleNext7Days.map((schedule, index) => (
-                  <div
-                    key={`fixed-${index}`}
-                    className="group p-3 sm:p-4 lg:p-5 bg-gradient-to-r from-student-primary/5 to-student-primary/10 rounded-xl sm:rounded-2xl border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-                  >
-                    <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
-                      <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
-                        {daysOfWeek[schedule.day_of_week - 1]}
-                      </span>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-blue-200">
-                        Fijo
-                      </span>
-                    </div>
-                    <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
-                      <div className="p-1 sm:p-1.5 bg-primary/20 rounded-md sm:rounded-lg mr-2 sm:mr-3">
-                        <Clock size={12} className="text-primary" />
+                {fixedScheduleNext7Days.map((schedule, index) => {
+                  // Verificar si esta clase está cancelada en los próximos 7 días
+                  const today = new Date()
+                  const next7Days = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+                  let isCancelled = false
+                  
+                  // Buscar si hay una clase cancelada para este horario en los próximos 7 días
+                  for (let i = 0; i < 7; i++) {
+                    const checkDate = new Date(today.getTime() + i * 24 * 60 * 60 * 1000)
+                    if (checkDate.getDay() === schedule.day_of_week) {
+                      isCancelled = isClassCancelled(checkDate, schedule.start_time)
+                      break
+                    }
+                  }
+                  
+                  return (
+                    <div
+                      key={`fixed-${index}`}
+                      className={`group p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${
+                        isCancelled 
+                          ? 'bg-gradient-to-r from-red-50 to-red-100 border-red-200 hover:border-red-300 hover:shadow-lg' 
+                          : 'bg-gradient-to-r from-student-primary/5 to-student-primary/10 border-primary/20 hover:border-primary/40 hover:shadow-lg'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
+                        <span className="text-xs sm:text-sm lg:text-base font-bold text-foreground">
+                          {daysOfWeek[schedule.day_of_week - 1]}
+                        </span>
+                        <span className={`text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border ${
+                          isCancelled 
+                            ? 'bg-red-100 text-red-800 border-red-200' 
+                            : 'bg-blue-100 text-blue-800 border-blue-200'
+                        }`}>
+                          {isCancelled ? 'Cancelada' : 'Fijo'}
+                        </span>
                       </div>
-                      <span className="font-semibold">{formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
+                      <div className="flex items-center text-xs sm:text-sm lg:text-base text-foreground-secondary">
+                        <div className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg mr-2 sm:mr-3 ${
+                          isCancelled ? 'bg-red-200' : 'bg-primary/20'
+                        }`}>
+                          <Clock size={12} className={isCancelled ? 'text-red-600' : 'text-primary'} />
+                        </div>
+                        <span className="font-semibold">
+                          {isCancelled ? 'Cancelada' : `${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
                 
                 {/* Clases Programadas/Eventuales */}
                 {scheduledClassesNext7Days.slice(0, 5).map((cls) => (
