@@ -1,6 +1,6 @@
 # Class Tracking Scripts
 
-This directory contains diagnostic and correction scripts for the class tracking system. These scripts are essential for maintaining data integrity and ensuring the system functions correctly.
+This directory contains essential diagnostic and correction scripts for the class tracking system. These scripts are used for maintaining data integrity and ensuring the system functions correctly.
 
 ## 📋 Available Scripts
 
@@ -23,14 +23,6 @@ node scripts/diagnose-class-tracking-issues.js
 
 **Output**: Detailed report of system health and identified issues
 
-#### `diagnose-simple-require.js`
-**Purpose**: Simplified diagnostic for basic issues
-
-**Usage**:
-```bash
-node scripts/diagnose-simple-require.js
-```
-
 ### 🔧 **Correction Scripts**
 
 #### `fix-class-tracking-issues.js`
@@ -50,31 +42,23 @@ node scripts/fix-class-tracking-issues.js
 
 **Output**: Detailed report of corrections made
 
-#### `fix-simple-require.js`
-**Purpose**: Simplified correction for basic issues
+### ⏰ **Scheduling Scripts**
+
+#### `weekly-class-generation.js`
+**Purpose**: Generates classes for the upcoming week
+
+**What it does**:
+- ✅ Generates classes for all active students
+- ✅ Handles weekly schedule generation
+- ✅ Prevents duplicate classes
+- ✅ Comprehensive logging
 
 **Usage**:
 ```bash
-node scripts/fix-simple-require.js
+node scripts/weekly-class-generation.js
 ```
 
-### 🧪 **Test Scripts**
-
-#### `test-class-tracking-fix.js`
-**Purpose**: Test the correction functionality
-
-**Usage**:
-```bash
-node scripts/test-class-tracking-fix.js
-```
-
-#### `test-fixed-schedules-comprehensive.js`
-**Purpose**: Comprehensive testing of fixed schedules
-
-**Usage**:
-```bash
-node scripts/test-fixed-schedules-comprehensive.js
-```
+**Output**: Report of classes generated for the week
 
 ## 🚀 **Quick Start**
 
@@ -90,7 +74,13 @@ node scripts/diagnose-class-tracking-issues.js
 node scripts/fix-class-tracking-issues.js
 ```
 
-### **3. Verify Fixes**
+### **3. Generate Weekly Classes**
+```bash
+# Generate classes for upcoming week
+node scripts/weekly-class-generation.js
+```
+
+### **4. Verify Fixes**
 ```bash
 # Run diagnostic again to verify
 node scripts/diagnose-class-tracking-issues.js
@@ -161,6 +151,10 @@ else
     echo "✅ No issues found, system is healthy"
 fi
 
+# Generate weekly classes
+echo "📅 Generating weekly classes..."
+node scripts/weekly-class-generation.js > weekly-generation.log 2>&1
+
 echo "🎉 Weekly maintenance completed"
 ```
 
@@ -174,6 +168,9 @@ crontab -e
 
 # If issues found, run correction (every Monday at 2:30 AM)
 30 2 * * 1 cd /path/to/your/project && node scripts/fix-class-tracking-issues.js >> /var/log/class-correction.log 2>&1
+
+# Generate weekly classes (every Sunday at 11:00 PM)
+0 23 * * 0 cd /path/to/your/project && node scripts/weekly-class-generation.js >> /var/log/weekly-generation.log 2>&1
 ```
 
 ## 🛠️ **Troubleshooting**
@@ -195,7 +192,8 @@ chmod +x scripts/*.js
 #### **Database Connection Issues**
 ```bash
 # Check environment variables
-echo $DATABASE_URL
+echo $NEXT_PUBLIC_SUPABASE_URL
+echo $NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Test database connection
 node -e "console.log(require('./lib/database.js'))"
@@ -250,8 +248,9 @@ node --max-old-space-size=4096 scripts/diagnose-class-tracking-issues.js
 
 ### **Environment Variables**
 ```bash
-# Database configuration
-export DATABASE_URL="your-database-url"
+# Supabase configuration
+export NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
+export NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 
 # Logging configuration
 export LOG_LEVEL="info"
@@ -259,25 +258,6 @@ export LOG_FILE="/var/log/class-tracking.log"
 
 # Performance configuration
 export NODE_OPTIONS="--max-old-space-size=4096"
-```
-
-### **Script Configuration**
-```javascript
-// scripts/config.js
-module.exports = {
-  database: {
-    url: process.env.DATABASE_URL,
-    timeout: 30000
-  },
-  logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    file: process.env.LOG_FILE || './logs/class-tracking.log'
-  },
-  performance: {
-    maxMemory: '4GB',
-    timeout: 300000 // 5 minutes
-  }
-}
 ```
 
 ## 📚 **Documentation**
@@ -335,6 +315,19 @@ When reporting issues, include:
 
 ---
 
-**Last Updated**: 2024-01-15
-**Version**: 1.0.0
+**Last Updated**: 2025-01-20
+**Version**: 2.0.0
 **Maintainer**: System Administrator
+
+## 🗑️ **Removed Scripts**
+
+The following scripts have been removed as they are no longer needed:
+- All `test-*` scripts (development testing)
+- All `debug-*` scripts (debugging purposes)
+- All `migrate-*` scripts (one-time migrations completed)
+- All `carmen-*` scripts (specific test data)
+- `fix-shared-pricing-classes.js` (caused price rounding issues)
+- `diagnose-shared-pricing.js` (related to removed script)
+- Various utility scripts that are no longer relevant
+
+Only essential production scripts remain for system maintenance.
