@@ -13,7 +13,8 @@
   },
   "build": {
     "env": {
-      "NODE_OPTIONS": "--max-old-space-size=4096"
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "PNPM_APPROVED_BUILDS": "sqlite3,better-sqlite3,core-js,unrs-resolver"
     }
   }
 }
