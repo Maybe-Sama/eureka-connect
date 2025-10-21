@@ -2,7 +2,7 @@
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm install --unsafe-perm --ignore-scripts=false",
+  "installCommand": "pnpm install --unsafe-perm --ignore-scripts=false --no-frozen-lockfile",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
