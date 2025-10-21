@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         status: '✅ OK',
         hashWorks: true,
         verifyWorks: isValid,
-        version: require('bcryptjs/package.json').version
+        version: '3.0.2' // Versión fija para evitar error de package.json
       }
     } catch (error: any) {
       results.tests.bcryptjs = {
