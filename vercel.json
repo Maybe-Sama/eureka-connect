@@ -2,7 +2,7 @@
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --unsafe-perm",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
@@ -10,5 +10,10 @@
   },
   "env": {
     "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=4096"
+    }
   }
 }
