@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-server'
 import { validateSession } from '@/lib/auth-complex'
 
 export async function GET(request: NextRequest) {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Obtener exámenes del estudiante ordenados por fecha
-    const { data: exams, error: examsError } = await supabase
+    const { data: exams, error: examsError } = await supabaseAdmin
       .from('exams')
       .select('*')
       .eq('student_id', authResult.user.studentId)
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear el examen
-    const { data: exam, error: examError } = await supabase
+    const { data: exam, error: examError } = await supabaseAdmin
       .from('exams')
       .insert({
         student_id: authResult.user.studentId,

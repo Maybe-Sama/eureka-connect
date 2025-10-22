@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-server'
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +13,7 @@ export async function GET(
     }
 
     // Obtener exámenes del estudiante ordenados por fecha
-    const { data: exams, error: examsError } = await supabase
+    const { data: exams, error: examsError } = await supabaseAdmin
       .from('exams')
       .select('*')
       .eq('student_id', studentId)
