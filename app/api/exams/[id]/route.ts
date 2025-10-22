@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-server'
 import { validateSession } from '@/lib/auth-complex'
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Verificar que el examen pertenece al estudiante
-    const { data: existingExam, error: fetchError } = await supabase
+    const { data: existingExam, error: fetchError } = await supabaseAdmin
       .from('exams')
       .select('id, student_id')
       .eq('id', params.id)
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Actualizar el examen
-    const { data: exam, error: examError } = await supabase
+    const { data: exam, error: examError } = await supabaseAdmin
       .from('exams')
       .update({
         subject,
@@ -94,7 +94,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Verificar que el examen pertenece al estudiante
-    const { data: existingExam, error: fetchError } = await supabase
+    const { data: existingExam, error: fetchError } = await supabaseAdmin
       .from('exams')
       .select('id, student_id')
       .eq('id', params.id)
@@ -109,7 +109,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Eliminar el examen
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabaseAdmin
       .from('exams')
       .delete()
       .eq('id', params.id)
