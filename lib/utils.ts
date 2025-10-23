@@ -7,17 +7,20 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Genera un código único para un estudiante
- * Formato: EUREKA-YYYY-XXXX donde XXXX es un número aleatorio de 4 dígitos
+ * Formato: 16 dígitos numéricos (XXXX-XXXX-XXXX-XXXX)
  */
 export function generateStudentCode(): string {
-  const year = new Date().getFullYear()
-  const randomNum = Math.floor(Math.random() * 9000) + 1000 // 1000-9999
-  return `EUREKA-${year}-${randomNum}`
+  // Generar 16 dígitos aleatorios
+  let code = ''
+  for (let i = 0; i < 16; i++) {
+    code += Math.floor(Math.random() * 10)
+  }
+  return code
 }
 
 /**
  * Formatea el código del estudiante para mostrar
- * Aplica formato de monospace y separa con guiones
+ * Aplica formato de monospace y separa con guiones cada 4 dígitos
  */
 export function formatStudentCode(code: string | null | undefined): string {
   if (!code) return 'Sin código'
@@ -25,7 +28,12 @@ export function formatStudentCode(code: string | null | undefined): string {
   // Remove any existing hyphens and spaces
   const cleanCode = code.replace(/[-\s]/g, '')
   
-  // Add hyphens every 4 digits
+  // For 16-digit codes, add hyphens every 4 digits
+  if (cleanCode.length === 16) {
+    return cleanCode.replace(/(.{4})/g, '$1-').replace(/-$/, '')
+  }
+  
+  // For other formats, add hyphens every 4 characters
   return cleanCode.replace(/(.{4})/g, '$1-').replace(/-$/, '')
 }
 
